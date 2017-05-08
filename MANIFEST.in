@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include shei *.css
+recursive-include shei *.csv
+recursive-include shei *.html
+recursive-include shei *.ico
+recursive-include shei *.js
+recursive-include shei *.json
+recursive-include shei *.md
+recursive-include shei *.png
+recursive-include shei *.py
+recursive-include shei *.svg
+recursive-include shei *.txt
+recursive-exclude shei *.pyc
