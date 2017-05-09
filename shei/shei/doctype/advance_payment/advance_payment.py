@@ -16,7 +16,7 @@ class AdvancePayment(Document):
 		frappe.db.set_value("Advance Payment", self.name, "journal_entry", "")
 		for i in self.get('items_advances'):
                         frappe.db.set_value("Sales Invoice", i.sales_invoice, "has_been_use_for_advance_payment", False)
-			frappe.msgprint("has been use for")
+			#frappe.msgprint("has been use for")
 
 	def on_submit(self):
 		multi_currency = True
@@ -44,23 +44,20 @@ class AdvancePayment(Document):
 			frappe.db.set_value("Sales Invoice", i.sales_invoice, "has_been_use_for_advance_payment", True)
 			if si.conversion_rate == 1:
 				multi_currency = False
-
-			je.append("accounts", {
-				"account": si.debit_to,
-                                "balance": 0,
-                                "cost_center": "Main - SHI",
-                                "party_type": "Customer",
-                                "party": self.customer,
-                                "party_balance": 0,
-                                "account_currency": si.currency,
-				"exchange_rate": si.conversion_rate,
-				"debit_in_account_currency" : si.total,
-				"debit": si.base_total,
-				"credit_in_account_currency" : 0,
-				"credit" : 0,
-				"project" : self.project,
-				"is_advance" : "No"
-                        })
+			for it in si.get('items'):
+				je.append("accounts", {
+					"account": it.income_account,
+	                                "balance": 0,
+        	                        "cost_center": "Main - SHI",
+	                                "account_currency": si.currency,
+					"exchange_rate": si.conversion_rate,
+					"debit_in_account_currency" : it.base_net_amount,
+					"debit": it.net_amount,
+					"credit_in_account_currency" : 0,
+					"credit" : 0,
+					"project" : self.project,
+					"is_advance" : "No"
+                	        })
 			
 
 			je.append("accounts", {
@@ -98,8 +95,8 @@ class AdvancePayment(Document):
 			
 			je.multi_currency = multi_currency
 			je.save()
-			frappe.db.set_value("Advance Payment", self.name, "journal_entry", je.name)
-			je.submit()
+		frappe.db.set_value("Advance Payment", self.name, "journal_entry", je.name)
+		je.submit()
 
 	def import_advance_payment(self):
 		self.items_advances = []

@@ -24,3 +24,12 @@ frappe.ui.form.on("Advance Payment", "refresh", function(frm) {
             });
         }
 });
+
+frappe.ui.form.on("Advance Payment", "customer", function(frm, cdt, cdn) {
+	frm.set_query("project", "Advance Payment", function(cdt, cdn) {
+		var c_doc = locals[cdt][cdn];
+		return {
+		       "filters": ['customer', '=', c_doc.customer]
+		};
+	});
+});
