@@ -25,11 +25,23 @@ frappe.ui.form.on("Advance Payment", "refresh", function(frm) {
         }
 });
 
-frappe.ui.form.on("Advance Payment", "customer", function(frm, cdt, cdn) {
-	frm.set_query("project", "Advance Payment", function(cdt, cdn) {
-		var c_doc = locals[cdt][cdn];
-		return {
-		       "filters": ['customer', '=', c_doc.customer]
-		};
+frappe.ui.form.on("Advance Payment", "project", function(frm, cdt, cdn) {
+	frappe.call({
+		method: "shei.advance_payment.get_customer_from_project",
+		args:{
+			project: frm.doc.project,
+		},
+        	callback: function(r) {
+			frappe.model.set_value(cdt, cdn, "customer", r.message);
+        	}
 	});
 });
+
+//project name
+//--------------------------
+cur_frm.fields_dict['project'].get_query = function(doc, cdt, cdn) {
+	return{
+		query: "erpnext.controllers.queries.get_project_name",
+		filters: {'customer': doc.customer}
+	}
+}

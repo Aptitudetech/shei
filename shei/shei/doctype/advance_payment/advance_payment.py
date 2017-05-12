@@ -24,7 +24,7 @@ class AdvancePayment(Document):
 		json_update = {
                         "naming_series": "JV-",
                         "voucher_type": "Journal Entry",
-                        "posting_date": datetime.date.today(),
+                        "posting_date": self.posting_date,
                         "company": "SH Environnements Immersifs",
                         "user_remark": "Reversing advance payment to use in invoice",
                         "multi_currency" : 0,
@@ -41,6 +41,8 @@ class AdvancePayment(Document):
 		#On passe toutes les factures pour renverser les taxes et montants
 		for i in self.get('items_advances'):
 			si = frappe.get_doc("Sales Invoice", i.sales_invoice)
+			if si.status != "Paid":
+				frappe.msgprint("Warning Sales Invoice " + si.name + " has not been paid yet.")
 			frappe.db.set_value("Sales Invoice", i.sales_invoice, "has_been_use_for_advance_payment", True)
 			if si.conversion_rate == 1:
 				multi_currency = False
@@ -101,15 +103,21 @@ class AdvancePayment(Document):
 	def import_advance_payment(self):
 		self.items_advances = []
 		if self.project:
-			for si in frappe.get_list("Sales Invoice", fields=["name", "total", "grand_total"], filters={"is_for_advance_payment": True, "has_been_use_for_advance_payment": False, "docstatus": 1, "project": self.project}):
+			for si in frappe.get_list("Sales Invoice", fields=["name", "total", "grand_total", "status"], filters={"is_for_advance_payment": True, "has_been_use_for_advance_payment": False, "docstatus": 1, "project": self.project}):
+				if si.status != "Paid":
+	                                frappe.msgprint("Warning Sales Invoice " + si.name + " has not been paid yet.")
+				
 				self.append("items_advances", {
 					"sales_invoice": si.name,
 					"total_before_taxes": si.total,
 					"grand_total": si.grand_total
 				})
 		else:
-			for si in frappe.get_list("Sales Invoice", fields=["name", "total", "grand_total"], filters={"is_for_advance_payment": True, "has_been_use_for_advance_payment": False, "docstatus": 1, "customer": self.customer}):
-                                self.append("items_advances", {
+			for si in frappe.get_list("Sales Invoice", fields=["name", "total", "grand_total", "status"], filters={"is_for_advance_payment": True, "has_been_use_for_advance_payment": False, "docstatus": 1, "customer": self.customer}):
+                                if si.status != "Paid":
+	                                frappe.msgprint("Warning Sales Invoice " + si.name + " has not been paid yet.")
+				
+				self.append("items_advances", {
                                         "sales_invoice": si.name,
                                         "total_before_taxes": si.total,
                                         "grand_total": si.grand_total
