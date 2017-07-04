@@ -30,30 +30,15 @@ def get_cheque_series(account):
 		return " "
 
 @frappe.whitelist()
-def get_project_deposit(project_name):
-	pj = frappe.get_doc("Project", project_name)
-	if pj.customer_deposit_item:
-		to_remove = []
-		for i in pj.get('customer_deposit_item'):
-			to_remove.append(i)
-		[pj.remove(d) for d in to_remove]
-	for i in frappe.get_list("Customer Deposit", fields="name", filters={"project": project_name, "docstatus": 1}):
-		cd = frappe.get_doc("Customer Deposit", i.name)
-		for i in cd.get('customer_deposit_quotation'):
-			pj.append("customer_deposit_item", {
-                                "customer_deposit": cd.name,
-                                "customer_deposit_invoice": i.quotation,
-                                "net_total": i.total_before_taxes,
-                                "deposit_reception_date": cd.posting_date				
-			})
-	pj.save()
-#	return cd_list
+def get_project_adv_bill(project_name):
+	total = 0.0
+	for si in frappe.get_list("Sales Invoice", fields=["name", "net_total"], filters={"project": project_name, "docstatus": 1, "is_for_advance_payment": True}): 
+		total = si.net_total
+	return str(total)
 
 @frappe.whitelist()
 def get_project_adv_paid(project_name):
-	if frappe.db.get_value("Customer Deposit", {"project": project_name, "docstatus": 1}, "name"):
-		return True
-#	total = 0.0
-#        for cd in frappe.get_list("Customer Deposit", fields="name", filters={"project": project_name, "docstatus": 1}):
-#                total = cd.net_total
-#        return str(total)
+	total = 0.0
+        for si in frappe.get_list("Sales Invoice", fields=["name", "net_total"], filters={"project": project_name, "status": "Paid", "docstatus": 1, "is_for_advance_payment": True}):
+                total = si.net_total
+        return str(total)
