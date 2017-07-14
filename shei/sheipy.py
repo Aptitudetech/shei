@@ -5,9 +5,59 @@
 import frappe
 
 @frappe.whitelist()
+def get_tasks_from_template(project_name):
+
+        pj = frappe.get_doc("Project", project_name)
+        for i in frappe.get_list("Project", fields="name", filters={"status": "Template", "sub_type": pj.sub_type}):
+                pj_template = frappe.get_doc("Project", i.name)
+                for i in frappe.get_list("Task", fields="name", filters={"project": pj_template.name}, order_by="subject"):
+                        task_template = frappe.get_doc("Task", i.name)
+                        json_update = {
+                                "subject": task_template.subject,
+                                "status": task_template.status,
+                                "assigned_to": task_template.assigned_to,
+                                "project": pj.name
+                        }
+                        task = frappe.new_doc("Task")
+                        task.update (json_update)
+                        task.save()
+
+@frappe.whitelist()
+def update_template_project():
+
+        for i in frappe.get_list("Project", fields="name", filters={"status": "Open"}):
+                pj = frappe.get_doc("Project", i.name)
+                to_remove = []
+                for i in pj.get('tasks'):
+                        to_remove.append(i)
+                [pj.remove(d) for d in to_remove]
+                pj.save()
+
+        count = 0
+        for i in frappe.get_list("Project", fields="name", filters={"status": "Open"}):
+                pj_open = frappe.get_doc("Project", i.name)
+                for i in frappe.get_list("Project", fields="name", filters={"status": "Template", "sub_type": pj_open.sub_type}):
+                        pj_template = frappe.get_doc("Project", i.name)
+                        for i in frappe.get_list("Task", fields="name", filters={"project": pj_template.name}, order_by="subject"):
+                                task_template = frappe.get_doc("Task", i.name)
+                                json_update = {
+                                        "subject": task_template.subject,
+                                        "status": task_template.status,
+                                        "assigned_to": task_template.assigned_to,
+                                        "project": pj_open.name
+                                }
+                                task = frappe.new_doc("Task")
+                                task.update (json_update)
+                                task.save()
+                count += 1
+
+        frappe.msgprint("done " + str(count))
+
+@frappe.whitelist()
 def change_project_name(dt, project_name, customer_name):
 
         new_dt = ""
+
         if project_name.lower().startswith("proj-"):
                 project_code = "(" + project_name[-5:] + ") " + customer_name
                 new_dt = frappe.rename_doc(dt, project_name, project_code)
@@ -16,23 +66,70 @@ def change_project_name(dt, project_name, customer_name):
                 pr.save()
         elif project_name.lower().startswith("("):
                 new_name = project_name[:6]
-                new_name = new_name[-5:]
+                if (get_digits(new_name)) == 3:
+                        new_name = project_name[:4]
+                        new_name = new_name[-3:]
+                elif get_digits(new_name) == 4:
+                        new_name = project_name[:5]
+                        new_name = new_name[-4:]
+                elif get_digits(new_name) == 5:
+                        new_name = project_name[:6]
+                        new_name = new_name[-5:]
                 project_code = "(" + new_name + ") " + customer_name
                 if project_code != project_name:
                         new_dt = frappe.rename_doc(dt, project_name, project_code)
                         pr = frappe.get_doc("Project", new_dt)
                         pr.customer = customer_name
                         pr.save()
-        else:
+        elif project_name.lower().endswith(")"):
                 new_name = project_name[-6:]
-                new_name = new_name[:-1]
+                if (get_digits(new_name)) == 3:
+                        new_name = new_name[-4:]
+                        new_name = new_name[:3]
+                elif get_digits(new_name) == 4:
+                        new_name = new_name[-5:]
+                        new_name = new_name[:4]
+                elif get_digits(new_name) == 5:
+                        new_name = new_name[-6:]
+                        new_name = new_name[:5]
                 project_code = "(" + new_name + ") " + customer_name
+                new_dt = frappe.rename_doc(dt, project_name, project_code)
+                pr = frappe.get_doc("Project", new_dt)
+                pr.customer = customer_name
+                pr.save()
+        else:
+                project_code = "(" + update_project_series() + ") " + customer_name
                 new_dt = frappe.rename_doc(dt, project_name, project_code)
                 pr = frappe.get_doc("Project", new_dt)
                 pr.customer = customer_name
                 pr.save()
 
         return new_dt
+
+def update_project_series():
+        s = frappe.get_doc("Custom Series", "Project")
+        s.series += 1
+        s.save()
+        return str(s.series)
+
+def get_digits(str1):
+        c = ""
+        for i in str1:
+                if i.isdigit():
+                        c += i
+        return len(c)
+
+@frappe.whitelist()
+def get_sales_person_from_customer(dt, customer_name, project):
+        cust = frappe.get_doc("Customer", customer_name)
+        prj = frappe.get_doc("Project", project)
+@frappe.whitelist()
+def get_sales_person_from_customer(dt, customer_name, project):
+        cust = frappe.get_doc("Customer", customer_name)
+        prj = frappe.get_doc("Project", project)
+        for i in cust.get('sales_team'):
+                prj.sales_person = i.sales_person
+        prj.save()
 
 @frappe.whitelist()
 def get_account_for_advance_payment(origin_account):
