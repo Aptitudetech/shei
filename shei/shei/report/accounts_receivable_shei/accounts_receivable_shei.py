@@ -152,14 +152,28 @@ class ReceivablePayableReport(object):
 						row += [self.get_supplier_type(gle.party)]
 					
 					row.append(gle.remarks)
-					if "CD-" in gle.voucher_no and self.filters.get("remove_advance_payment") == "yes":
-						a=1
-					else:
-						if self.filters.get("currency") == gle.account_currency:
-							data.append(row)
-						else:
-							if not self.filters.get("currency"):
-								data.append(row)
+					if self.filters.get("advance_payment") == "Only CD-":
+                                                if "CD-" in gle.voucher_no:
+                                                        if self.filters.get("currency") == gle.account_currency:
+                                                                data.append(row)
+                                                        else:
+                                                                if not self.filters.get("currency"):
+                                                                        data.append(row)
+                                        elif self.filters.get("advance_payment") == "Remove CD-":
+                                                if "CD-" in gle.voucher_no:
+                                                        a=1
+                                                else:
+                                                        if self.filters.get("currency") == gle.account_currency:
+                                                                data.append(row)
+                                                        else:
+                                                                if not self.filters.get("currency"):
+                                                                        data.append(row)
+                                        else:
+                                                if self.filters.get("currency") == gle.account_currency:
+                                                        data.append(row)
+                                                else:
+                                                        if not self.filters.get("currency"):
+                                                                data.append(row)
 
 		return data
 

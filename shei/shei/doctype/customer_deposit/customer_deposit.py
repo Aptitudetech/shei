@@ -184,7 +184,6 @@ class CustomerDeposit(Document):
 
         def on_submit(self):
                 customer_currency = frappe.db.get_value("Customer", {'name': self.customer}, "default_currency")
-		frappe.msgprint(customer_currency)
 
                 if customer_currency == "USD":
                         multi_currency = True

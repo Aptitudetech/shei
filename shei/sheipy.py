@@ -3,6 +3,14 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe.utils import add_days, formatdate
+
+@frappe.whitelist()
+def get_due_date(supplier, bill_date):
+
+        due_date = formatdate(add_days(bill_date, frappe.db.get_value("Supplier", supplier, "credit_days")))
+
+        return due_date
 
 @frappe.whitelist()
 def get_tasks_from_template(project_name):
