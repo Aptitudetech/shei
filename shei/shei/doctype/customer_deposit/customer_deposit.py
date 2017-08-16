@@ -33,7 +33,7 @@ class CustomerDeposit(Document):
                         frappe.db.set_value("Customer Deposit", self.name, "customer_deposit_application", "")
                 for i in self.get('customer_deposit_quotation'):
                         frappe.db.set_value("Quotation", i.quotation, "customer_deposit_received", False)
-		set_project_customer_deposit(self.project)
+			set_project_customer_deposit("cancel", self.project, i.quotation)
 
         def get_customer_deposit_quotation(self):
                 self.customer_deposit_quotation = []
@@ -77,6 +77,7 @@ class CustomerDeposit(Document):
                         ref = ""
                         for i in self.get('customer_deposit_quotation'):
                                 qt = frappe.get_doc("Quotation", i.quotation)
+				set_project_customer_deposit("apply", self.project, i.quotation)
                                 if ref:
                                         ref = ref + ", " + qt.name
                                 else:
@@ -177,7 +178,6 @@ class CustomerDeposit(Document):
 					i.reference_type = "Journal Entry"
 					i.reference_name = self.customer_deposit_reception
                         je.submit()
-			set_project_customer_deposit(self.project)
 			frappe.msgprint("Customer Deposit applied successfully")
                 else:
                         frappe.msgprint("This Customer Deposit has already been applied")
@@ -218,6 +218,7 @@ class CustomerDeposit(Document):
                 ref = ""
                 for i in self.get('customer_deposit_quotation'):
                         qt = frappe.get_doc("Quotation", i.quotation)
+			set_project_customer_deposit("submit", self.project, i.quotation, self.posting_date, self.name)
                         frappe.db.set_value("Quotation", i.quotation, "customer_deposit_received", True)
                         if ref:
                                 ref = ref + ", " + qt.name
@@ -284,27 +285,18 @@ class CustomerDeposit(Document):
                 je.save()
                 frappe.db.set_value("Customer Deposit", self.name, "customer_deposit_reception", je.name)
                 je.submit()
-		set_project_customer_deposit(self.project)
 
-def set_project_customer_deposit(project_name):
-	for i in frappe.get_list("Project", fields="name", filters={"name": project_name}):
-		pj = frappe.get_doc("Project", i.name)
-		to_remove = []
-		for i in pj.get('customer_deposit_item'):
-			to_remove.append(i)
-		[pj.remove(d) for d in to_remove]
+def set_project_customer_deposit(action, project_name, pfi, reception_date=None, customer_deposit=None):
 
-		for i in frappe.get_list("Customer Deposit", fields="name", filters={"project": pj.name, "docstatus": 1}):
-			cd = frappe.get_doc("Customer Deposit", i.name)
-			applied = False
-			if cd.customer_deposit_application:
-				applied = True
-			for i in cd.get('customer_deposit_quotation'):
-				pj.append("customer_deposit_item", {
-					"customer_deposit": cd.name,
-					"deposit_invoice": i.quotation,
-					"base_net_total": frappe.db.get_value("Quotation", {"name": i.quotation, "docstatus": 1}, "base_net_total"),
-					"reception_date": cd.posting_date,
-					"deposit_applied": applied
-				})
-		pj.save()
+        pj = frappe.get_doc("Project", project_name)
+        for i in pj.get('customer_deposit_item'):
+                if i.deposit_invoice == pfi:
+                        if action == "submit":
+                                i.reception_date = reception_date
+                                i.customer_deposit = customer_deposit
+                        elif action == "apply":
+                                i.deposit_applied = True
+                        elif action == "cancel":
+                                i.deposit_applied = False
+				i.customer_deposit = ""
+        pj.save()

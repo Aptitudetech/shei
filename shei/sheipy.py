@@ -6,6 +6,21 @@ import frappe
 from frappe.utils import add_days, formatdate
 
 @frappe.whitelist()
+def update_terms():
+
+        count = 0
+        for i in frappe.get_list("Customer", fields="name"):
+                cust = frappe.get_doc("Customer", i)
+                tc = frappe.db.get_value("Terms and Conditions Multilingual Extension", {"customer_group": cust.customer_group, "language": cust.language}, "tc_name")
+#               frappe.msgprint(tc)
+                frappe.db.set_value("Customer", i, "tc_name", tc)
+#               cust.terms_and_conditions = frappe.db.get_value("Terms and Conditions Multilingual Extension", {"customer_group": cust.customer_group, "language": cust.language}, "tc_name")
+#               cust.save()
+                count += 1
+#               for i in frappe.get_list("Terms and Conditions Multilingual Extension", fields="tc_name", filters={"customer_group": cust.customer_group, "language": cust.language}):
+        frappe.msgprint(str(count) + " " + "Customers were updated")
+
+@frappe.whitelist()
 def get_due_date(supplier, bill_date):
 
         due_date = formatdate(add_days(bill_date, frappe.db.get_value("Supplier", supplier, "credit_days")))
@@ -213,4 +228,76 @@ def set_project_customer_deposit(project_name):
 		count = count + 1
 		pj.save()
 #	frappe.msgprint(str(count) + " Projects were updated")
+
+@frappe.whitelist()
+def set_project_pfi(pfi, action):
+
+        pfi = frappe.get_doc("Quotation", pfi)
+        pj = frappe.get_doc("Project", pfi.project)
+        if action == "add":
+                pj.append("customer_deposit_item", {
+                        "deposit_invoice": pfi.name,
+                        "net_total": pfi.net_total,
+                        "base_net_total": pfi.base_net_total,
+                })
+                pj.save()
+        elif action == "remove":
+                to_remove = []
+                for i in pj.get('customer_deposit_item'):
+                        if i.deposit_invoice == pfi.name:
+                                to_remove.append(i)
+                [pj.remove(d) for d in to_remove]
+                pj.save()
+
+@frappe.whitelist()
+def fetch_items_from_so(so):
+
+        item_so_dict = {}
+        item_ste_dict = {}
+        item_total_dict = {}
+
+        so = frappe.get_doc("Sales Order", so)
+
+        for s in frappe.get_list("Stock Entry", fields="name", filters={"sales_order": so.name, "docstatus": 1}):
+                ste = frappe.get_doc("Stock Entry", s.name)
+                for i in ste.get('items'):
+                        if frappe.db.get_value("Item", {"item_code":i.item_code}, "is_stock_item"):
+                                if not item_ste_dict.has_key(i.item_code):
+                                        updateDict(i.item_code, i.qty, item_ste_dict)
+                                else:
+                                        qty = i.qty + item_ste_dict.get(i.item_code)
+                                        updateDict(i.item_code, qty, item_ste_dict)
+
+        for so_i in so.get('items'):
+                if frappe.db.get_value("Item", {"item_code":so_i.item_code}, "is_stock_item") == True:
+                        qty = 0
+                        # passer à travers le dictionnaire pour voir si l'item est déjà présent
+                        for k, v in item_so_dict.iteritems():
+                                # si l'item est présent, additionner la quantité de l'item à la quantité existante
+                                if k == so_i.item_code:
+                                        qty = so_i.qty + v
+                        # si l'item était déjà existant dans le dictionnaire, mettre à jour la quantité de cet item
+                        if qty != 0:
+                                updateDict(so_i.item_code, qty, item_so_dict)
+                        # l'item n'était pas présent dans le dictionnaire, on ajoute un nouveau
+                        else:
+                                updateDict(so_i.item_code, so_i.qty, item_so_dict)
+
+	if item_ste_dict:
+		for so_k, so_v in item_so_dict.iteritems():
+			for ste_k, ste_v in item_ste_dict.iteritems():
+				if ste_k == so_k:
+					ste_qty = so_v - ste_v
+					if ste_qty != 0:
+						updateDict(so_k, str(ste_qty), item_total_dict)
+	else:
+		item_total_dict = dict(item_so_dict)
+
+        return item_total_dict
+
+def updateDict(key, value, aDict):
+        if not key in aDict:
+                aDict[key] = value
+        else:
+                aDict.update({key: value})
 
