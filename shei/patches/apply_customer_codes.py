@@ -13,12 +13,13 @@ def execute():
         }).insert()
         start = 1000
     count = 0
-    for name in frappe.db.sql('SELECT `name` FROM `tabCustomer` where ifnull(customer_code, "") = ""'):
+    for name in frappe.db.sql('SELECT `name` FROM `tabCustomer` where ifnull(customer_code, "") = "" ORDER BY creation'):
         frappe.db.set_value(
             'Customer',
             name[0],
             'customer_code',
-            start + count
+            start + count,
+            update_modified = False
         )
         count += 1
     frappe.db.set_value('Custom Series', {'name': 'Customer'}, 'series', start + count)
