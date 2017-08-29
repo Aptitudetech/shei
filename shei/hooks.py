@@ -70,6 +70,17 @@ app_license = "MIT"
 # ---------------
 # Hook on document methods and events
 
+doc_events = {
+    'Customer': {
+        'validate': [
+            'shei.events.on_customer_validate'
+        ],
+        'after_insert': [
+            'shei.events.on_customer_after_insert'
+        ]
+    }
+}
+
 # doc_events = {
 # 	"*": {
 # 		"on_update": "method",
