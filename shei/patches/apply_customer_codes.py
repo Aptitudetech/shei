@@ -18,9 +18,7 @@ def execute():
             'Customer',
             name[0],
             'customer_code',
-            start + frappe.db.count('Customer', {
-                'customer_code': ['!=', None]
-            })
+            start + count)
         )
         count += 1
     frappe.db.set_value('Custom Series', {'name': 'Customer'}, 'series', start + count)
