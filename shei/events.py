@@ -9,7 +9,7 @@ def on_customer_validate(doc, handler=None):
     if not doc.get('customer_code'):
         doc.customer_code = frappe.db.get_value(
             'Custom Series',
-            {'name': doc.name},
+            {'name': 'Customer'},
             'series'
         )
 
@@ -17,7 +17,7 @@ def on_customer_after_insert( doc, handler=None ):
     if doc.customer_code:
         frappe.db.set_value(
             'Custom Series',
-            {'name': doc.name},
+            {'name': 'Customer'},
             'series',
             doc.customer_code + 1
         )
