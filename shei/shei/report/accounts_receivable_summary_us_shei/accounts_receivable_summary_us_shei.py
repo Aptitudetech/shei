@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 import frappe
 
+from frappe import _
+
 from shei.shei.report.accounts_receivable_us_shei.accounts_receivable_us_shei \
 	import ReceivablePayableReport
 
