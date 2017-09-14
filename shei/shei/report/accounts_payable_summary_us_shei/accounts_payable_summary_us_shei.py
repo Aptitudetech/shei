@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 
-from shei.shei.reports.accounts_receivable_summary_us_shei.accounts_receivable_summary_us_shei \
+from shei.shei.report.accounts_receivable_summary_us_shei.accounts_receivable_summary_us_shei \
 	import AccountsReceivableSummary
 
 def execute(filters=None):
