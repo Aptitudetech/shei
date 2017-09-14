@@ -30,17 +30,17 @@ frappe.query_reports["Accounts Receivable SHEI"] = {
 			"options": "\nFixed Days\nLast Day of the Next Month"
 		},
 		{
-                        "fieldname":"currency",
-                        "label": __("Currency"),
-                        "fieldtype": "Link",
-                        "options": "Currency"
-                },
+            "fieldname":"currency",
+            "label": __("Currency"),
+            "fieldtype": "Link",
+            "options": "Currency"
+        },
 		{
 			"fieldname":"advance_payment",
-                        "label": __("Advance Payment"),
-                        "fieldtype": "Select",
-                        "options": "\nRemove CD-\nOnly CD-"
-                },
+			"label": __("Advance Payment"),
+			"fieldtype": "Select",
+			"options": "\nRemove CD-\nOnly CD-"
+		},
 		{
 			"fieldtype": "Break",
 		},
@@ -78,5 +78,11 @@ frappe.query_reports["Accounts Receivable SHEI"] = {
 			"default": "90",
 			"reqd": 1
 		}
-	]
+	],
+	onload: function(report) {
+		report.page.add_inner_button(__("Accounts Payable Summary"), function() {
+			var filters = report.get_values();
+			frappe.set_route('query-report', 'Accounts Receivable Summary SHEI', {company: filters.company});
+		});
+	}
 }

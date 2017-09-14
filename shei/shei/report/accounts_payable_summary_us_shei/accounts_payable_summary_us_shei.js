@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 /* eslint-disable */
 
-frappe.query_reports["Accounts Payable SHEI"] = {
+frappe.query_reports["Accounts Payable Summary US SHEI"] = {
 	"filters": [
 		{
 			"fieldname":"company",
@@ -19,7 +19,7 @@ frappe.query_reports["Accounts Payable SHEI"] = {
 		},
 		{
 			"fieldname":"report_date",
-			"label": __("As on Date"),
+			"label": __("Date"),
 			"fieldtype": "Date",
 			"default": frappe.datetime.get_today()
 		},
@@ -56,9 +56,9 @@ frappe.query_reports["Accounts Payable SHEI"] = {
 		}
 	],
 	onload: function(report) {
-		report.page.add_inner_button(__("Accounts Payable Summary"), function() {
+		report.page.add_inner_button(__("Accounts Payable"), function() {
 			var filters = report.get_values();
-			frappe.set_route('query-report', 'Accounts Payable Summary SHEI', {company: filters.company});
+			frappe.set_route('query-report', 'Accounts Payable US SHEI', {company: filters.company});
 		});
 	}
 }

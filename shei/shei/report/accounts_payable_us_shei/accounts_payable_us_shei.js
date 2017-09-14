@@ -62,9 +62,9 @@ frappe.query_reports["Accounts Payable US SHEI"] = {
 		}
 	],
 	onload: function(report) {
-		report.page.add_inner_button(__("Accounts Payable Summary"), function() {
+		report.page.add_inner_button(__("Accounts Payable US Summary"), function() {
 			var filters = report.get_values();
-			frappe.set_route('query-report', 'Accounts Payable Summary', {company: filters.company});
+			frappe.set_route('query-report', 'Accounts Payable Summary US SHEI', {company: filters.company});
 		});
 	}
 }
