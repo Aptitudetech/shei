@@ -31,6 +31,13 @@ frappe.query_reports["Accounts Payable SHEI"] = {
 			"default": "Posting Date"
 		},
 		{
+			"fieldname": "currency",
+			"label": __("Currency"),
+			"fieldtype": "Link",
+			"options": "Currency",
+			"default": frappe.defaults.get_default("currency")
+		},
+		{
 			"fieldtype": "Break",
 		},
 		{
