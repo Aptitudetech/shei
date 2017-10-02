@@ -1,5 +1,5 @@
 
-frappe.ui.form.on("Sales Invoice", "get_credit_notes", function(frm, cdt, cdn){
+cur_frm.cscript.get_credit_notes = function(frm, cdt, cdn){
 	frappe.call({
 		"method": "shei.events.get_credit_notes",
 		"args": {
@@ -17,4 +17,4 @@ frappe.ui.form.on("Sales Invoice", "get_credit_notes", function(frm, cdt, cdn){
 			}
 		}
 	});
-});
+}
