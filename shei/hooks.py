@@ -16,7 +16,7 @@ app_license = "MIT"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/shei/css/shei.css"
-# app_include_js = "/assets/shei/js/shei.js"
+app_include_js = "/assets/js/shei.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/shei/css/shei.css"
@@ -77,6 +77,11 @@ doc_events = {
         ],
         'after_insert': [
             'shei.events.on_customer_after_insert'
+        ]
+    },
+    'Sales Invoice': {
+        'onsubmit': [
+            'shei.events.on_sales_invoice_onsubmit'
         ]
     }
 }
