@@ -29,8 +29,7 @@ def on_customer_after_insert( doc, handler=None ):
 
 @frappe.whitelist()
 def get_credit_notes( doctype, docname ):
-    if isinstance(doc, types.StringTypes):
-        doc = json.loads(doc, object_pairs_hook=frappe._dict)
+    doc = frappe.get_doc(doctype, docname)
 
     sql = """
     SELECT `{0}` as `reference_type`,
