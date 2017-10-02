@@ -31,6 +31,8 @@ def on_customer_after_insert( doc, handler=None ):
 def get_credit_notes( doctype, docname ):
     doc = frappe.get_doc(doctype, docname)
 
+    party = "customer" if doctype in ['Sales Invoice'] else 'supplier'
+
     sql = """
     SELECT `{0}` as `reference_type`,
         `tab{0}`.name as `reference_name`,
@@ -39,8 +41,9 @@ def get_credit_notes( doctype, docname ):
         abs(`tab{0}`.outstanding_amount) as `allocated_amount`
     FROM `tab{0}`
     WHERE `tab{0}`.outstanding_amount < 0
-    """.format(doctype)
-    return frappe.db.sql(sql, (doctype, docname), as_dict=True)
+        AND `tab{0}`.`{1}` = %s
+    """.format(doctype, party)
+    return frappe.db.sql(sql, (doc.get('party')), as_dict=True)
 
 
 def on_sales_invoice_submit( doc, handler=None ):
