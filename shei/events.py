@@ -38,6 +38,7 @@ def get_credit_notes( doctype, party_type, party_name ):
     FROM `tab{0}`
     WHERE `tab{0}`.outstanding_amount < 0
         AND `tab{0}`.`{1}` = %s
+    GROUP BY `tab{0}`.`name`
     """.format(doctype, party_type)
     return frappe.db.sql(sql, (party_name,), as_dict=True)
 
@@ -58,16 +59,24 @@ def on_sales_invoice_submit( doc, handler=None ):
                 "party_type": party,
                 "party": doc.get( frappe.scrub(party) ),
                 "debit_in_account_currency": row.allocated_amount,
-                "reference_type": doc.doctype,
-                "reference_name": doc.name
+                "reference_type": row.reference_type,
+                "reference_name": row.reference_name
             })
             je.append("accounts", {
                 "account": d_or_c,
                 "party_type": party,
                 "party": doc.get( frappe.scrub(party) ),
-                "debit_in_account_currency": row.allocated_amount,
+                "credit_in_account_currency": row.allocated_amount,
                 "reference_type": doc.doctype,
                 "reference_name": doc.name
             })
         je.save()
         je.submit()
+        doc.db_set('debit_note', je.name, update_modified=False)
+
+
+def before_sales_invoice_cancel( doc, handler=None ):
+    if doc.get("debit_note"):
+        je = frappe.get_doc("Journal Entry", self.debit_note)
+        je.flags.ignore_links = True
+        je.cancel()

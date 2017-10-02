@@ -81,7 +81,10 @@ doc_events = {
     },
     'Sales Invoice': {
         'on_submit': [
-            'shei.events.on_sales_invoice_onsubmit'
+            'shei.events.on_sales_invoice_submit'
+        ],
+        'before_cancel': [
+            'shei.events.before_sales_invoice_cancel'
         ]
     }
 }
