@@ -4,7 +4,8 @@ frappe.ui.form.on("Sales Invoice", "get_credit_notes", function(frm, cdt, cdn){
 		"method": "shei.events.get_credit_notes",
 		"args": {
 			"doctype": frm.doctype,
-			"docname": frm.name
+			"party_type": "customer",
+			"part_name": frm.doc.customer
 		},
 		"callback": function(res){
 			if(res && res.message){

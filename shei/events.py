@@ -28,13 +28,9 @@ def on_customer_after_insert( doc, handler=None ):
 
 
 @frappe.whitelist()
-def get_credit_notes( doctype, docname ):
-    doc = frappe.get_doc(doctype, docname)
-
-    party = "customer" if doctype in ['Sales Invoice'] else 'supplier'
-
+def get_credit_notes( doctype, party_type, party_name ):
     sql = """
-    SELECT `{0}` as `reference_type`,
+    SELECT '{0}' as `reference_type`,
         `tab{0}`.name as `reference_name`,
         `tab{0}`.remarks as `remarks`,
         abs(`tab{0}`.outstanding_amount) as `credit_amount`,
@@ -42,8 +38,8 @@ def get_credit_notes( doctype, docname ):
     FROM `tab{0}`
     WHERE `tab{0}`.outstanding_amount < 0
         AND `tab{0}`.`{1}` = %s
-    """.format(doctype, party)
-    return frappe.db.sql(sql, (doc.get('party')), as_dict=True)
+    """.format(doctype, party_type)
+    return frappe.db.sql(sql, (party_name,), as_dict=True)
 
 
 def on_sales_invoice_submit( doc, handler=None ):
