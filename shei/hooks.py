@@ -80,7 +80,7 @@ doc_events = {
         ]
     },
     'Sales Invoice': {
-        'onsubmit': [
+        'on_submit': [
             'shei.events.on_sales_invoice_onsubmit'
         ]
     }
