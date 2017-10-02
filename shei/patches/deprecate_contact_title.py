@@ -15,7 +15,7 @@ def execute():
 	''')
 
 	frappe.new_doc('Property Setter').update({
-		"doctype_of_field": "DocField",
+		"doctype_or_field": "DocField",
 		"doc_type": "Contact",
 		"field_name": "designation",
 		"property": "label",
