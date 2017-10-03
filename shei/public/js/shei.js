@@ -11,8 +11,14 @@ erpnext.accounts.SalesInvoiceController = erpnext.accounts.SalesInvoiceControlle
 			"callback": function(res){
 				if (res && res.message){
 					frm.clear_table('credits');
+					var pending_amount = frm.doc.outstanding_amount;
 					res.message.forEach(function(row){
 						var d = frm.add_child('credits', row);
+						if (d.allocated_amount > pending_amount){
+							frappe.model.set_value(d.doctype, d.name,
+								'allocated_amount', pending_amount);
+						}
+						pending_amount - d.allocated_amount;
 					});
 					frm.refresh_field("credits");
 				}

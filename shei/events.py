@@ -77,6 +77,6 @@ def on_sales_invoice_submit( doc, handler=None ):
 
 def before_sales_invoice_cancel( doc, handler=None ):
     if doc.get("debit_note"):
-        je = frappe.get_doc("Journal Entry", self.debit_note)
+        je = frappe.get_doc("Journal Entry", doc.debit_note)
         je.flags.ignore_links = True
         je.cancel()
