@@ -53,9 +53,9 @@ def on_sales_invoice_submit( doc, handler=None ):
         d_or_c = doc.debit_to if doc.doctype == "Sales Invoice" else doc.credit_to
         party = "Customer" if doc.doctype == "Sales Invoice" else "Supplier"
 
-        self.total_credits = 0.0
+        doc.total_credits = 0.0
         for row in doc.credits:
-            self.total_credits += row.allocated_amount
+            doc.total_credits += row.allocated_amount
             je.append("accounts",{
                 "account": d_or_c,
                 "party_type": party,
