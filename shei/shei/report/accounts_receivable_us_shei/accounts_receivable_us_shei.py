@@ -31,8 +31,8 @@ class ReceivablePayableReport(object):
 		columns += [_("Voucher Type") + "::110", _("Voucher No") + ":Dynamic Link/"+_("Voucher Type")+":120",
 			_("Due Date") + ":Date:80"]
 
-		if args.get("party_type") == "Supplier":
-			columns += [_("Bill No") + "::80", _("Bill Date") + ":Date:80"]
+		#if args.get("party_type") == "Supplier":
+		#	columns += [_("Bill No") + "::80", _("Bill Date") + ":Date:80"]
 
 		credit_or_debit_note = "Credit Note" if args.get("party_type") == "Customer" else "Debit Note"
 
@@ -73,15 +73,15 @@ class ReceivablePayableReport(object):
 			"options": "Currency",
 			"width": 100
 		})
-		if args.get("party_type") == "Customer":
-			columns += [
-				_("Territory") + ":Link/Territory:80", 
-				_("Customer Group") + ":Link/Customer Group:120"
-			]
-		if args.get("party_type") == "Supplier":
-			columns += [_("Supplier Type") + ":Link/Supplier Type:80"]
+		#if args.get("party_type") == "Customer":
+		#	columns += [
+		#		_("Territory") + ":Link/Territory:80", 
+		#		_("Customer Group") + ":Link/Customer Group:120"
+		#	]
+		#if args.get("party_type") == "Supplier":
+		#	columns += [_("Supplier Type") + ":Link/Supplier Type:80"]
 			
-		columns.append(_("Remarks") + "::200")
+		#columns.append(_("Remarks") + "::200")
 		
 		return columns
 
@@ -121,7 +121,7 @@ class ReceivablePayableReport(object):
 					# get supplier bill details
 					if args.get("party_type") == "Supplier":
 						row += [
-							voucher_details.get(gle.voucher_no, {}).get("bill_no", ""),
+							#voucher_details.get(gle.voucher_no, {}).get("bill_no", ""),
 							voucher_details.get(gle.voucher_no, {}).get("bill_date", "")
 						]
 
@@ -146,12 +146,12 @@ class ReceivablePayableReport(object):
 					#	row.append(company_currency)
 
 					# customer territory / supplier type
-					if args.get("party_type") == "Customer":
-						row += [self.get_territory(gle.party), self.get_customer_group(gle.party)]
-					if args.get("party_type") == "Supplier":
-						row += [self.get_supplier_type(gle.party)]
+					#if args.get("party_type") == "Customer":
+					#	row += [self.get_territory(gle.party), self.get_customer_group(gle.party)]
+					#if args.get("party_type") == "Supplier":
+					#	row += [self.get_supplier_type(gle.party)]
 					
-					row.append(gle.remarks)
+					#row.append(gle.remarks)
 					if self.filters.get("advance_payment") == "Only CD-":
                                                 if "CD-" in gle.voucher_no:
                                                         if "USD" == gle.account_currency:
