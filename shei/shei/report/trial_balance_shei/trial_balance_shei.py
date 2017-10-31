@@ -56,8 +56,8 @@ def get_data(filters):
 			from `tabAccount` where company=%s order by lft""", filters.company, as_dict=True)
 	else:
 		accounts = frappe.db.sql("""select name, parent_account, account_name, root_type, report_type, lft, rgt
-			from `tabAccount` where company=%s AND ifnull(overhead_accounts_shi, 0) = %s order by lft""",
-				(filters.company, filters.overhead_accounts_shi,), as_dict=True)
+			from `tabAccount` where company=%s AND ifnull(overhead_accounts_shi, 0) = 1 order by lft""",
+				(filters.company,), as_dict=True)
 	company_currency = erpnext.get_company_currency(filters.company)
 
 	if not accounts:
