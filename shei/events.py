@@ -6,6 +6,49 @@ import frappe
 import types
 import json
 from frappe.model.naming import make_autoname
+from frappe.utils import nowdate
+from erpnext.accounts.utils import get_fiscal_year
+from erpnext.accounts.party import (get_party_account_currency,
+	get_default_currency, add_days)
+
+def get_dashboard_info(party_type, party):
+	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
+	company = frappe.db.get_default("company") or frappe.get_all("Company")[0].name
+	party_account_currency = get_party_account_currency(party_type, party, company)
+	company_default_currency = get_default_currency() \
+		or frappe.db.get_value('Company', company, 'default_currency')
+
+	if party_account_currency == company_default_currency:
+		total_field = "base_grand_total"
+	else:
+		total_field = "grand_total"
+
+	doctype = "Sale Invoice" if party_type == "Customer" else "Purchase Invoice"
+
+	info = {}
+	for i, dates in enumerate(((current_fiscal_year.year_start_date, current_fiscal_year.year_end_date),
+		      (add_days(current_fiscal_year.year_start_date, years=-1), 
+		       add_days(current_fiscal_year.year_end_date, years=-1)))):
+		billing = frappe.db.sql("""
+		select sum({0})
+		from `tab{1}`
+		where {2}=%s and docstatus=1 and posting_date between %s and %s
+		""".format(total_field, dates[0], dates[1]), (party_type, party))
+
+		if i == 0:
+			info['billing_this_year'] = billing
+		else:
+			info['billing_last_year'] = billing
+	
+	info['currency'] = party_account_currency
+	info['total_unpaid'] = flt(total_unpaid[0][0]) if total_unpaid else 0
+	if party_type == "Supplier":
+		info["total_unpaid"] = -1 * info["total_unpaid"]
+
+	return info
+
+def on_party_onload(doc, handler):
+    doc.set_onload("dashboard_info", get_dashboard_info(doc.doctype, doc.name))
 
 
 def on_customer_validate(doc, handler=None):

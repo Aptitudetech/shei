@@ -72,6 +72,9 @@ app_include_js = "/assets/js/shei.js"
 
 doc_events = {
     'Customer': {
+        'onload': [
+            'shei.events.on_party_onload'
+        ],
         'validate': [
             'shei.events.on_customer_validate'
         ],
@@ -85,6 +88,11 @@ doc_events = {
         ],
         'before_cancel': [
             'shei.events.before_sales_invoice_cancel'
+        ]
+    },
+    'Supplier': {
+        'onload': [
+            'shei.events.on_party_onload'
         ]
     }
 }
