@@ -6,10 +6,10 @@ import frappe
 import types
 import json
 from frappe.model.naming import make_autoname
-from frappe.utils import nowdate
+from frappe.utils import nowdate, add_to_date, flt
 from erpnext.accounts.utils import get_fiscal_year
 from erpnext.accounts.party import (get_party_account_currency,
-	get_default_currency, add_to_date)
+	get_default_currency)
 
 def get_dashboard_info(party_type, party):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
@@ -23,7 +23,7 @@ def get_dashboard_info(party_type, party):
 	else:
 		total_field = "grand_total"
 
-	doctype = "Sale Invoice" if party_type == "Customer" else "Purchase Invoice"
+	doctype = "Sales Invoice" if party_type == "Customer" else "Purchase Invoice"
 
 	info = {}
 	for i, dates in enumerate(((current_fiscal_year.year_start_date, current_fiscal_year.year_end_date),
@@ -33,12 +33,18 @@ def get_dashboard_info(party_type, party):
 		select sum({0})
 		from `tab{1}`
 		where {2}=%s and docstatus=1 and posting_date between %s and %s
-		""".format(total_field, dates[0], dates[1]), (party_type, party))
+		""".format(total_field, doctype, party_type.lower()), 
+			(party, dates[0], dates[1]))
 
 		if i == 0:
-			info['billing_this_year'] = billing
+			info['billing_this_year'] = flt(billing[0][0]) if billing else 0
 		else:
-			info['billing_last_year'] = billing
+			info['billing_last_year'] = flt(billing[0][0]) if billing else 0
+
+	total_unpaid = frappe.db.sql("""
+		select sum(debit_in_account_currency) - sum(credit_in_account_currency)
+		from `tabGL Entry`
+		where party_type = %s and party=%s""", (party_type, party))
 	
 	info['currency'] = party_account_currency
 	info['total_unpaid'] = flt(total_unpaid[0][0]) if total_unpaid else 0
