@@ -9,7 +9,7 @@ from frappe.model.naming import make_autoname
 from frappe.utils import nowdate
 from erpnext.accounts.utils import get_fiscal_year
 from erpnext.accounts.party import (get_party_account_currency,
-	get_default_currency, add_days)
+	get_default_currency, add_to_date)
 
 def get_dashboard_info(party_type, party):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
@@ -27,8 +27,8 @@ def get_dashboard_info(party_type, party):
 
 	info = {}
 	for i, dates in enumerate(((current_fiscal_year.year_start_date, current_fiscal_year.year_end_date),
-		      (add_days(current_fiscal_year.year_start_date, years=-1), 
-		       add_days(current_fiscal_year.year_end_date, years=-1)))):
+		      (add_to_date(current_fiscal_year.year_start_date, years=-1), 
+		       add_to_date(current_fiscal_year.year_end_date, years=-1)))):
 		billing = frappe.db.sql("""
 		select sum({0})
 		from `tab{1}`
