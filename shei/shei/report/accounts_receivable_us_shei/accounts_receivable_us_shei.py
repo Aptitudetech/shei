@@ -119,11 +119,11 @@ class ReceivablePayableReport(object):
 					row += [gle.voucher_type, gle.voucher_no, due_date]
 
 					# get supplier bill details
-					if args.get("party_type") == "Supplier":
-						row += [
-							#voucher_details.get(gle.voucher_no, {}).get("bill_no", ""),
-							voucher_details.get(gle.voucher_no, {}).get("bill_date", "")
-						]
+					#if args.get("party_type") == "Supplier":
+					#	row += [
+					#		voucher_details.get(gle.voucher_no, {}).get("bill_no", ""),
+					#		voucher_details.get(gle.voucher_no, {}).get("bill_date", "")
+					#	]
 
 					# invoiced and paid amounts
 					invoiced_amount = gle.get(dr_or_cr) if (gle.get(dr_or_cr) > 0) else 0
