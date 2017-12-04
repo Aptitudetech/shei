@@ -98,7 +98,7 @@ def on_sales_invoice_submit( doc, handler=None ):
             "voucher_type": "Journal Entry",
             "posting_date": doc.posting_date,
             "company": doc.company,
-            "multi_currency": doc.currency == frappe.db.get_value("Company", doc.company, "default_currency")
+            "multi_currency": doc.currency != frappe.db.get_value("Company", doc.company, "default_currency")
         })
         d_or_c = doc.debit_to if doc.doctype == "Sales Invoice" else doc.credit_to
         party = "Customer" if doc.doctype == "Sales Invoice" else "Supplier"
@@ -111,6 +111,7 @@ def on_sales_invoice_submit( doc, handler=None ):
                 "party_type": party,
                 "party": doc.get( frappe.scrub(party) ),
                 "debit_in_account_currency": row.allocated_amount,
+		"exchange_rate": doc.conversion_rate,
                 "reference_type": row.reference_type,
                 "reference_name": row.reference_name
             })
@@ -123,6 +124,18 @@ def on_sales_invoice_submit( doc, handler=None ):
             "reference_type": doc.doctype,
             "reference_name": doc.name
         })
+        try:
+            je.run_method('validate')
+        except:
+            frappe.clear_messages()
+	if je.accounts[0].debit != je.accounts[1].credit:
+		debit = je.accounts[0].debit
+		credit = je.accounts[1].credit
+		je.append("accounts", {
+			"account": frappe.db.get_value("Company", doc.company, "exchange_gain_loss_account"),
+			"credit_in_account_currency": debit - credit if credit < debit else 0.0,
+			"debit_in_account_currency": credit - debit if debit < credit else 0.0
+		})
         je.save()
         je.submit()
         doc.db_set('debit_note', je.name, update_modified=False)
