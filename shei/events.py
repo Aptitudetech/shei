@@ -97,7 +97,8 @@ def on_sales_invoice_submit( doc, handler=None ):
         je = frappe.new_doc('Journal Entry').update({
             "voucher_type": "Journal Entry",
             "posting_date": doc.posting_date,
-            "company": doc.company
+            "company": doc.company,
+            "multi_currency": doc.currency == frappe.db.get_value("Company", doc.company, "default_currency")
         })
         d_or_c = doc.debit_to if doc.doctype == "Sales Invoice" else doc.credit_to
         party = "Customer" if doc.doctype == "Sales Invoice" else "Supplier"
@@ -113,14 +114,15 @@ def on_sales_invoice_submit( doc, handler=None ):
                 "reference_type": row.reference_type,
                 "reference_name": row.reference_name
             })
-            je.append("accounts", {
-                "account": d_or_c,
-                "party_type": party,
-                "party": doc.get( frappe.scrub(party) ),
-                "credit_in_account_currency": row.allocated_amount,
-                "reference_type": doc.doctype,
-                "reference_name": doc.name
-            })
+        je.append("accounts", {
+            "account": d_or_c,
+            "party_type": party,
+            "party": doc.get( frappe.scrub(party) ),
+            "credit_in_account_currency": row.allocated_amount,
+            "exchange_rate": doc.conversion_rate,
+            "reference_type": doc.doctype,
+            "reference_name": doc.name
+        })
         je.save()
         je.submit()
         doc.db_set('debit_note', je.name, update_modified=False)
