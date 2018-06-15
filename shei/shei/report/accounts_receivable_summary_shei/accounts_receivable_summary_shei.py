@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 from frappe import _
+from frappe.utils import flt
 
 from shei.shei.report.accounts_receivable_shei.accounts_receivable_shei \
 	import ReceivablePayableReport
@@ -91,7 +92,9 @@ class AccountsReceivableSummary(ReceivablePayableReport):
 				})
 			)
 			for k in party_total[d.party].keys():
-				party_total[d.party][k] += d.get(k, 0)
+				if k == 'currency':
+					continue
+				party_total[d.party][k] += flt(d.get(k, 0))
 				
 			party_total[d.party].currency = d.currency
 
