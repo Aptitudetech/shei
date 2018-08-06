@@ -146,3 +146,16 @@ def before_sales_invoice_cancel( doc, handler=None ):
         je = frappe.get_doc("Journal Entry", doc.debit_note)
         je.flags.ignore_links = True
         je.cancel()
+
+def on_sales_invoice_validate(doc, handler=None):
+    if doc.is_new():
+        has_delivery_note = any([item.delivery_note for item in doc.items])
+        if not has_delivery_note and frappe.db.exists("SHEI_Settings", "SHEI_Settings"):
+            settings = frappe.get_doc("SHEI_Settings", "SHEI_Settings")
+
+            user_restriction = settings.get("restrictions",{
+                "source_doctype": "Sales Order",
+                "user": frappe.session.user
+            })
+            if user_restriction:
+                frappe.throw("You're not allowed to create invoices from here !") 
