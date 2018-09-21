@@ -9,6 +9,8 @@ from frappe.utils import flt
 from erpnext.accounts.report.financial_statements import (get_period_list, get_columns, get_data)
 
 def execute(filters=None):
+	if '_' in filters.periodicity:
+		filters.periodicity, filters.only = filters.periodicity.split("_")
 	period_list = get_period_list(filters.from_fiscal_year, filters.to_fiscal_year, 
 		filters.periodicity, filters.accumulated_values, filters.company)
 
@@ -32,32 +34,43 @@ def execute(filters=None):
 
 	chart = get_chart_data(filters, columns, income, expense, net_profit_loss)
 
-	#frappe.msgprint(json.dumps(data))
-	#frappe.msgprint(json.dumps(columns))
-	if filters.quarter:
+	month_list = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+	
+	def clean(*months):
+		mlist = month_list[:]
+		for month in months:
+			if month in mlist:
+				mlist.remove(month)
+		return mlist
+
+	rules = {
+		'1': ('apr', 'jul', 'oct'),
+		'2': ('jan', 'jul', 'oct'),
+		'3': ('jan', 'apr', 'oct'),
+		'4': ('jar', 'apr', 'jul'),
+		'1,2': ('jul', 'oct'),
+		'1,2,3': ('oct',)
+	}
+	rules.update({month: clean(month) for month in month_list})
+
+	if filters.only:
 		for i in range(len(data)):
-			if filters.quarter == "1" and "jan_2017" in data[i]:
-				data[i]["apr_2017"] = 0.0
-				data[i]["jul_2017"] = 0.0
-				data[i]["oct_2017"] = 0.0
-				
-			if filters.quarter == "2" and "apr_2017" in data[i]:
-				data[i]["jan_2017"] = 0.0
-                        	data[i]["jul_2017"] = 0.0
-                        	data[i]["oct_2017"] = 0.0
-			if filters.quarter == "3" and "jul_2017" in data[i]:
-				data[i]["jan_2017"] = 0.0
-                	        data[i]["apr_2017"] = 0.0
-                        	data[i]["oct_2017"] = 0.0
-			if filters.quarter == "4" and "oct_2017" in data[i]:
-				data[i]["jan_2017"] = 0.0
-                	        data[i]["apr_2017"] = 0.0
-                        	data[i]["jul_2017"] = 0.0
-                        if filters.quarter == "1,2":
-                                data[i]["jul_2017"] = 0.0
-                                data[i]["oct_2017"] = 0.0
-                        if filters.quarter == "1,2,3":
-                                data[i]["oct_2017"] = 0.0
+			for only, months in rules.items():
+				if filters.only == only:
+					years = set(filters.from_fiscal_year.split("-")).union(filters.to_fiscal_year.split("-"))
+					for month in months:
+						for year in years:
+							k = "_".join([month, year])
+							if k in data[i]:
+								data[i].pop(k)
+								col = filter(lambda c: c.get('fieldname') == k, columns)
+								if col:
+									columns.remove(col[0])
+							if 'total' in data[i]:
+								data[i].pop('total')
+								col = filter(lambda c: c.get('fieldname') == 'total', columns)
+								if col:
+									columns.remove(col[0])
 
 	return columns, data, None, chart
 
