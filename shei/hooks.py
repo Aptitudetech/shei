@@ -83,9 +83,9 @@ doc_events = {
         ]
     },
     'Sales Invoice': {
-        'validate':[
-            'shei.events.on_sales_invoice_validate'
-        ],
+        #'validate':[
+        #    'shei.events.on_sales_invoice_validate'
+        #],
 
         'on_submit': [
             'shei.events.on_sales_invoice_submit'
@@ -138,11 +138,11 @@ doc_events = {
 # Overriding Whitelisted Methods
 # ------------------------------
 #
-override_whitelisted_methods = {
-    #"frappe.desk.doctype.event.event.get_events": "shei.event.get_events",
-    "erpnext.selling.doctype.sales_order.sales_order.make_sales_invoice": "shei.route.make_sales_invoice",
- 	"frappe.model.mapper.make_mapped_doc": "shei.route.make_mapped_doc",
-    "frappe.model.mapper.map_docs": "shei.route.map_docs"
-}
+#override_whitelisted_methods = {
+#    #"frappe.desk.doctype.event.event.get_events": "shei.event.get_events",
+#    "erpnext.selling.doctype.sales_order.sales_order.make_sales_invoice": "shei.route.make_sales_invoice",
+# 	"frappe.model.mapper.make_mapped_doc": "shei.route.make_mapped_doc",
+#    "frappe.model.mapper.map_docs": "shei.route.map_docs"
+#}
 
 fixtures = [{'dt': 'Print Node Settings'}]
