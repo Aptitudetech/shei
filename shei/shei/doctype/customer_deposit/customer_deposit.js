@@ -42,6 +42,7 @@ frappe.ui.form.on("Customer Deposit", "refresh", function(frm) {
     });
 
 frappe.ui.form.on("Customer Deposit", "project", function(frm, cdt, cdn) {
+        if (!frm.doc.project) return;
         frappe.call({
                 method: "shei.sheipy.get_customer_from_project",
                 args:{
@@ -54,6 +55,7 @@ frappe.ui.form.on("Customer Deposit", "project", function(frm, cdt, cdn) {
 });
 
 cur_frm.fields_dict['project'].get_query = function(doc, cdt, cdn) {
+
         return{
                 query: "erpnext.controllers.queries.get_project_name",
                 filters: {'customer': doc.customer}

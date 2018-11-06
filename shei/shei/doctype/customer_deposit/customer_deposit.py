@@ -37,15 +37,6 @@ class CustomerDeposit(Document):
 
         def get_customer_deposit_quotation(self):
                 self.customer_deposit_quotation = []
-                account_setup = frappe.get_all('Deposit Setting', fields=['*'], filters={'parenttype': 'Customer Deposit Setup', 
-                        'parent': "Customer Deposit Setup", 'account_currency': 'CAD'})
-
-                frappe.throw("{0}".format(frappe.as_json(account_setup)))
-
-
-
-
-
                 for qt in frappe.get_list("Quotation", fields=["name", "total", "grand_total", "status"], filters={"customer_deposit": True, "customer_deposit_received": False, "docstatus": 1, "customer": self.customer}):
                         self.append("customer_deposit_quotation", {
                                 "quotation": qt.name,
@@ -59,8 +50,9 @@ class CustomerDeposit(Document):
                         if not customer_currency:
                                 customer_currency = 'CAD'
                         account_setup = frappe.get_all('Deposit Setting', fields=['*'], filters={'parenttype': 'Customer Deposit Setup', 'parent': "Customer Deposit Setup", 'account_currency': customer_currency})
-                        rec_account = account_setup[0]['receivable_account']
-                        deposit_account = account_setup[0]['deposit_account']
+                        
+                        rec_account = frappe.db.get_value('Receivable Account', account_setup[0]['receivable_account'], 'receivable_bank')
+                        deposit_account = frappe.db.get_value('Deposit Account', account_setup[0]['deposit_account'], 'deposit_bank')
                         multi_currency = account_setup[0]['multi_currency']
                         #if customer_currency == "USD":
                         #        multi_currency = True
@@ -202,8 +194,8 @@ class CustomerDeposit(Document):
                 if not customer_currency:
                         customer_currency = 'CAD'
                 account_setup = frappe.get_all('Deposit Setting', fields=['*'], filters={'parenttype': 'Customer Deposit Setup', 'parent': "Customer Deposit Setup", 'account_currency': customer_currency})
-                bank_account = account_setup[0]['bank_account']
-                deposit_account = account_setup[0]['deposit_account']
+                bank_account = frappe.db.get_value('Bank Account', account_setup[0]['bank_account'], 'account')
+                deposit_account = frappe.db.get_value('Deposit Account', account_setup[0]['deposit_account'], 'deposit_bank')
                 multi_currency = account_setup[0]['multi_currency']
                 #if customer_currency == "USD":
                 #        multi_currency = True
