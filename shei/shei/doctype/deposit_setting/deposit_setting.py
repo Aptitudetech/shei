@@ -8,3 +8,7 @@ from frappe.model.document import Document
 
 class DepositSetting(Document):
 	pass
+#	def before_save(self):
+#		frappe.msgprint("HEYHEYHEY")
+#		frappe.msgprint("{0}".format(self.deposit_account))
+#		frappe.msgprint("{0}".format(self))
