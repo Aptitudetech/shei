@@ -28,3 +28,13 @@ def get_bank_account_by_currency(chosen_currency = None):
 		if chosen_currency == account_currency:
 			banks.append(ba['name'])
 	return banks
+
+	
+
+@frappe.whitelist()
+def get_receivable_account_by_currency(chosen_currency = None):
+	receivables = []
+	accounts = frappe.db.get_all('Account', {'account_type' : 'receivable', 'account_currency': chosen_currency}, 'name')
+	for a in accounts:
+		receivables.append(a['name'])
+	return receivables
