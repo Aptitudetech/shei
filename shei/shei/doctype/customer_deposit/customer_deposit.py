@@ -58,7 +58,6 @@ class CustomerDeposit(Document):
                                 rec_account = frappe.db.get_value('Company', {'name':'SH Environnements Immersifs'}, 'default_receivable_account')
 
 
-                        rec_account = frappe.db.get_value('Account', account_setup[0]['receivable_account'], 'account_name')
                         deposit_account = frappe.db.get_value('Bank Account', { 'currency': customer_currency, 'is_deposit_account': True}, 'deposit_account')
                         if customer_currency == "USD":
                                 multi_currency = True
