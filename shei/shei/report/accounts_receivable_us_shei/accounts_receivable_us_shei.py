@@ -38,6 +38,7 @@ class ReceivablePayableReport(object):
 
 		for label in ("Invoiced Amount", "Paid Amount", credit_or_debit_note, "Outstanding Amount"):
 			columns.append({
+				"fieldname": frappe.scrub(label),
 				"label": label,
 				"fieldtype": "Currency",
 				"options": "currency",
@@ -60,6 +61,7 @@ class ReceivablePayableReport(object):
 			"{range2}-{range3}".format(range2=cint(self.filters["range2"])+ 1, range3=self.filters["range3"]),
 			"{range3}-{above}".format(range3=cint(self.filters["range3"])+ 1, above=_("Above"))):
 				columns.append({
+					"fieldname": frappe.scrub(label),
 					"label": label,
 					"fieldtype": "Currency",
 					"options": "currency",

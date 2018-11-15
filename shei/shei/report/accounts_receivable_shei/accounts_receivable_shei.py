@@ -19,6 +19,7 @@ class ReceivablePayableReport(object):
 		party_naming_by = frappe.db.get_value(args.get("naming_by")[0], None, args.get("naming_by")[1])
 		columns = self.get_columns(party_naming_by, args)
 		data = self.get_data(party_naming_by, args)
+		#frappe.msgprint('<pre>{0}</pre>'.format(frappe.as_json(data)))
 		chart = self.get_chart_data(columns, data)
 		return columns, data, None, chart
 
@@ -38,6 +39,7 @@ class ReceivablePayableReport(object):
 
 		for label in ("Invoiced Amount", "Paid Amount", credit_or_debit_note, "Outstanding Amount"):
 			columns.append({
+				"fieldname": frappe.scrub(label),
 				"label": label,
 				"fieldtype": "Currency",
 				"options": "currency",
@@ -60,6 +62,7 @@ class ReceivablePayableReport(object):
 			"{range2}-{range3}".format(range2=cint(self.filters["range2"])+ 1, range3=self.filters["range3"]),
 			"{range3}-{above}".format(range3=cint(self.filters["range3"])+ 1, above=_("Above"))):
 				columns.append({
+					"fieldname": label,
 					"label": label,
 					"fieldtype": "Currency",
 					"options": "currency",
