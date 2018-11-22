@@ -43,18 +43,30 @@ class CustomerDeposit(Document):
                                 "total_before_taxes": qt.total,
                                 "grand_total": qt.grand_total
                         })
-
+ 
         def apply_customer_deposit(self):
                 if not self.customer_deposit_application:
                         customer_currency = frappe.db.get_value("Customer", {'name':self.customer}, "default_currency")
+                        if not customer_currency:
+                                customer_currency = 'CAD'
+                        accounts = frappe.get_all('Party Account', fields=['*'], filters={'parenttype': 'Customer', 'parent': self.customer})
+                        if accounts:
+                                #take the account from the table
+                                rec_account = accounts[0]['account']
+                        else: 
+                                #take default receivable account
+                                rec_account = frappe.db.get_value('Company', {'name':'SH Environnements Immersifs'}, 'default_receivable_account')
+
+
+                        deposit_account = frappe.db.get_value('Bank Account', { 'currency': customer_currency, 'is_deposit_account': True}, 'deposit_account')
                         if customer_currency == "USD":
                                 multi_currency = True
-                                rec_account = "12150 COMPTES CLIENTS US (ERP) - SHI"
-                                deposit_account = "21450 AVANCES CLIENTS US - SHI"
+                        #        rec_account = "12150 COMPTES CLIENTS US (ERP) - SHI"
+                        #        deposit_account = "21450 AVANCES CLIENTS US - SHI"
                         elif customer_currency == "CAD" or customer_currency is None:
                                 multi_currency = False
-                                rec_account = "12100 COMPTES CLIENTS (ERP) - SHI"
-                                deposit_account = "21400 AVANCES CLIENT CDN - SHI"
+                        #        rec_account = "12100 COMPTES CLIENTS (ERP) - SHI"
+                        #        deposit_account = "21400 AVANCES CLIENT CDN - SHI"
                         else:
                                 frappe.msgprint("The currency of customer " + self.customer + " is not supported by this module at this time.", raise_exception=True)
                         je = frappe.new_doc("Journal Entry")
@@ -184,15 +196,19 @@ class CustomerDeposit(Document):
 
         def on_submit(self):
                 customer_currency = frappe.db.get_value("Customer", {'name': self.customer}, "default_currency")
-
+                if not customer_currency:
+                        customer_currency = 'CAD'
+                bank_account = frappe.db.get_value('Bank Account', { 'currency': customer_currency, 'is_deposit_account': True}, 'account')
+                deposit_account = frappe.db.get_value('Bank Account', { 'currency': customer_currency, 'is_deposit_account': True}, 'deposit_account')
+                
                 if customer_currency == "USD":
                         multi_currency = True
-                        bank_account = "11118 BANQUE DE MONTRÉAL (US) (4600-419) - SHI"
-                        deposit_account = "21450 AVANCES CLIENTS US - SHI"
-                elif customer_currency == "CAD" or customer_currency is None:
+                #        bank_account = "11118 BANQUE DE MONTRÉAL (US) (4600-419) - SHI"
+                #        deposit_account = "21450 AVANCES CLIENTS US - SHI"
+                elif customer_currency == "CAD":
                         multi_currency = False
-                        bank_account = "11114 BANQUE DE MONTREAL (1011-290) - SHI"
-                        deposit_account = "21400 AVANCES CLIENT CDN - SHI"
+                #        bank_account = "11114 BANQUE DE MONTREAL (1011-290) - SHI"
+                #        deposit_account = "21400 AVANCES CLIENT CDN - SHI"
                 else:
                         frappe.msgprint("The currency of customer " + self.customer + " is not supported by this module at this time.", raise_exception=True)
 
