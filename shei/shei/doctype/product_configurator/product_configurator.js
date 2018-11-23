@@ -21,7 +21,9 @@ frappe.ui.form.on('Product Configurator', {
 			callback: function() {
 					}
 			});
+			reload();
 	},
+
 });
 
 frappe.ui.form.on('Product Configurator', {
@@ -44,7 +46,7 @@ function unpublish_document(doc_name, user_email){
 				primary_action: function(frm){
 						d.hide();
 						frappe.call({
-								method: "shei.shei.doctype.product_configurator.product_configurator_user.unpublish_document",
+								method: "shei.shei.doctype.product_configurator.product_configurator.unpublish_document",
 								args: {
 										"doc_name": doc_name,
 										"email": user_email,
@@ -68,7 +70,7 @@ function publish_document(doc_name, user_email){
 				primary_action: function(frm){
 						d.hide();
 						frappe.call({
-								method: "shei.shei.doctype.product_configurator_user.product_configurator.publish_document",
+								method: "shei.shei.doctype.product_configurator.product_configurator.publish_document",
 								args: {
 										"doc_name": doc_name,
 										"email": user_email,

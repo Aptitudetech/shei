@@ -13,13 +13,9 @@ class ProductConfigurator(WebsiteGenerator):
 		product_configurator_items = frappe.get_all('Product Configurator Item', fields=['*'], filters={'parenttype': 'Product Configurator', 'parent': self.name})
 		self.pc_total_panel_quantity = sum(t.item_quantity for t in product_configurator_items)
 
-
-
 		self.pc_total_discount_pourcent = self.get_panel_qte_discount(self.pc_total_panel_quantity)
 
 		for item in product_configurator_items:
-			frappe.msgprint(_( "Item qte: {0}".format(item.item_quantity) ))
-
 			item.item_sqft_per_panel = (item.item_height * item.item_width) / 144
 			item.item_sqft_price = self.get_sqft_per_panel_price(item.item_sqft_per_panel)
 			item.item_base_panel_price = item.item_sqft_per_panel * item.item_sqft_price
@@ -30,7 +26,7 @@ class ProductConfigurator(WebsiteGenerator):
 				item.item_discount_dollar = (item.item_discount_pourcent / 100 ) * item.item_panel_price_w_back
 			else:
 				item.item_discount_dollar = 0
-			item.item_discount_price = item.item_base_panel_price - item.item_discount_dollar
+			item.item_discount_price = item.item_panel_price_w_back - item.item_discount_dollar
 			item.item_line_price_cad = item.item_discount_price * item.item_quantity
 			item.item_unit_price_cad = item.item_discount_price
 			item.item_unit_price_usd = item.item_unit_price_cad / float(frappe.db.get_value('Product Configurator Setting', None, 'exchange_rate_usd'))
@@ -63,8 +59,8 @@ class ProductConfigurator(WebsiteGenerator):
 		self.pc_total_studs_price = sum(t.item_studs_price for t in product_configurator_items)
 		self.pc_total_av_nuts_price = sum(t.item_av_nuts_price for t in product_configurator_items)
 		self.pc_studs_nuts_line_price_cad = self.pc_total_studs_price + self.pc_total_av_nuts_price
-		self.pc_unit_price_cad = self.pc_total_line_price_cad / self.pc_total_studs
-		self.pc_unit_price_usd = self.pc_total_line_price_cad / float(frappe.db.get_value('Product Configurator Setting', None, 'exchange_rate_usd'))
+		self.pc_unit_price_cad = self.pc_studs_nuts_line_price_cad / self.pc_total_studs
+		self.pc_unit_price_usd = self.pc_unit_price_cad / float(frappe.db.get_value('Product Configurator Setting', None, 'exchange_rate_usd'))
 
 	def get_panel_qte_discount(self, quantity):
 		discount = 0
@@ -103,10 +99,6 @@ class ProductConfigurator(WebsiteGenerator):
 				break
 			if sqft_per_panel > p.panel_range:
 				price = p['panel_price']
-
-		frappe.msgprint(_( "sqft_per_panel: {0}".format(sqft_per_panel) ))
-		frappe.msgprint(_( "price: {0}".format(price) ))
-		
 		return price
 
 	def sort_list_by_discount_range(self, json_obj):
@@ -123,7 +115,9 @@ class ProductConfigurator(WebsiteGenerator):
 
 @frappe.whitelist()
 def publish_document(email=None, doc_name=None):
-	from frappe.email.doctype.email_template.email_template import get_email_template
+	#from frappe.email.doctype.email_template.email_template import get_email_template
+	frappe.get_doc('Product Configurator', doc_name).update({ 'is_published': True }).save()
+
 	#user = frappe.new_doc('User')
 	#user.update({
 	#		"first_name": self.name,
@@ -132,18 +126,19 @@ def publish_document(email=None, doc_name=None):
 	#})
 	#user.flags.ignore_permissions = True
 	#user.save()
-	self.db_set('is_published', True)
-	frappe.sendmail(
-		recipients = [email],
-		**get_email_template('SH Product Configurator', {'doc': doc_name})
-	)
+	#####self.db_set('is_published', True)
+	#frappe.sendmail(
+	#	recipients = [email],
+	#	**get_email_template('SH Product Configurator', {'doc': doc_name})
+	#)
 	frappe.msgprint("The email have been sent to {0}".format(email))
 
 
 @frappe.whitelist()
 def unpublish_document(email=None, doc_name=None):
-	from frappe.email.doctype.email_template.email_template import get_email_template
-	self.db_set('is_published', False)
+	#from frappe.email.doctype.email_template.email_template import get_email_template
+	frappe.get_doc('Product Configurator', doc_name).update({ 'is_published': True }).save()
+
 
 	#Desactivated the user/delete him?
 	# frappe.db.get_all('Product Configurator', {'user_email' : email}, 'name')
