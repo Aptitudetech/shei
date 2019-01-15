@@ -27,7 +27,7 @@ frappe.ui.form.on('Product Configurator', {
 });
 
 frappe.ui.form.on('Product Configurator', {
-	onload: function(frm) {
+	refresh: function(frm) {
 		if (cur_frm.doc.is_published == true){
 			cur_frm.page.add_menu_item("Remove the access to this file to the client",unpublish_document(cur_frm.doc.name, cur_frm.doc.pc_user_email));
 		}
@@ -36,6 +36,8 @@ frappe.ui.form.on('Product Configurator', {
 		}
 	}
 });
+
+
 
 function unpublish_document(doc_name, user_email){
 	return function(){

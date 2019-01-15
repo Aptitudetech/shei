@@ -58,6 +58,8 @@ def on_party_onload(doc, handler):
 
 
 def on_customer_validate(doc, handler=None):
+    if doc.is_new() and not doc.lead_name:
+        frappe.throw('Sorry, you need to create a Lead first')
     if not doc.get('customer_code'):
         doc.customer_code = frappe.db.get_value(
             'Custom Series',
