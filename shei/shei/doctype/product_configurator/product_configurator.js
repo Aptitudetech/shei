@@ -2,6 +2,20 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Product Configurator', {
+	test: function(frm) {
+			frappe.call({
+					method: "test",
+					doc: frm.doc,
+					args: {
+					},
+			callback: function() {
+					}
+			});
+	},
+});
+
+
+frappe.ui.form.on('Product Configurator', {
 	refresh: function(frm) {
 
 	}
@@ -23,7 +37,6 @@ frappe.ui.form.on('Product Configurator', {
 			});
 			reload();
 	},
-
 });
 
 frappe.ui.form.on('Product Configurator', {

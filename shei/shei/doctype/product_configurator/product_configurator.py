@@ -6,8 +6,86 @@ from __future__ import unicode_literals, division
 import frappe
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
+import easypost
 
 class ProductConfigurator(WebsiteGenerator):
+
+	def get_item(self, item2):
+		#final_item_name = "FOLIA|ALTO" + item.item_product + "E -" + "thickness : item_panel_thickness" + "finish : item_panel_finish" + " Back: item_back" + "Cut: item_panel_cut"
+		self.set("product_configurator_items", [])
+		product_configurator_items = frappe.get_all('Product Configurator Item', fields=['*'], filters={'parenttype': 'Product Configurator', 'parent': self.name})
+
+		for item in product_configurator_items:
+			product_name = item.item_product.split(" - ")[1].upper()
+			env  = item.item_product[0].upper()
+			thickness = item.item_panel_thickness.split(" - ")[0]
+
+			frappe.msgprint(_("PN: {0}, ENV: {1}, Thick: {2}").format(product_name, env, thickness))
+
+			pcs = frappe.get_all('Panel Finish', fields=['panel_finish_abr'], filters={'parenttype': 'Product Configurator Setting', 'parent': 'Product Configurator Setting'})
+            #* Deposit Setting = Name of the Child Doctype
+            #* Customer Deposit Setup = Name of Main Doctype
+
+			frappe.throw(pcs)
+
+			finish = item.item_panel_finish #get abr
+			back = item.item_back # get abv
+			cut = item.item_panel_cut # get abr
+
+	def test(self):
+		#self.get_item(0)
+		#declare_enquiry_lost("reasons test")
+		#doc = frappe.get_doc("Quotation", "QTN-01638")
+        #doc.declare_enquiry_lost("reasons test")
+		doc = frappe.get_doc("Quotation", "QTN-01638")
+		from erpnext.selling.doctype.quotation.quotation import declare_enquiry_lost
+		doc.declare_enquiry_lost("reaseons-test")
+		easypost.api_key = "EZTK2501b8a0157045088d3431005830d179E0Y0HFNP0lW0s6B43gxZHw" #DEV
+		# create address
+		to_address = easypost.Address.create(
+			street1="417 Montgomery Street",
+			street2="FLOOR 5",
+			city="San Francisco",
+			state="CA",
+			zip="94104",
+			country="US",
+			company="EasyPost",
+			phone="415-456-7890"
+		)
+		from_address = easypost.Address.create(
+			street1="UNDELIEVRABLE ST",
+			city="San Francisco",
+			state="CA",
+			zip="94104",
+			country="US",
+			company="EasyPost2",
+			phone="222-222-7890"
+		)
+		parcel = easypost.Parcel.create(
+			length=20.2,
+			width=10.9,
+			height=5,
+			weight=65.9
+		)
+		shipment = easypost.Shipment.create(
+			to_address=to_address,
+			from_address=from_address,
+			parcel=parcel
+		)
+		ship_id = shipment.id
+		shipment = easypost.Shipment.retrieve(ship_id)
+		
+		for rate in shipment.get_rates().rates:
+			carrier = rate.carrier,
+			currency = rate.currency,
+			rate_price = rate.rate
+
+			frappe.msgprint(_("carrier RATE:  {0}").format(carrier))
+			frappe.msgprint(_("currency RATE:  {0}").format(currency))
+			frappe.msgprint(_("RATEs:  {0}").format(rate_price))
+
+
+
 	def calculate_final_price(self):
 		self.set("product_configurator_items", [])
 		product_configurator_items = frappe.get_all('Product Configurator Item', fields=['*'], filters={'parenttype': 'Product Configurator', 'parent': self.name})
@@ -31,15 +109,15 @@ class ProductConfigurator(WebsiteGenerator):
 			item.item_unit_price_cad = item.item_discount_price
 			item.item_unit_price_usd = item.item_unit_price_cad / float(frappe.db.get_value('Product Configurator Setting', None, 'exchange_rate_usd'))
 			item.item_total_sqft = item.item_sqft_per_panel * item.item_quantity
-			item.item_total_studs = item.item_quantity * item.item_studs_per_panel
-			item.item_total_av_nuts = item.item_quantity * item.item_av_nuts_per_panel
-			item.item_studs_price = (item.item_studs_per_panel * self.get_misc_price('Studs')) * item.item_quantity
-			item.item_av_nuts_price = (item.item_av_nuts_per_panel * self.get_misc_price('AV Nuts')) * item.item_quantity
+			#item.item_total_studs = item.item_quantity * item.item_studs_per_panel
+			#item.item_total_av_nuts = item.item_quantity * item.item_av_nuts_per_panel
+			#item.item_studs_price = (item.item_studs_per_panel * self.get_misc_price('Studs')) * item.item_quantity
+			#item.item_av_nuts_price = (item.item_av_nuts_per_panel * self.get_misc_price('AV Nuts')) * item.item_quantity
 			self.append("product_configurator_items", item)
 		self.get_totals(product_configurator_items)
 
 		self.save()
-		frappe.msgprint("The price have been updated. To send this form to the client, please enter a valid email and check 'is published'")
+		frappe.msgprint("The price have been updated")
 
 	def get_totals(self, product_configurator_items = []):
 		self.pc_total_line_price_cad = sum(t.item_line_price_cad for t in product_configurator_items)

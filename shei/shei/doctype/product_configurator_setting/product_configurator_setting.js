@@ -6,3 +6,16 @@ frappe.ui.form.on('Product Configurator Setting', {
 
 	}
 });
+/*
+frappe.ui.form.on('Product Configurator', {
+	before_save: function(frm) {
+			frappe.call({
+					method: "before_save",
+					doc: frm.doc,
+					args: {
+					},
+			callback: function() {
+					}
+			});
+	},
+});*/
