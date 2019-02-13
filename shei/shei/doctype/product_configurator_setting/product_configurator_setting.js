@@ -6,6 +6,9 @@ frappe.ui.form.on('Product Configurator Setting', {
 
 	}
 });
+
+
+//item_product.onchange = function(){console.log("Changed");};
 /*
 frappe.ui.form.on('Product Configurator', {
 	before_save: function(frm) {

@@ -8,8 +8,8 @@ import json
 from frappe.model.naming import make_autoname
 from frappe.utils import nowdate, add_to_date, flt
 from erpnext.accounts.utils import get_fiscal_year
-from erpnext.accounts.party import (get_party_account_currency,
-	get_default_currency)
+from erpnext import get_default_currency
+from erpnext.accounts.party import (get_party_account_currency)
 
 def get_dashboard_info(party_type, party):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)

@@ -10,6 +10,19 @@ import easypost
 
 class ProductConfigurator(WebsiteGenerator):
 
+	def validate(self):
+		for item in self.get("product_configurator_items"):
+			product = frappe.db.get_value("Environment", item.item_product, "product")
+			thickness_product = frappe.get_value('Panel Thickness', {'parenttype': 'Product Configurator Setting', 'parent': 'Product Configurator Setting', 'name': item.item_panel_thickness}, 'product')
+			finish_product = frappe.get_value('Panel Finish', {'parenttype': 'Product Configurator Setting', 'parent': 'Product Configurator Setting', 'name': item.item_panel_finish}, 'product')
+			cut_product = frappe.get_value('Panel Cut', {'parenttype': 'Product Configurator Setting', 'parent': 'Product Configurator Setting', 'name': item.item_panel_cut}, 'product')
+			back_product = frappe.get_value('Panel Back', {'parenttype': 'Product Configurator Setting', 'parent': 'Product Configurator Setting', 'name': item.item_back}, 'product')
+
+			for product_identifiers in [thickness_product, finish_product, cut_product, back_product]:
+				if product != product_identifiers:
+					frappe.throw(_("Sorry, the environment, thickness, finish, cut and back of a product should be the same. <br> Problematic row: <strong>{0}</strong>").format(item.idx))
+
+
 	def get_item(self, item2):
 		#final_item_name = "FOLIA|ALTO" + item.item_product + "E -" + "thickness : item_panel_thickness" + "finish : item_panel_finish" + " Back: item_back" + "Cut: item_panel_cut"
 		self.set("product_configurator_items", [])
@@ -33,13 +46,36 @@ class ProductConfigurator(WebsiteGenerator):
 			cut = item.item_panel_cut # get abr
 
 	def test(self):
-		#self.get_item(0)
-		#declare_enquiry_lost("reasons test")
-		#doc = frappe.get_doc("Quotation", "QTN-01638")
-        #doc.declare_enquiry_lost("reasons test")
-		doc = frappe.get_doc("Quotation", "QTN-01638")
-		from erpnext.selling.doctype.quotation.quotation import declare_enquiry_lost
-		doc.declare_enquiry_lost("reaseons-test")
+		import requests
+		import xml.etree.ElementTree as ET
+		shipper_city = 'Huntingdon'
+		shipper_state = 'QC'
+		shipper_zipcode = 'J0S1H0'
+		shipper_country = 'CA'
+		consignee_city = 'TULSA'
+		consignee_state = 'OK'
+		consignee_zipcode = 74104
+		consignee_country = 'US'
+		total_weight = 50
+		shipment_class = 50.0
+		shipper_aff = 'Y' #true if we are the shipper
+		ship_month = 2
+		ship_day = 10
+		ship_year = 2019
+
+		r = requests.get("https://www.abfs.com/xml/aquotexml.asp?DL=2&ID=K4K155D4&ShipCity={shipper_city}&ShipState={shipper_state}&ShipZip={shipper_zipcode}&ShipCountry={shipper_country}&ConsCity={consignee_city}&ConsState={consignee_state}&ConsZip={consignee_zipcode}&ConsCountry={consignee_country}&Wgt1={total_weight}&Class1={shipment_class}&ShipAff={shipper_aff}&ShipMonth={ship_month}&ShipDay={ship_day}&ShipYear={ship_year}".format(shipper_city = shipper_city, shipper_state=shipper_state, shipper_zipcode=shipper_zipcode, shipper_country=shipper_country, consignee_city=consignee_city, consignee_state=consignee_state, consignee_zipcode=consignee_zipcode, consignee_country=consignee_country, total_weight=total_weight, shipment_class=shipment_class, shipper_aff=shipper_aff, ship_month=ship_month, ship_day=ship_day, ship_year=ship_year))
+		root = ET.fromstring(r.text)
+		try:
+			abf_dicount = float(root.find("DISCOUNTPERCENTAGE").text[:-1])
+			abf_charge = float(root.find("CHARGE").text)
+			amount_before_discount = round(((abf_charge / (100 - abf_dicount)) * 100), 2)
+			frappe.throw("abf_charge: {0} <br> abf_dicount: {1} <br> amount_before_discount: {2}".format(abf_charge, abf_dicount, amount_before_discount))
+   		except AttributeError:
+			frappe.msgprint(_("Rate Quote Error: <br>"))
+   	    		for child in root.iter('ERRORMESSAGE'):
+				frappe.msgprint(_("<li> {0} </li>").format(child.text))
+			frappe.throw('Please fix those issues before proceeding')
+
 		easypost.api_key = "EZTK2501b8a0157045088d3431005830d179E0Y0HFNP0lW0s6B43gxZHw" #DEV
 		# create address
 		to_address = easypost.Address.create(
@@ -74,7 +110,7 @@ class ProductConfigurator(WebsiteGenerator):
 		)
 		ship_id = shipment.id
 		shipment = easypost.Shipment.retrieve(ship_id)
-		
+
 		for rate in shipment.get_rates().rates:
 			carrier = rate.carrier,
 			currency = rate.currency,
@@ -190,44 +226,3 @@ class ProductConfigurator(WebsiteGenerator):
 			return int(json_obj['panel_range'])
 		except KeyError:
 			return 0
-
-@frappe.whitelist()
-def publish_document(email=None, doc_name=None):
-	#from frappe.email.doctype.email_template.email_template import get_email_template
-	frappe.get_doc('Product Configurator', doc_name).update({ 'is_published': True }).save()
-
-	#user = frappe.new_doc('User')
-	#user.update({
-	#		"first_name": self.name,
-	#		"email": email,
-	#		"send_welcome_email": True
-	#})
-	#user.flags.ignore_permissions = True
-	#user.save()
-	#####self.db_set('is_published', True)
-	#frappe.sendmail(
-	#	recipients = [email],
-	#	**get_email_template('SH Product Configurator', {'doc': doc_name})
-	#)
-	frappe.msgprint("The email have been sent to {0}".format(email))
-
-
-@frappe.whitelist()
-def unpublish_document(email=None, doc_name=None):
-	#from frappe.email.doctype.email_template.email_template import get_email_template
-	frappe.get_doc('Product Configurator', doc_name).update({ 'is_published': True }).save()
-
-
-	#Desactivated the user/delete him?
-	# frappe.db.get_all('Product Configurator', {'user_email' : email}, 'name')
-	#user.update({
-	#		"enabled": False,
-	#})
-	#user.flags.ignore_permissions = True
-	#user.save()
-
-	#frappe.sendmail(
-	#	recipients = [email],
-	#	**get_email_template('SH Product Configurator', {'doc': doc_name}) #Send an email to inform?
-	#)
-	frappe.msgprint("The client have no longer access to this document")
