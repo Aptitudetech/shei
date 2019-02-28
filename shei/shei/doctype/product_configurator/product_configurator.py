@@ -11,6 +11,7 @@ import easypost
 class ProductConfigurator(WebsiteGenerator):
 
 	def validate(self):
+		frappe.msgprint("here?")
 		for item in self.get("product_configurator_items"):
 			product = frappe.db.get_value("Environment", item.item_product, "product")
 			thickness_product = frappe.get_value('Panel Thickness', {'parenttype': 'Product Configurator Setting', 'parent': 'Product Configurator Setting', 'name': item.item_panel_thickness}, 'product')
@@ -21,6 +22,7 @@ class ProductConfigurator(WebsiteGenerator):
 			for product_identifiers in [thickness_product, finish_product, cut_product, back_product]:
 				if product != product_identifiers:
 					frappe.throw(_("Sorry, the environment, thickness, finish, cut and back of a product should be the same. <br> Problematic row: <strong>{0}</strong>").format(item.idx))
+		frappe.msgprint("here?2")
 
 
 	def get_item(self, item2):
