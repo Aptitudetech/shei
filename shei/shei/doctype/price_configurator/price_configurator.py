@@ -150,7 +150,22 @@ class PriceConfigurator(Document):
 		self.pc_total_discount_pourcent = self.get_panel_qte_discount(self.pc_total_panel_quantity)
 
 		for item in price_configurator_items:
-			item.item_sqft_per_panel = (item.item_height * item.item_width) / 144
+			#Need to convert preferred unit measurement to feet
+			if self.pc_measurement == 'mm':
+				item.item_height_mm = item.item_height
+				item.item_width_mm = item.item_width
+			if self.pc_measurement == 'inches':
+				item.item_height_mm = item.item_height * 25.4
+				item.item_width_mm = item.item_width * 25.4
+			if self.pc_measurement == 'foot':
+				item.item_height_mm = item.item_height * 304.8
+				item.item_width_mm = item.item_width * 304.8
+				
+			height_ft = item.item_height_mm / 304.8
+			width_ft = item.item_width_mm / 304.8
+			item.item_sqft_per_panel = (height_ft * width_ft) / 144
+			if item.item_sqft_per_panel < 1:
+				frappe.throw("Sorry, the dimensions are too small")
 			item.item_sqft_price = self.get_sqft_per_panel_price(item.item_sqft_per_panel)
 			item.item_base_panel_price = item.item_sqft_per_panel * item.item_sqft_price
 			back_factor = self.get_back_factor(item.item_back)
@@ -211,22 +226,16 @@ class PriceConfigurator(Document):
 		return discount
 
 	def get_misc_price(self, misc):
-		misc_price = frappe.get_all('Misc Price', fields=['*'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'misc_part':misc })
-		if not misc_price[0].misc_price:
+		misc_price = frappe.get_value('Misc Price', {'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'misc_part':misc}, 'misc_price')
+		if not misc_price:
 			frappe.throw("Sorry, the select misc have not been set yet. Please contact your administrator.") #Change the message eventually
-		return misc_price[0].misc_price
+		return misc_price
 
 	def get_back_factor(self, back):
-		#back_price = frappe.get_all('Panel Back', ['*'], { 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'back_finish':back.split('-')[0] })
 		back_factor = frappe.get_value('Panel Back', {'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'back_finish': back.split('-')[0]}, 'back_factor')
-
 		if not back_factor:
 			frappe.throw("Sorry, the select back have not been set yet. Please contact your administrator.") #Change the message eventually
-		frappe.msgprint(_("Back: {0} --  {1}").format(back, back_factor))
 		return back_factor
-##if not back_price[0].back_factor:
-##			frappe.throw("Sorry, the select back have not been set yet. Please contact your administrator.") #Change the message eventually
-##		return back_price[0].back_factor
 
 
 	def get_sqft_per_panel_price(self, sqft_per_panel):
@@ -261,7 +270,6 @@ class PriceConfigurator(Document):
 def create_price_configurator(quote_name = None):
 	quote = frappe.get_doc('Quotation', quote_name)
 	quote_shipping_address = frappe.db.get_value('Address', quote.shipping_address_name, ['city', 'country', 'state', 'pincode'], as_dict=True)
-
 	pc_name = "PC-" + quote_name
 	#if the pc already exist, we need to change the name up (need to discus with Montreuil)
 	while frappe.db.exists('Price Configurator', pc_name):
@@ -296,3 +304,6 @@ def create_price_configurator(quote_name = None):
 	quote.flags.ignore_permissions = True
 	quote.save()
 
+@frappe.whitelist()
+def filter_back(back = None):
+	frappe.msgprint(_("Here : {0}").format(back))

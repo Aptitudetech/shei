@@ -3,15 +3,28 @@
 
 /*frappe.ui.form.on("Price Configurator", "onload", function(frm) {
 	frm.fields_dict.price_configurator_items.grid.get_field('back_finish').get_query =
-		function() {
+		function(back) {
 			return {
 				query: "shei.shei.doctype.price_configurator.price_configurator.filter_back",
 				filters: {
-					"product":cur_frm.doc.client
+					"back":back
 				}
 			}
 		}
 });*/
+
+frappe.ui.form.on("Price Configurator", "onload", function(frm) {
+	frm.fields_dict['price_configurator_items'].grid.get_field('back_finish').get_query = function(doc, cdt, cdn) {
+	child = locals[cdt][cdn];
+	console.log(child);
+		return{	
+			filters:[
+				['parent', '=', "Sintra-Alto"]
+//				['parent', '=', child.stock_uom]
+			]
+		}
+	}
+	});
 
 /*
 frappe.ui.form.on("Price Configurator", "onload_post_render", function(frm, cdt, cdn){
