@@ -10,13 +10,26 @@ from frappe.website.website_generator import WebsiteGenerator
 import easypost
 
 class PriceConfigurator(Document):
-	
-	def pc_add_items(self):
-		frappe.msgprint("Here")
-		frappe.msgprint(_("p: {0}").format(self.get("pc_default_items")))
 
+	#Entry Point: Add Item Button
+	def pc_add_items(self, default_items=[]):
+		'''For each item, will duplicate them in another table, then clear the default table'''
+		for item in default_items:
+			for rep in range(0, self.pc_nb_duplicated_rows):
+				self.append("price_configurator_items", {
+					"item_height": 0,
+					"item_width": 0,
+					"item_quantity": 0,
+					"item_product": item['item_product'],
+					"item_panel_thickness": item['item_panel_thickness'],
+					"item_panel_finish": item['item_panel_finish'],
+					"item_panel_cut": '',
+					"item_back": item['item_back'],
+				})
+		self.set('pc_default_items', [])
 
-	def validate(self):
+	def is_from_same_product(self, items=[]):
+		'''Makes sure each attributes from an item is from the same Product'''
 		for item in self.get("price_configurator_items"):
 			product = frappe.db.get_value("Environment", item.item_product, "product")
 			thickness_product = frappe.get_value('Panel Thickness', {'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'name': item.item_panel_thickness}, 'product')
@@ -28,35 +41,37 @@ class PriceConfigurator(Document):
 				if product != product_identifiers:
 					frappe.throw(_("Sorry, the environment, thickness, finish, cut and back of a product should be the same. <br> Problematic row: <strong>{0}</strong>").format(item.idx))
 
-	def get_item(self, item2):
-		#final_item_name = "FOLIA|ALTO" + item.item_product + "E -" + "thickness : item_panel_thickness" + "finish : item_panel_finish" + " Back: item_back" + "Cut: item_panel_cut"
-		self.set("price_configurator_items", [])
-		price_configurator_items = frappe.get_all('Price Configurator Item', fields=['*'], filters={'parenttype': 'Price Configurator', 'parent': self.name})
 
-		for item in price_configurator_items:
-			product_name = item.item_product.split(" - ")[1].upper()
-			env  = item.item_product[0].upper()
-			thickness = item.item_panel_thickness.split(" - ")[0]
+	def validate(self):
+		self.is_from_same_product(self.get("price_configurator_items"))
 
-			frappe.msgprint(_("PN: {0}, ENV: {1}, Thick: {2}").format(product_name, env, thickness))
-
-			pcs = frappe.get_all('Panel Finish', fields=['panel_finish_abr'], filters={'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting'})
-            #* Deposit Setting = Name of the Child Doctype
-            #* Customer Deposit Setup = Name of Main Doctype
-
-			frappe.throw(pcs)
-
-			finish = item.item_panel_finish #get abr
-			back = item.item_back # get abv
-			cut = item.item_panel_cut # get abr
+	def get_item(self, item):
+		product = frappe.db.get_value('Environment', item.item_product, 'product').upper()
+		env = frappe.db.get_value('Environment', item.item_product, 'environment')[0].upper()
+		thickness = frappe.db.get_value('Panel Thickness', item.item_panel_thickness, 'thickness').upper()
+		finish = frappe.db.get_value('Panel Finish', item.item_panel_finish, 'panel_finish_abr') 
+		back = frappe.db.get_value('Panel Back', item.item_back, 'panel_back_abr') 
+		cut = frappe.db.get_value('Panel Cut', item.item_panel_cut, 'panel_cut_abr') 
+		final_item_name = product + "-" + env + "-" + thickness + "-" + finish + "-" + back + "-" + cut
+		if not frappe.db.exists('Item', final_item_name):
+			final_item_name = "" #let the link empty
+		return final_item_name
 
 	def test(self):
 		import requests
 		import xml.etree.ElementTree as ET
-		shipper_city = 'Huntingdon'
-		shipper_state = 'QC'
-		shipper_zipcode = 'J0S1H0'
-		shipper_country = 'CA'
+
+		if self.is_default_shipper_address:
+			shipper_city = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_city')
+			shipper_state = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_state')
+			shipper_zipcode = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_zipcode')
+			shipper_country = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_country')
+		else:
+			shipper_city = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_city')
+			shipper_state = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_state')
+			shipper_zipcode = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_zipcode')
+			shipper_country = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_country')
+
 		consignee_city = 'TULSA'
 		consignee_state = 'OK'
 		consignee_zipcode = 74104
@@ -67,7 +82,6 @@ class PriceConfigurator(Document):
 		ship_month = 2
 		ship_day = 10
 		ship_year = 2019
-
 
 	#US Only: https://www.zipcodeapi.com/rest/rw3tf9DjeiMpy77gvjfg6qO5cU87GjMYp1PynQUijIPHZ6QFMXUdnLbT4iUv5mzf/info.json/85001/degrees  where 85001 = zipcode
 
@@ -129,8 +143,6 @@ class PriceConfigurator(Document):
 			frappe.msgprint(_("currency RATE:  {0}").format(currency))
 			frappe.msgprint(_("RATEs:  {0}").format(rate_price))
 
-
-
 	def calculate_final_price(self):
 		self.set("price_configurator_items", [])
 		price_configurator_items = frappe.db.get_all('Price Configurator Item', fields=['*'], filters={'parenttype': 'Price Configurator', 'parent': self.name})
@@ -141,8 +153,8 @@ class PriceConfigurator(Document):
 			item.item_sqft_per_panel = (item.item_height * item.item_width) / 144
 			item.item_sqft_price = self.get_sqft_per_panel_price(item.item_sqft_per_panel)
 			item.item_base_panel_price = item.item_sqft_per_panel * item.item_sqft_price
-			item.item_back_factor = self.get_back_factor(item.item_back)
-			item.item_panel_price_w_back = item.item_base_panel_price * item.item_back_factor
+			back_factor = self.get_back_factor(item.item_back)
+			item.item_panel_price_w_back = item.item_base_panel_price * back_factor
 			item.item_discount_pourcent = self.pc_total_discount_pourcent
 			if item.item_discount_pourcent > 0:
 				item.item_discount_dollar = (item.item_discount_pourcent / 100 ) * item.item_panel_price_w_back
@@ -150,12 +162,19 @@ class PriceConfigurator(Document):
 				item.item_discount_dollar = 0
 			item.item_discount_price = item.item_panel_price_w_back - item.item_discount_dollar
 			item.item_line_price_cad = item.item_discount_price * item.item_quantity
+			item.item_line_price_usd = item.item_line_price_cad / float(frappe.db.get_value('Price Configurator Setting', None, 'exchange_rate_usd'))
 			item.item_unit_price_cad = item.item_discount_price
 			item.item_unit_price_usd = item.item_unit_price_cad / float(frappe.db.get_value('Price Configurator Setting', None, 'exchange_rate_usd'))
 			item.item_total_sqft = item.item_sqft_per_panel * item.item_quantity
+			item.item_existing_item = self.get_item(item)
+			if self.pc_preferred_currency == 'CAD':
+				item.price_line = item.item_line_price_cad
+			else:
+				item.price_line = item.item_line_price_usd
+
 			self.append("price_configurator_items", item)
 		self.get_totals(price_configurator_items)
-		
+
 		self.pc_total_studs_price = self.pc_total_studs * float(frappe.db.get_value('Misc Price', { 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'misc_part':'Studs'}, ['misc_price']))
 		self.pc_total_av_nuts_price = self.pc_total_av_nuts * float(frappe.db.get_value('Misc Price', { 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'misc_part':'AV Nuts'}, ['misc_price']))
 		self.pc_unit_price_cad = self.pc_total_studs_price + self.pc_total_av_nuts_price
@@ -198,17 +217,22 @@ class PriceConfigurator(Document):
 		return misc_price[0].misc_price
 
 	def get_back_factor(self, back):
-		back_price = frappe.get_all('Panel Back', ['*'], { 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'back_finish':back.split('-')[0] })
+		#back_price = frappe.get_all('Panel Back', ['*'], { 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'back_finish':back.split('-')[0] })
+		back_factor = frappe.get_value('Panel Back', {'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'back_finish': back.split('-')[0]}, 'back_factor')
 
-		if not back_price[0].back_factor:
+		if not back_factor:
 			frappe.throw("Sorry, the select back have not been set yet. Please contact your administrator.") #Change the message eventually
-		return back_price[0].back_factor
+		frappe.msgprint(_("Back: {0} --  {1}").format(back, back_factor))
+		return back_factor
+##if not back_price[0].back_factor:
+##			frappe.throw("Sorry, the select back have not been set yet. Please contact your administrator.") #Change the message eventually
+##		return back_price[0].back_factor
 
 
 	def get_sqft_per_panel_price(self, sqft_per_panel):
 		price = 0
 		sqft_per_panel = int(sqft_per_panel) #round the number down
-		sqft_per_panel_list = frappe.get_all('Panel Price Range', fields=['panel_range', 'panel_price'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': None })
+		sqft_per_panel_list = frappe.get_all('Panel Price Range', fields=['panel_range', 'panel_price'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
 		sqft_per_panel_list.sort(key=self.sort_list_by_panel_range, reverse=False)
 
 		for p in sqft_per_panel_list:
@@ -230,4 +254,45 @@ class PriceConfigurator(Document):
 			return int(json_obj['panel_range'])
 		except KeyError:
 			return 0
+
+	
+
+@frappe.whitelist()
+def create_price_configurator(quote_name = None):
+	quote = frappe.get_doc('Quotation', quote_name)
+	quote_shipping_address = frappe.db.get_value('Address', quote.shipping_address_name, ['city', 'country', 'state', 'pincode'], as_dict=True)
+
+	pc_name = "PC-" + quote_name
+	#if the pc already exist, we need to change the name up (need to discus with Montreuil)
+	while frappe.db.exists('Price Configurator', pc_name):
+		old_version = pc_name.split("-")[3]
+		new_version = int(old_version) + 1
+		pc_name = pc_name.replace(old_version, str(new_version))
+	pc = frappe.new_doc('Price Configurator')
+	measurement = 'mm'
+	if quote_shipping_address:
+		country = 'CA'
+		if quote_shipping_address.country == 'United States':
+			country = 'US'
+			measurement = 'inches'
+		pc.update({
+			'doctype_name': pc_name,
+			'pc_measurement': measurement,
+			'pc_preferred_currency': quote.currency,
+			'consignee_city': quote_shipping_address.city,
+			'consignee_state': quote_shipping_address.state,
+			'consignee_zipcode': quote_shipping_address.pincode,
+			'consignee_country': country,
+		})
+	else:
+		pc.update({
+			'doctype_name': pc_name,
+			'pc_measurement': measurement,
+			'pc_preferred_currency': quote.currency,
+		})
+	pc.flags.ignore_permissions = True
+	pc.save()
+	quote.update({ 'price_configurator' : pc_name})
+	quote.flags.ignore_permissions = True
+	quote.save()
 

@@ -1,3 +1,97 @@
+/*
+frappe.templates["dashboard_link_doctype"] = ' \
+<div class="document-link" data-doctype="{{ doctype }}"> \
+<a class="badge-link small">{{ __(doctype) }}</a> \
+<span class="text-muted small count"></span> \
+<span class="open-notification hidden" title="{{ __("Open {0}", [__(doctype)])}}"></span> \
+	<button class="btn btn-new btn-default btn-xs hidden" data-doctype="{{ doctype }}"> \
+			<i class="octicon octicon-plus" style="font-size: 12px;"></i> \
+	</button>\
+</div>';
+
+frappe.provide('shei');
+
+
+shei.dashboard_link_doctype = function(frm, doctype, section, links){
+	var parent = $(format('.form-dashboard-wrapper h6:contains("{}")', [section])).parent();
+	parent.find(format('div.document-link[data-doctype="{}"]', [doctype])).remove();
+	parent.append(frappe.render_template('dashboard_link_doctype', {'doctype': doctype}));
+	var self = parent.find(format('div.document-link[data-doctype="{}"]', [doctype]));
+	shei.set_open_count(frm, doctype, links);
+	// bind links
+	self.find('.badge-link').on('click', function(){
+		var routes = {};
+		routes[frappe.scrub(frm.doc.doctype)] = frm.doc.name;
+		frappe.route_options = routes;
+		frappe.set_route('List', doctype);
+	});
+
+	// bind open notifications
+	self.find('.open-notification').on('click', function() {
+		frappe.route_options = {
+			'quotation': frm.doc.name,
+			'status': 'Draft'
+		};
+		frappe.set_route('List', doctype);
+	});
+
+	// bind new
+	if (frappe.model.can_create(doctype)) {
+		self.find('.btn-new').removeClass('hidden');
+
+		self.find('.btn-new').on('click', function(){
+			frappe.new_doc(doctype, {
+				'project': frm.doc.name,
+				'quotation_to': 'Customer',
+				'customer': frm.doc.customer
+			});
+		});
+	}
+}
+
+shei.set_open_count = function(frm, doctype, links){
+	frappe.call({
+		'method': 'shei.api.get_open_count',
+		'args': {
+			'doctype': frm.doctype,
+			'name': frm.docname,
+			'links': links
+		},
+		'callback': function(res){
+			// update badges
+			if (res && res.message){
+				res.message.count.forEach(function(d){
+					frm.dashboard.set_badge_count(
+						d.name, cint(d.open_count), cint(d.count)
+					);
+				});
+			}
+		}
+	});
+}
+
+frappe.ui.form.on('Project', 'refresh', function(frm, cdt, cdn){
+	if (!frm.doc.__islocal){
+		playworld.dashboard_link_doctype(frm, 'Quotation', __('Sales'), {
+			'fieldname': 'project',
+			'transactions': [
+				{
+					'items': ['Quotation'],
+					'label': __('Quotation')
+				}]
+		});
+	}
+})*/
+
+
+
+
+
+
+
+
+
+
 erpnext.accounts.SalesInvoiceController = erpnext.accounts.SalesInvoiceController.extend({
 	"get_credit_notes": function(frm){
 	if (frm.doc.customer){
@@ -29,6 +123,7 @@ erpnext.accounts.SalesInvoiceController = erpnext.accounts.SalesInvoiceControlle
 	}
 	}
 });
+
 
 $.extend(cur_frm.cscript, new erpnext.accounts.SalesInvoiceController({frm: cur_frm}));
 
