@@ -11,6 +11,17 @@ from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
+#def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
+#	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
+#	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None,
+#	flags=None, read_receipt=None, print_letterhead=True):
+#    from frappe.core.doctype.communication import make
+#
+#    make(doctype, name, content, subject, sent_or_received,
+#	sender, sender_full_name, recipients, communication_medium, send_email,
+#	print_html, print_format, attachments, send_me_a_copy, cc, bcc,
+#	flags, print_letterhead, read_receipt=False)
+
 def get_dashboard_info(party_type, party):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
 	company = frappe.db.get_default("company") or frappe.get_all("Company")[0].name

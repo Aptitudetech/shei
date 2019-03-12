@@ -140,6 +140,7 @@ doc_events = {
 # ------------------------------
 #
 #override_whitelisted_methods = {
+#    "frappe.core.doctype.communication.email.make": "shei.events.make",
 #    #"frappe.desk.doctype.event.event.get_events": "shei.event.get_events",
 #    "erpnext.selling.doctype.sales_order.sales_order.make_sales_invoice": "shei.route.make_sales_invoice",
 # 	"frappe.model.mapper.make_mapped_doc": "shei.route.make_mapped_doc",
