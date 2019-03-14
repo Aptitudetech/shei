@@ -12,51 +12,24 @@ import easypost
 class PriceConfigurator(Document):
 
 	#Entry Point: Add Item Button
-	def pc_add_items(self, default_items=[]):
-		'''For each item in pc_default_item, will duplicate them 
-		in another table X number of time, then clear the default table'''
-		for item in default_items:
-			for rep in range(0, self.pc_nb_duplicated_rows):
-				self.append("price_configurator_items", {
-					"item_height": 0,
-					"item_width": 0,
-					"item_quantity": 0,
-					"item_product": item['item_product'],
-					"item_panel_thickness": item['item_panel_thickness'],
-					"item_panel_finish": item['item_panel_finish'],
-					"item_panel_cut": '',
-					"item_back": item['item_back'],
-				})
-		self.set('pc_default_items', [])
+	#def pc_add_items(self, default_items=[]):
+	#	'''For each item in pc_default_item, will duplicate them 
+	#	in another table X number of time, then clear the default table'''
+	#	for item in default_items:
+	#		for rep in range(0, self.pc_nb_duplicated_rows):
+	#			self.append("price_configurator_items", {
+	#				"item_height": 0,
+	#				"item_width": 0,
+	#				"item_quantity": 0,
+	#				"item_product": item['item_product'],
+	#				"item_panel_thickness": item['item_panel_thickness'],
+	#				"item_panel_finish": item['item_panel_finish'],
+	#				"item_panel_cut": '',
+	#				"item_back": item['item_back'],
+	#			})
+	#	self.set('pc_default_items', [])
 
-	def is_from_same_product(self, items=[]):
-		'''Makes sure each attributes from an item is from the same Product'''
-		for item in self.get("price_configurator_items"):
-			product = frappe.db.get_value("Environment", item.item_product, "product")
-			thickness_product = frappe.get_value('Panel Thickness', {'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'name': item.item_panel_thickness}, 'product')
-			finish_product = frappe.get_value('Panel Finish', {'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'name': item.item_panel_finish}, 'product')
-			cut_product = frappe.get_value('Panel Cut', {'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'name': item.item_panel_cut}, 'product')
-			back_product = frappe.get_value('Panel Back', {'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'name': item.item_back}, 'product')
-			for product_identifiers in [thickness_product, finish_product, cut_product, back_product]:
-				if product != product_identifiers:
-					frappe.throw(_("Sorry, the environment, thickness, finish, cut and back of a product should be the same. <br> Problematic row: <strong>{0}</strong>").format(item.idx))
-
-	def validate(self):
-		self.is_from_same_product(self.get("price_configurator_items"))
-
-	def get_item(self, item):
-		"""Based on the item received, will try to find the existing item in the db and return it"""
-		product = frappe.db.get_value('Environment', item.item_product, 'product').upper()
-		env = frappe.db.get_value('Environment', item.item_product, 'environment')[0].upper()
-		thickness = frappe.db.get_value('Panel Thickness', item.item_panel_thickness, 'thickness').upper()
-		finish = frappe.db.get_value('Panel Finish', item.item_panel_finish, 'panel_finish_abr') 
-		back = frappe.db.get_value('Panel Back', item.item_back, 'panel_back_abr') 
-		cut = frappe.db.get_value('Panel Cut', item.item_panel_cut, 'panel_cut_abr') 
-		final_item_name = product + "-" + env + "-" + thickness + "-" + finish + "-" + back + "-" + cut
-		if not frappe.db.exists('Item', final_item_name):
-			final_item_name = "" #let the link empty
-		return final_item_name
-
+	
 	def test(self):
 		import requests
 		import xml.etree.ElementTree as ET
@@ -156,8 +129,8 @@ class PriceConfigurator(Document):
 		return sqft
 
 	def get_discount_pourcent(self, total_discount_pourcent, panel_w_back):
-		discount_pourcent = total_discount_pourcent
-		if discount_pourcent > 0:
+		frappe.msgprint(_("tdp: {0}  ---  pwb: {1}").format(total_discount_pourcent, panel_w_back))
+		if total_discount_pourcent > 0:
 			return (total_discount_pourcent / 100 ) * panel_w_back
 		else:
 			return 0
@@ -166,7 +139,7 @@ class PriceConfigurator(Document):
 		return amount / float(frappe.db.get_value('Price Configurator Setting', None, 'exchange_rate_usd'))
 
 	def calculate_prices_for_items(self, price_configurator_items, pc_total_discount_pourcent, pc_preferred_currency):
-		'''Calculate the price for each panel and update the table accordingly'''
+		"""Calculate the price for each panel and update the table accordingly"""
 		self.set("price_configurator_items", [])
 		for item in price_configurator_items:
 			item.item_height_mm = self.convert_measurement_to_mm(self.pc_measurement, item.item_height)
@@ -174,19 +147,20 @@ class PriceConfigurator(Document):
 			height_ft = self.convert_mm_to_foot(item.item_height_mm)
 			width_ft = self.convert_mm_to_foot(item.item_width_mm)
 			item.item_sqft_per_panel = self.get_sqft(height_ft, width_ft)
-			item.item_sqft_price = self.get_sqft_per_panel_price(item.item_sqft_per_panel)
-			item.item_base_panel_price = item.item_sqft_per_panel * item.item_sqft_price
-			back_factor = self.get_back_factor(item.item_back)
-			item.item_panel_price_w_back = item.item_base_panel_price * back_factor
+			item.item_panel_price_w_back = self.get_sqft_per_panel_price(item.item_sqft_per_panel, item.item_product, item.item_quantity)
 			item.item_discount_pourcent = pc_total_discount_pourcent
+
+
 			item.item_discount_dollar = self.get_discount_pourcent(pc_total_discount_pourcent, item.item_panel_price_w_back)
 			item.item_discount_price = item.item_panel_price_w_back - item.item_discount_dollar
+
+
+
 			item.item_line_price_cad = item.item_discount_price * item.item_quantity
 			item.item_line_price_usd = self.convert_cad_to_usd(item.item_line_price_cad)
 			item.item_unit_price_cad = item.item_discount_price
 			item.item_unit_price_usd = self.convert_cad_to_usd(item.item_unit_price_cad)
 			item.item_total_sqft = item.item_sqft_per_panel * item.item_quantity
-			item.item_existing_item = self.get_item(item)
 			item.price_line = self.get_preferred_currency(pc_preferred_currency, item.item_line_price_cad, item.item_line_price_usd)
 			self.append("price_configurator_items", item)
 
@@ -195,7 +169,7 @@ class PriceConfigurator(Document):
 		"""Will calculate the final price based on price_configurator_item rows"""
 		price_configurator_items = frappe.db.get_all('Price Configurator Item', fields=['*'], filters={'parenttype': 'Price Configurator', 'parent': self.name})
 		self.pc_total_panel_quantity = sum(t.item_quantity for t in price_configurator_items)
-		self.pc_total_discount_pourcent = self.get_panel_qte_discount(self.pc_total_panel_quantity)
+		self.pc_total_discount_pourcent = self.get_panel_qte_discount(self.pc_total_panel_quantity)		
 		self.calculate_prices_for_items(price_configurator_items, self.pc_total_discount_pourcent, self.pc_preferred_currency)
 		self.calculate_total_prices(price_configurator_items)
 		self.save()
@@ -204,21 +178,23 @@ class PriceConfigurator(Document):
 	def calculate_total_prices(self, price_configurator_items):
 		'''Calculate the total final prices'''
 		self.pc_total_line_price_cad = sum(t.item_line_price_cad for t in price_configurator_items)
+
 		self.pc_line_total_unit_price_cad = sum(t.item_unit_price_cad for t in price_configurator_items)
 		self.pc_total_unit_price_usd = sum(t.item_unit_price_usd for t in price_configurator_items)
 		self.pc_total_sqft = sum(t.item_total_sqft for t in price_configurator_items)
 		self.pc_total_sqft_per_panel = self.pc_total_sqft / self.pc_total_panel_quantity
-		self.pc_total_sqft_price = self.pc_total_line_price_cad / self.pc_total_sqft
-		self.pc_total_base_panel_price = sum(t.item_base_panel_price for t in price_configurator_items)
+		self.pc_total_base_panel_price = sum(t.item_panel_price_w_back for t in price_configurator_items)
 		if self.pc_total_discount_pourcent > 0:
 			self.pc_discount_dollar = (self.pc_total_discount_pourcent / 100) * self.pc_total_base_panel_price
 		else:
 			self.pc_discount_dollar = 0
 		self.pc_total_discount_price = self.pc_total_base_panel_price - self.pc_discount_dollar
 		self.pc_total_studs_price = self.pc_total_studs * float(frappe.db.get_value('Misc Price', { 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'misc_part':'Studs'}, ['misc_price']))
+
 		self.pc_total_av_nuts_price = self.pc_total_av_nuts * float(frappe.db.get_value('Misc Price', { 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'misc_part':'AV Nuts'}, ['misc_price']))
 		self.pc_unit_price_cad = self.pc_total_studs_price + self.pc_total_av_nuts_price
 		self.pc_unit_price_usd = self.convert_cad_to_usd(self.pc_unit_price_cad)
+
 
 	def get_preferred_currency(self, currency, line_price_cad, line_price_usd):
 		"""Returns the right amount, based on the selected currency"""
@@ -246,26 +222,23 @@ class PriceConfigurator(Document):
 			frappe.throw("Sorry, the select misc have not been set yet. Please contact your administrator.") #Change the message eventually
 		return misc_price
 
-	def get_back_factor(self, back):
-		back_factor = frappe.get_value('Panel Back', {'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'back_finish': back.split('-')[0]}, 'back_factor')
-		if not back_factor:
-			frappe.throw("Sorry, the select back have not been set yet. Please contact your administrator.") #Change the message eventually
-		return back_factor
 
-
-	def get_sqft_per_panel_price(self, sqft_per_panel):
+	def get_sqft_per_panel_price(self, sqft_per_panel, item, qty):
 		"""Get sqft price based on the given sqft"""
 		price = 0
 		sqft_per_panel = int(sqft_per_panel) #round the number down
-		sqft_per_panel_list = frappe.get_all('Panel Price Range', fields=['panel_range', 'panel_price'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
-		sqft_per_panel_list.sort(key=self.sort_list_by_panel_range, reverse=False) #Need to order to be able to get the right prices
-		for p in sqft_per_panel_list:
-			if sqft_per_panel == p.panel_range:
-				price = p['panel_price']
-				break
-			if sqft_per_panel > p.panel_range:
-				price = p['panel_price']
-		return price
+		price_per_sqft = float(frappe.db.get_value('Item', item, 'price_per_sqft'))
+		price_factor = float(frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'panel_price_factor'))
+		return (price_per_sqft * qty * price_factor * sqft_per_panel)
+		#sqft_per_panel_list = frappe.get_all('Panel Price Range', fields=['panel_range', 'panel_price'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
+		#sqft_per_panel_list.sort(key=self.sort_list_by_panel_range, reverse=False) #Need to order to be able to get the right prices
+		#for p in sqft_per_panel_list:
+		#	if sqft_per_panel == p.panel_range:
+		#		price = p['panel_price']
+		#		break
+		#	if sqft_per_panel > p.panel_range:
+		#		price = p['panel_price']
+		#return price
 
 
 	def sort_list_by_discount_range(self, json_obj):

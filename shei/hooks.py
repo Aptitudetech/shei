@@ -57,14 +57,6 @@ app_include_js = "/assets/js/shei.js"
 # Permissions
 # -----------
 # Permissions evaluated in scripted ways
-permission_query_conditions = {
-        "Product Configurator": "shei.permissions.get_product_configurator_permissions_query_conditions",
-}
-
-
-has_permission = {
-        "Product Configurator": "shei.permissions.has_permission_to_product_configurator",
-}
 
 
 # Document Events
