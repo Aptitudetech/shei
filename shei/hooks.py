@@ -139,4 +139,45 @@ doc_events = {
 #    "frappe.model.mapper.map_docs": "shei.route.map_docs"
 #}
 
-fixtures = [{'dt': 'Print Node Settings'}]
+fixtures = [
+    {'dt': 'Print Node Settings'},
+    {
+        "dt": "Custom Field",
+	    "filters": {
+        	"name": ["in", [
+			    "Sales Order-work_order",
+                "Sales Order-create_work_order",
+                "Item-price_per_sqft",
+                "Issue-kanban_status",
+                "Lead-others",
+                "Lead-specify",
+                "Lead-lead_qualification",
+                "Lead-company_size",
+                "Lead-lead_last_name",
+                "Quotation-create_price_configurator",
+                "Quotation-price_configurator",
+                "Bank Account-is_deposit_account",
+                "Bank Account-deposit_account",
+                "Bank Account-currency",
+         	]]
+    	}
+    },
+    { 
+        "dt": "Custom Script", 
+        "filters": { 
+            "name": ["in", [ 
+                "Sales Order-Client", 
+                "Quotation-Client",
+                "Bank Account-Client",
+                "Supplier-Client",
+                "Customer-Client",
+                "Project-Client",
+                "Sales Invoice-Client",
+                "Terms and Conditions Multilingual Extension-Client",
+                "Stock Entry-Client",
+                "Purchase Invoice-Client",
+                "Payment Entry-Client",
+            ]] 
+        }
+    },
+]

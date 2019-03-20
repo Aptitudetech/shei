@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import types
 import json
+from frappe import _
 from frappe.model.naming import make_autoname
 from frappe.utils import nowdate, add_to_date, flt
 from erpnext.accounts.utils import get_fiscal_year
@@ -172,3 +173,46 @@ def on_sales_invoice_validate(doc, handler=None):
             })
             if user_restriction:
                 frappe.throw("You're not allowed to create invoices from here !") 
+
+@frappe.whitelist()
+#Create a work order from a sales order
+def create_work_order(so_name = None, mfg_items = []):
+    '''Copy data from sales order and create a work order based on those data'''
+    import json
+    items = []
+    if not mfg_items:
+        return None 
+    json_items = json.loads(mfg_items)
+    for item in json_items:
+        new_item = {
+            "item_code": item["item_code"] ,
+            "item_description": item["description"] ,
+            "quantity": item["qty"] , 
+        }
+        items.append(new_item)
+    
+    so  = frappe.db.get_value('Sales Order', so_name, ['delivery_date', 'project'], as_dict=True)
+    work_order_name = "WO-" + so_name.split("-")[1]
+    #If Work order is new, creat it, otherwhise update it
+    if frappe.db.exists('SO Work Order', work_order_name):
+        work_order = frappe.get_doc('SO Work Order', work_order_name)
+    else:
+        work_order = frappe.new_doc('SO Work Order')
+
+    work_order.update({
+		'work_order_number': work_order_name,
+		'expected_ship_date': so.delivery_date,
+		'project': so.project,
+		'work_order_items': items,
+	})
+    work_order.flags.ignore_permissions = True
+    work_order.save()
+
+    sales_order_doc = frappe.get_doc('Sales Order', so_name)
+    sales_order_doc.update({ 'work_order' : work_order_name})
+    sales_order_doc.flags.ignore_permissions = True
+    sales_order_doc.save()
+    frappe.msgprint("The Work Order have been updated")
+
+
+
