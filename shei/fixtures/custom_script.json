@@ -75,9 +75,9 @@
   "docstatus": 0, 
   "doctype": "Custom Script", 
   "dt": "Sales Order", 
-  "modified": "2019-03-18 13:42:02.363811", 
+  "modified": "2019-03-20 13:35:24.127391", 
   "name": "Sales Order-Client", 
-  "script": "frappe.ui.form.on('Sales Order', {\n\tcreate_work_order: function(frm) {\n\t\tvar checked_items =  cur_frm.fields_dict.items.grid.get_selected_children().map(function(r){return r}); //list all checked instance\n\t\tfrappe.call({\n\t\t\tmethod: 'shei.events.create_work_order',\n\t\t\targs: {\n\t\t\t\tmfg_items : checked_items, \n\t\t\t\tso_name : frm.docname,\n\t\t\t},\n\t\t\tcallback: function() { }\n\t\t});\n\t},\n});\n\n\nfrappe.ui.form.on(\"Sales Order\", \"customer\", function(frm, cdt, cdn) {\n\tfrappe.db.get_value(\"Customer\", frm.doc.customer, \"tc_name\", function(r){\n\t\tif(r.tc_name) {\n\t\t\tfrappe.model.set_value(cdt, cdn, \"tc_name\", r.tc_name);\t\t\t\n\t\t}\n\t});\n\trefresh_field(\"tc_name\");\n});", 
+  "script": "frappe.ui.form.on('Sales Order', {\n    refresh: function(frm) {\n      frm.add_custom_button(__('Work Order'), function(){\n        var checked_items =  cur_frm.fields_dict.items.grid.get_selected_children().map(function(r){return r}); //list all checked instance\n\t\tfrappe.call({\n\t\t\tmethod: 'shei.events.create_work_order',\n\t\t\targs: {\n\t\t\t\tmfg_items : checked_items, \n\t\t\t\tso_name : frm.docname,\n\t\t\t},\n\t\t\tcallback: function() { }\n\t\t});\n\n    }, __(\"Make\"));\n  }\n});\n\n/*frappe.ui.form.on('Sales Order', {\n\tcreate_work_order: function(frm) {\n\t\tvar checked_items =  cur_frm.fields_dict.items.grid.get_selected_children().map(function(r){return r}); //list all checked instance\n\t\tfrappe.call({\n\t\t\tmethod: 'shei.events.create_work_order',\n\t\t\targs: {\n\t\t\t\tmfg_items : checked_items, \n\t\t\t\tso_name : frm.docname,\n\t\t\t},\n\t\t\tcallback: function() { }\n\t\t});\n\t},\n});*/\n\n\nfrappe.ui.form.on(\"Sales Order\", \"customer\", function(frm, cdt, cdn) {\n\tfrappe.db.get_value(\"Customer\", frm.doc.customer, \"tc_name\", function(r){\n\t\tif(r.tc_name) {\n\t\t\tfrappe.model.set_value(cdt, cdn, \"tc_name\", r.tc_name);\t\t\t\n\t\t}\n\t});\n\trefresh_field(\"tc_name\");\n});", 
   "script_type": "Client"
  }, 
  {
