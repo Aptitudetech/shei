@@ -262,12 +262,23 @@ def create_price_configurator(quote_name = None):
 	"""Create a Price Configurator based on the data in Quotation"""
 	quote = frappe.get_doc('Quotation', quote_name)
 	quote_shipping_address = frappe.db.get_value('Address', quote.shipping_address_name, ['city', 'country', 'state', 'pincode'], as_dict=True)
-	pc_name = "PC-" + quote_name
-	#if the pc already exist, we need to change the name up (need to discuss with Montreuil)
-	while frappe.db.exists('Price Configurator', pc_name):
-		old_version = pc_name.split("-")[3]
-		new_version = int(old_version) + 1
-		pc_name = pc_name.replace(old_version, str(new_version))
+	pc_name = frappe.db.get_value('Quotation', quote_name, 'price_configurator')
+
+
+
+	if pc_name:
+		version = len(pc_name.split('v'))
+		if version == 1:
+			frappe.msgprint(_("len: {0}").format(len(pc_name.split('v'))))
+			pc_name = pc_name + 'v1'
+		else:
+			frappe.msgprint(_("len2: {0}").format(pc_name.split('v')[1]))
+			nb = int(pc_name.split('v')[1])
+			nb = nb + 1
+			pc_name = "PC-" + quote_name.split("-")[1] + 'v' + str(nb)
+	else:
+		pc_name = "PC-" + quote_name.split("-")[1]
+    
 	pc = frappe.new_doc('Price Configurator')
 	#Set default measurement and country
 	country = 'CA'

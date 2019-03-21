@@ -23,8 +23,6 @@ from erpnext.accounts.party import (get_party_account_currency)
 #	print_html, print_format, attachments, send_me_a_copy, cc, bcc,
 #	flags, print_letterhead, read_receipt=False)
 
-def on_project_validate_dates():
-    frappe.throw("OK")
 
 def get_dashboard_info(party_type, party):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
