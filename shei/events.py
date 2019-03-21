@@ -23,6 +23,9 @@ from erpnext.accounts.party import (get_party_account_currency)
 #	print_html, print_format, attachments, send_me_a_copy, cc, bcc,
 #	flags, print_letterhead, read_receipt=False)
 
+def on_project_validate_dates():
+    frappe.throw("OK")
+
 def get_dashboard_info(party_type, party):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
 	company = frappe.db.get_default("company") or frappe.get_all("Company")[0].name
@@ -184,11 +187,30 @@ def create_work_order(so_name = None, mfg_items = []):
         return None 
     json_items = json.loads(mfg_items)
     for item in json_items:
-        new_item = {
-            "item_code": item["item_code"] ,
-            "item_description": item["description"] ,
-            "quantity": item["qty"] , 
-        }
+        if 'width_in_inches' in item:
+            new_item = {
+                "item_code": item["item_code"] ,
+                "item_description": item["description"] ,
+                "quantity": item["qty"] , 
+                "width": item['width_in_inches'],
+                "height": item['height_in_inches'],
+                "measurement": 'Inches',
+            }
+        elif 'width_in_mm' in item:
+            new_item = {
+                "item_code": item["item_code"] ,
+                "item_description": item["description"] ,
+                "quantity": item["qty"] , 
+                "width": item['width_in_mm'],
+                "height": item['height_in_mm'],
+                "measurement": 'MM',
+            }
+        else:
+            new_item = {
+                "item_code": item["item_code"] ,
+                "item_description": item["description"] ,
+                "quantity": item["qty"],
+            }
         items.append(new_item)
     
     so  = frappe.db.get_value('Sales Order', so_name, ['delivery_date', 'project'], as_dict=True)
