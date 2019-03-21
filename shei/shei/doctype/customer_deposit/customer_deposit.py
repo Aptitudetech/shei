@@ -217,7 +217,7 @@ class CustomerDeposit(Document):
                         "naming_series": "CD-",
                         "voucher_type": "Cash Entry",
                         "posting_date": self.posting_date,
-                        "company": "SH Environnements Immersifs",
+                        "company": frappe.db.get_default("company"),
                         "multi_currency" : multi_currency,
                         "remark": "Deposit",
                         "write_off_based_on": "Accounts Receivable",
