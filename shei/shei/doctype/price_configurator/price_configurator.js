@@ -18,8 +18,20 @@ frappe.ui.form.on('Price Configurator', {
 				doc: frm.doc,
 				args: {
 				},
-		callback: function() {
-				}
+		callback: function(content) {
+			/*var iframe = document.createElement('iframe');
+			var html = content.message;
+			iframe.src = 'data:text/html;charset=utf-8,' + encodeURI(html);
+			document.body.appendChild(iframe);
+			console.log('iframe.contentWindow =', iframe.contentWindow);
+			console.log(content.message)
+			//window.open("www.packit4me.com/api/call/preview", '_blank',content);
+
+
+			var newWindow = window.open();
+			newWindow.document.body.innerHTML = content.message;*/
+			//newWindow.document.write(content.message);
+			}
 		});
 	},
 	calculate_final_price: function(frm) {

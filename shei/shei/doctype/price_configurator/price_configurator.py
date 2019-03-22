@@ -29,10 +29,47 @@ class PriceConfigurator(Document):
 	#			})
 	#	self.set('pc_default_items', [])
 
+	def test_api(self):
+		import httplib
+		import urllib
+
+		conn = httplib.HTTPConnection(host='www.packit4me.com', port=80)
+		frappe.msgprint(_("conn: {0}").format(conn))
+
+		params =  urllib.urlencode({'bins': '0:0:10x10x10', 'items': ['0:0:0:1x1x1', '1:0:0:3x3x3', '2:0:0:2x2x2']})
+		headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
+		conn.request("POST", "/api/call/raw", params, headers)
+		content = conn.getresponse().read()
+		conn.close()
+		
+		frappe.msgprint(_("Content: {0}").format(content))
+
+
+
+		conn = httplib.HTTPConnection(host='www.packit4me.com', port=80)
+		params =  urllib.urlencode({'bins': '0:0:10x10x10', 'items': ['0:0:0:1x1x1', '1:0:0:3x3x3', '2:0:0:2x2x2'], 'binId':'0'})
+		headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3"}
+		conn.request("POST", "/api/call/preview", params, headers)
+		content = conn.getresponse().read()
+		conn.close()
+		#frappe.msgprint(_("Content: <code> {0} </code>").format(str(content)))
+
+		#frappe.msgprint(_("""
+		#<iframe id="serviceFrameSend" src={0} width="1000" height="1000"  frameborder="0">
+	#		""").format(content))
+
+
+
+		return content
 	
 	def test(self):
 		import requests
 		import xml.etree.ElementTree as ET
+
+		content = self.test_api()
+		return content
+
+
 		if self.is_default_shipper_address:
 			shipper_city = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_city')
 			shipper_state = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_state')
