@@ -184,15 +184,12 @@ class PriceConfigurator(Document):
 			height_ft = self.convert_mm_to_foot(item.item_height_mm)
 			width_ft = self.convert_mm_to_foot(item.item_width_mm)
 			item.item_sqft_per_panel = self.get_sqft(height_ft, width_ft)
+			item.zclip_qty = self.get_zclip_quantity(item.item_height_mm)
+			item.zclip_price = self.get_zclip_price(item.zclip_qty, item.item_width_mm, item.item_quantity)
 			item.item_panel_price_w_back = self.get_sqft_per_panel_price(item.item_sqft_per_panel, item.item_product, item.item_quantity)
 			item.item_discount_pourcent = pc_total_discount_pourcent
-
-
 			item.item_discount_dollar = self.get_discount_pourcent(pc_total_discount_pourcent, item.item_panel_price_w_back)
 			item.item_discount_price = item.item_panel_price_w_back - item.item_discount_dollar
-
-
-
 			item.item_line_price_cad = item.item_discount_price * item.item_quantity
 			item.item_line_price_usd = self.convert_cad_to_usd(item.item_line_price_cad)
 			item.item_unit_price_cad = item.item_discount_price
@@ -228,10 +225,15 @@ class PriceConfigurator(Document):
 		self.pc_total_discount_price = self.pc_total_base_panel_price - self.pc_discount_dollar
 		self.pc_total_studs_price = self.pc_total_studs * float(frappe.db.get_value('Misc Price', { 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'misc_part':'Studs'}, ['misc_price']))
 
-		self.pc_total_av_nuts_price = self.pc_total_av_nuts * float(frappe.db.get_value('Misc Price', { 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'misc_part':'AV Nuts'}, ['misc_price']))
+		self.pc_total_av_nuts_price = self.get_av_nuts_price(self.pc_total_av_nuts)
 		self.pc_unit_price_cad = self.pc_total_studs_price + self.pc_total_av_nuts_price
 		self.pc_unit_price_usd = self.convert_cad_to_usd(self.pc_unit_price_cad)
 
+	def get_zclip_price(self, qty, width, item_quantity):
+		width_inches = width / 25.4
+		zclip_width = int(width_inches - 4) #Need to remove 4 inches for the border of the panel + round upper
+		zclip_price = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'zclip_price')
+		return zclip_width * int(zclip_price) * qty * item_quantity
 
 	def get_preferred_currency(self, currency, line_price_cad, line_price_usd):
 		"""Returns the right amount, based on the selected currency"""
@@ -262,21 +264,59 @@ class PriceConfigurator(Document):
 
 	def get_sqft_per_panel_price(self, sqft_per_panel, item, qty):
 		"""Get sqft price based on the given sqft"""
-		price = 0
+		factor = 1
 		sqft_per_panel = int(sqft_per_panel) #round the number down
 		price_per_sqft = float(frappe.db.get_value('Item', item, 'price_per_sqft'))
-		price_factor = float(frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'panel_price_factor'))
-		return (price_per_sqft * qty * price_factor * sqft_per_panel)
-		#sqft_per_panel_list = frappe.get_all('Panel Price Range', fields=['panel_range', 'panel_price'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
-		#sqft_per_panel_list.sort(key=self.sort_list_by_panel_range, reverse=False) #Need to order to be able to get the right prices
-		#for p in sqft_per_panel_list:
-		#	if sqft_per_panel == p.panel_range:
-		#		price = p['panel_price']
-		#		break
-		#	if sqft_per_panel > p.panel_range:
-		#		price = p['panel_price']
-		#return price
+		sqft_per_panel_list = frappe.get_all('Panel Price Range', fields=['panel_range', 'panel_price'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
+		sqft_per_panel_list.sort(key=self.sort_list_by_panel_range, reverse=False) #Need to order to be able to get the right prices
+		for p in sqft_per_panel_list:
+			if qty == p.panel_range:
+				factor = p['panel_price']
+				break
+			if qty > p.panel_range:
+				factor = p['panel_price']
+		return (price_per_sqft * qty * factor * sqft_per_panel)
 
+	def get_av_nuts_price(self, qty):
+		"""Get AV Nuts price based on qty"""
+		price = 0
+		av_nuts_price_list = frappe.get_all('AV Nuts Price Range', fields=['av_nuts_range', 'av_nuts_price'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
+
+		av_nuts_price_list.sort(key=self.sort_list_by_av_nuts_range, reverse=False) #Need to order to be able to get the right prices
+		for av in av_nuts_price_list:
+			if qty == av.av_nuts_range:
+				price = av['av_nuts_price']
+				break
+			if qty > av.av_nuts_range:
+				price = av['av_nuts_price']
+		return (qty * price)
+
+	def get_zclip_quantity(self, height):
+		"""get zclkip quantity based on panel height"""
+		qty = 0
+		zclip_price_list = frappe.get_all('ZClip Range', fields=['zclip_range', 'zclip_qty'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
+		zclip_price_list.sort(key=self.sort_list_by_zclip_range, reverse=False) #Need to order to be able to get the right prices
+		for zc in zclip_price_list:
+			if height == zc.zclip_range:
+				qty = zc['zclip_qty']
+				break
+			if height > zc.zclip_range:
+				qty = zc['zclip_qty']
+		return qty
+
+	def sort_list_by_zclip_range(self, json_obj):
+		"""Sort given json by zclip range"""
+		try:
+			return int(json_obj['zclip_range'])
+		except KeyError:
+			return 0
+
+	def sort_list_by_av_nuts_range(self, json_obj):
+		"""Sort given json by av nuts range"""
+		try:
+			return int(json_obj['av_nuts_range'])
+		except KeyError:
+			return 0
 
 	def sort_list_by_discount_range(self, json_obj):
 		"""Sort given json by discount_range"""
