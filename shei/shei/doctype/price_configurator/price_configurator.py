@@ -11,24 +11,6 @@ import easypost
 
 class PriceConfigurator(Document):
 
-	#Entry Point: Add Item Button
-	#def pc_add_items(self, default_items=[]):
-	#	'''For each item in pc_default_item, will duplicate them 
-	#	in another table X number of time, then clear the default table'''
-	#	for item in default_items:
-	#		for rep in range(0, self.pc_nb_duplicated_rows):
-	#			self.append("price_configurator_items", {
-	#				"item_height": 0,
-	#				"item_width": 0,
-	#				"item_quantity": 0,
-	#				"item_product": item['item_product'],
-	#				"item_panel_thickness": item['item_panel_thickness'],
-	#				"item_panel_finish": item['item_panel_finish'],
-	#				"item_panel_cut": '',
-	#				"item_back": item['item_back'],
-	#			})
-	#	self.set('pc_default_items', [])
-
 	def test_api(self):
 		import httplib
 		import urllib
@@ -41,7 +23,6 @@ class PriceConfigurator(Document):
 		conn.request("POST", "/api/call/raw", params, headers)
 		content = conn.getresponse().read()
 		conn.close()
-		
 		frappe.msgprint(_("Content: {0}").format(content))
 
 
@@ -190,9 +171,9 @@ class PriceConfigurator(Document):
 			item.item_discount_pourcent = pc_total_discount_pourcent
 			item.item_discount_dollar = self.get_discount_pourcent(pc_total_discount_pourcent, item.item_panel_price_w_back)
 			item.item_discount_price = item.item_panel_price_w_back - item.item_discount_dollar
-			item.item_line_price_cad = item.item_discount_price * item.item_quantity
+			item.item_line_price_cad = (item.item_discount_price * item.item_quantity) + item.zclip_price
 			item.item_line_price_usd = self.convert_cad_to_usd(item.item_line_price_cad)
-			item.item_unit_price_cad = item.item_discount_price
+			item.item_unit_price_cad = item.item_discount_price + (item.zclip_price / item.item_quantity) #get the price for 1 panel
 			item.item_unit_price_usd = self.convert_cad_to_usd(item.item_unit_price_cad)
 			item.item_total_sqft = item.item_sqft_per_panel * item.item_quantity
 			item.price_line = self.get_preferred_currency(pc_preferred_currency, item.item_line_price_cad, item.item_line_price_usd)
@@ -212,7 +193,7 @@ class PriceConfigurator(Document):
 	def calculate_total_prices(self, price_configurator_items):
 		'''Calculate the total final prices'''
 		self.pc_total_line_price_cad = sum(t.item_line_price_cad for t in price_configurator_items)
-
+		self.pc_total_zclip_price = sum(t.zclip_price for t in price_configurator_items)
 		self.pc_line_total_unit_price_cad = sum(t.item_unit_price_cad for t in price_configurator_items)
 		self.pc_total_unit_price_usd = sum(t.item_unit_price_usd for t in price_configurator_items)
 		self.pc_total_sqft = sum(t.item_total_sqft for t in price_configurator_items)
