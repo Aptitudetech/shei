@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import types
 import json
+import datetime
 from frappe import _
 from frappe.model.naming import make_autoname
 from frappe.utils import nowdate, add_to_date, flt
@@ -12,24 +13,21 @@ from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
-#def on_project_before_save(doc, handler=None):
-#    #from erpnext.projects.doctype.project.project import validate 
-#    #https://github.com/frappe/erpnext/blob/fcd0556119faf389d80fca3652e7e4f0729ebb6d/erpnext/projects/doctype/project/project.py#L126
-#    import json
-#    for i in doc.tasks:
-#        lk = frappe.db.get_value('Task', i.task_id, 'status')
-#        gd = frappe.db.get_doc('Task', i.task_id)
-#        pp = frappe.db.get_all('Task', {'parent': 'test', 'parenttype':'Project'}, '*')
-#        frappe.msgprint(_("lk: {0}").format(lk))
-#        frappe.msgprint(_("gd: {0}").format(gd.status))
-#        frappe.msgprint(_("pp: {0}").format(pp))
-#        frappe.msgprint(_("i.status: {0}").format(i.status))
-#        frappe.throw(_("i.as_json(): {0}").format(i.as_json()))
-#        if frappe.db.get_value('Task', i.task_id, 'status') == 'Open' and i.status == 'Closed': #the task have been recently closed
-#            i.description = "Test"
-#            frappe.msgprint(_("i: {0}").format(i.as_json()))
-#        frappe.msgprint(_("di: {0}").format(i.task_id))
+def on_project_before_save(doc, handler=None):
+    #from erpnext.projects.doctype.project.project import validate 0
+    #https://github.com/frappe/erpnext/blob/fcd0556119faf389d80fca3652e7e4f0729ebb6d/erpnext/projects/doctype/project/project.py#L126
+    curr_date = datetime.datetime.today().strftime('%m-%d-%Y')
+    #frappe.throw(_(curr_date))
+    for i in doc.tasks:
+        project_task_status = frappe.db.get_value('Project Task', {'parent': 'test', 'parenttype':'Project', 'title': i.title}, 'status')
+        frappe.msgprint(_("project_task: {0}").format(project_task_status))
+        frappe.msgprint(_("i.status: {0}").format(i.status))
+        #frappe.throw(_("i.as_json(): {0}").format(i.as_json()))
+        if project_task_status == 'Open' and i.status == 'Closed': #the task have been recently closed
+            i.end_date = curr_date
+            frappe.msgprint(_("i: {0}").format(i.as_json()))
 
+#def set_project_tasks_start_date(project_expected_start_date, last_task_end_date):
 
 def get_dashboard_info(party_type, party):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
