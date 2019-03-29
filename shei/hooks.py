@@ -75,11 +75,11 @@ doc_events = {
             'shei.events.on_customer_after_insert'
         ]
     },
-    'Project': {
-        'before_save': [
-            'shei.events.on_project_before_save'
-        ],
-    },
+#    'Project': {
+ #       'before_save': [
+#            'shei.events.on_project_before_save'
+#        ],
+#    },
     'Sales Invoice': {
         #'validate':[
         #    'shei.events.on_sales_invoice_validate'
@@ -151,7 +151,14 @@ fixtures = [
         "dt": "Custom Field",
 	    "filters": {
         	"name": ["in", [
-			    "Employee-employee_type",
+                "Workstation Working Hour-saturday",
+                "Workstation Working Hour-friday",
+                "Workstation Working Hour-thursday",
+                "Workstation Working Hour-wednesday",
+                "Workstation Working Hour-tuesday",
+                "Workstation Working Hour-monday",
+                "Workstation Working Hour-sunday",
+			    "Employee-workstation",
 			    "Sales Order-work_order",
                 "Item-price_per_sqft",
                 "Issue-kanban_status",

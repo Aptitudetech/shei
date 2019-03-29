@@ -13,21 +13,81 @@ from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
-def on_project_before_save(doc, handler=None):
-    #from erpnext.projects.doctype.project.project import validate 0
-    #https://github.com/frappe/erpnext/blob/fcd0556119faf389d80fca3652e7e4f0729ebb6d/erpnext/projects/doctype/project/project.py#L126
-    curr_date = datetime.datetime.today().strftime('%m-%d-%Y')
-    #frappe.throw(_(curr_date))
-    for i in doc.tasks:
-        project_task_status = frappe.db.get_value('Project Task', {'parent': 'test', 'parenttype':'Project', 'title': i.title}, 'status')
-        frappe.msgprint(_("project_task: {0}").format(project_task_status))
-        frappe.msgprint(_("i.status: {0}").format(i.status))
-        #frappe.throw(_("i.as_json(): {0}").format(i.as_json()))
-        if project_task_status == 'Open' and i.status == 'Closed': #the task have been recently closed
-            i.end_date = curr_date
-            frappe.msgprint(_("i: {0}").format(i.as_json()))
-
-#def set_project_tasks_start_date(project_expected_start_date, last_task_end_date):
+##def on_project_before_save(doc, handler=None):
+##    #from erpnext.projects.doctype.project.project import validate 0
+##    #https://github.com/frappe/erpnext/blob/fcd0556119faf389d80fca3652e7e4f0729ebb6d/erpnext/projects/doctype/project/project.py#L126
+##    curr_date = datetime.datetime.today().strftime('%m-%d-%Y')
+##    #frappe.throw(_(curr_date))
+##    tasks = doc.tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
+##
+##    frappe.msgprint(_("tasks: {0}").format(tasks))
+##    
+##    frappe.msgprint(_("is_valid_business_date(): {0}").format(is_valid_business_date()))
+##    frappe.msgprint(_("").format())
+##    frappe.msgprint(_("").format())
+##
+##    for i in tasks:
+##        project_task_status = frappe.db.get_value('Project Task', {'parent': doc.name, 'parenttype':'Project', 'title': i.title}, 'status')
+##        if project_task_status == 'Open' and i.status == 'Closed': #the task have been recently closed
+##            i.end_date = curr_date
+##            frappe.msgprint(_("i: {0}").format(i.as_json()))
+##
+##def get_next_valid_business_date(date, assigned_to):
+##    """Get the next business date based on the assigned_to"""
+##    #mm-dd-YYYY
+##    pass
+##
+##def get_all_holidays_by_year(year):
+##    """Get all the holiday for the current year. Holiday also contains the weekends"""
+##    return frappe.db.get_all('Holiday List', 'CANADIAN HOLIDAY LIST ' + year, 'holiday_date')
+##
+##def order_task_by_name(json_obj):
+##    """Sort given json by task title"""
+##		try:
+##			return int(json_obj['title'])
+##		except KeyError:
+##			return 0
+##
+##
+##def is_valid_business_date(date, assigned_to):
+##    """Look if date is a valid business day based on assigned_to"""
+##    holidays = get_all_holidays_by_year(date.year)
+##
+##    if date in holidays or (date.weekday() == 4 and assigned_to):
+##        return False
+##    else:
+##        if date.weekday() == 4 and 
+##        return True
+##
+##def in_between(now, start, end):
+##    if start <= end:
+##        return start <= now <= end
+##    else: # over midnight e.g., 23:30-04:15
+##        return start <= now or now <= end
+##
+##
+##def is_time_in_schedule(time, schedules = []):
+##    """Look if given time is between the time inside the schedule"""
+##    from datetime import datetime, time
+##    
+###    for schedule in schedules:
+##
+##    print("night" if in_between(datetime.now().time(), time(23), time(4)) else "day")
+##
+##def get_employee_schedule_by_weekday(email, weekday):
+##    import calendar
+##    weekday_name = calendar.day_name[weekday].lower()  #'wednesday'
+##    employee_name = frappe.db.get_value('User', email, 'full_name')
+##    workstation = frappe.db.get_value('Employee', {'employee_name':employee_name}, 'workstation')
+##    is_working = frappe.get_all('Workstation Working Hour', fields=[weekday_name], filters={ 'parenttype': 'Workstation', 'parent': workstation })
+##    return is_working
+##
+##def get_pause_in_schedule(schedules = []):
+##    pass
+##
+##def get_task_end_date(estimate_days, start_day, assigned_to):
+##    """Find the valid end date of a task"""
+##    pass
 
 def get_dashboard_info(party_type, party):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
