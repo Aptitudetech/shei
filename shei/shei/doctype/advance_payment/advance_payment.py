@@ -25,7 +25,7 @@ class AdvancePayment(Document):
                         "naming_series": "JV-",
                         "voucher_type": "Journal Entry",
                         "posting_date": self.posting_date,
-                        "company": "SH Environnements Immersifs",
+                        "company": frappe.db.get_default("company"),
                         "user_remark": "Reversing advance payment to use in invoice",
                         "multi_currency" : 0,
                         "remark": "",

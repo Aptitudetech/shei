@@ -55,7 +55,7 @@ class CustomerDeposit(Document):
                                 rec_account = accounts[0]['account']
                         else: 
                                 #take default receivable account
-                                rec_account = frappe.db.get_value('Company', {'name':'SH Environnements Immersifs'}, 'default_receivable_account')
+                                rec_account = frappe.db.get_value('Company', {'name':frappe.db.get_default("company")}, 'default_receivable_account')
 
 
                         deposit_account = frappe.db.get_value('Bank Account', { 'currency': customer_currency, 'is_deposit_account': True}, 'deposit_account')
@@ -74,7 +74,7 @@ class CustomerDeposit(Document):
                                 "naming_series": "CD-",
                                 "voucher_type": "Journal Entry",
                                 "posting_date": self.final_invoice_date,
-                                "company": "SH Environnements Immersifs",
+                                "company": frappe.db.get_default("company"),
                                 "multi_currency" : multi_currency,
                                 "remark": "Application of Customer Deposit against normal receivable account",
                                 "write_off_based_on": "Accounts Receivable",
@@ -217,7 +217,7 @@ class CustomerDeposit(Document):
                         "naming_series": "CD-",
                         "voucher_type": "Cash Entry",
                         "posting_date": self.posting_date,
-                        "company": "SH Environnements Immersifs",
+                        "company": frappe.db.get_default("company"),
                         "multi_currency" : multi_currency,
                         "remark": "Deposit",
                         "write_off_based_on": "Accounts Receivable",

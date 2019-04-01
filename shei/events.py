@@ -5,11 +5,89 @@ from __future__ import unicode_literals
 import frappe
 import types
 import json
+import datetime
+from frappe import _
 from frappe.model.naming import make_autoname
 from frappe.utils import nowdate, add_to_date, flt
 from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
+
+##def on_project_before_save(doc, handler=None):
+##    #from erpnext.projects.doctype.project.project import validate 0
+##    #https://github.com/frappe/erpnext/blob/fcd0556119faf389d80fca3652e7e4f0729ebb6d/erpnext/projects/doctype/project/project.py#L126
+##    curr_date = datetime.datetime.today().strftime('%m-%d-%Y')
+##    #frappe.throw(_(curr_date))
+##    tasks = doc.tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
+##
+##    frappe.msgprint(_("tasks: {0}").format(tasks))
+##    
+##    frappe.msgprint(_("is_valid_business_date(): {0}").format(is_valid_business_date()))
+##    frappe.msgprint(_("").format())
+##    frappe.msgprint(_("").format())
+##
+##    for i in tasks:
+##        project_task_status = frappe.db.get_value('Project Task', {'parent': doc.name, 'parenttype':'Project', 'title': i.title}, 'status')
+##        if project_task_status == 'Open' and i.status == 'Closed': #the task have been recently closed
+##            i.end_date = curr_date
+##            frappe.msgprint(_("i: {0}").format(i.as_json()))
+##
+##def get_next_valid_business_date(date, assigned_to):
+##    """Get the next business date based on the assigned_to"""
+##    #mm-dd-YYYY
+##    pass
+##
+##def get_all_holidays_by_year(year):
+##    """Get all the holiday for the current year. Holiday also contains the weekends"""
+##    return frappe.db.get_all('Holiday List', 'CANADIAN HOLIDAY LIST ' + year, 'holiday_date')
+##
+##def order_task_by_name(json_obj):
+##    """Sort given json by task title"""
+##		try:
+##			return int(json_obj['title'])
+##		except KeyError:
+##			return 0
+##
+##
+##def is_valid_business_date(date, assigned_to):
+##    """Look if date is a valid business day based on assigned_to"""
+##    holidays = get_all_holidays_by_year(date.year)
+##
+##    if date in holidays or (date.weekday() == 4 and assigned_to):
+##        return False
+##    else:
+##        if date.weekday() == 4 and 
+##        return True
+##
+##def in_between(now, start, end):
+##    if start <= end:
+##        return start <= now <= end
+##    else: # over midnight e.g., 23:30-04:15
+##        return start <= now or now <= end
+##
+##
+##def is_time_in_schedule(time, schedules = []):
+##    """Look if given time is between the time inside the schedule"""
+##    from datetime import datetime, time
+##    
+###    for schedule in schedules:
+##
+##    print("night" if in_between(datetime.now().time(), time(23), time(4)) else "day")
+##
+##def get_employee_schedule_by_weekday(email, weekday):
+##    import calendar
+##    weekday_name = calendar.day_name[weekday].lower()  #'wednesday'
+##    employee_name = frappe.db.get_value('User', email, 'full_name')
+##    workstation = frappe.db.get_value('Employee', {'employee_name':employee_name}, 'workstation')
+##    is_working = frappe.get_all('Workstation Working Hour', fields=[weekday_name], filters={ 'parenttype': 'Workstation', 'parent': workstation })
+##    return is_working
+##
+##def get_pause_in_schedule(schedules = []):
+##    pass
+##
+##def get_task_end_date(estimate_days, start_day, assigned_to):
+##    """Find the valid end date of a task"""
+##    pass
 
 def get_dashboard_info(party_type, party):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
@@ -161,3 +239,65 @@ def on_sales_invoice_validate(doc, handler=None):
             })
             if user_restriction:
                 frappe.throw("You're not allowed to create invoices from here !") 
+
+@frappe.whitelist()
+#Create a work order from a sales order
+def create_work_order(so_name = None, mfg_items = []):
+    '''Copy data from sales order and create a work order based on those data'''
+    import json
+    items = []
+    if not mfg_items:
+        return None 
+    json_items = json.loads(mfg_items)
+    for item in json_items:
+        if 'width_in_inches' in item:
+            new_item = {
+                "item_code": item["item_code"] ,
+                "item_description": item["description"] ,
+                "quantity": item["qty"] , 
+                "width": item['width_in_inches'],
+                "height": item['height_in_inches'],
+                "measurement": 'Inches',
+            }
+        elif 'width_in_mm' in item:
+            new_item = {
+                "item_code": item["item_code"] ,
+                "item_description": item["description"] ,
+                "quantity": item["qty"] , 
+                "width": item['width_in_mm'],
+                "height": item['height_in_mm'],
+                "measurement": 'MM',
+            }
+        else:
+            new_item = {
+                "item_code": item["item_code"] ,
+                "item_description": item["description"] ,
+                "quantity": item["qty"],
+            }
+        items.append(new_item)
+    
+    so  = frappe.db.get_value('Sales Order', so_name, ['delivery_date', 'project'], as_dict=True)
+    work_order_name = "WO-" + so_name.split("-")[1]
+    #If Work order is new, creat it, otherwhise update it
+    if frappe.db.exists('SO Work Order', work_order_name):
+        work_order = frappe.get_doc('SO Work Order', work_order_name)
+    else:
+        work_order = frappe.new_doc('SO Work Order')
+
+    work_order.update({
+		'work_order_number': work_order_name,
+		'expected_ship_date': so.delivery_date,
+		'project': so.project,
+		'work_order_items': items,
+	})
+    work_order.flags.ignore_permissions = True
+    work_order.save()
+
+    sales_order_doc = frappe.get_doc('Sales Order', so_name)
+    sales_order_doc.update({ 'work_order' : work_order_name})
+    sales_order_doc.flags.ignore_permissions = True
+    sales_order_doc.save()
+    frappe.msgprint("The Work Order have been updated")
+
+
+
