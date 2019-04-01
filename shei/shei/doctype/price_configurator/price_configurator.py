@@ -270,7 +270,7 @@ class PriceConfigurator(Document):
 				break
 			if qty > av.av_nuts_range:
 				price = av['av_nuts_price']
-		return (qty * price)
+		return (qty * price) 
 
 	def get_zclip_quantity(self, height):
 		"""get zclkip quantity based on panel height"""

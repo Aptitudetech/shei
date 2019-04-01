@@ -6,6 +6,8 @@ import frappe
 import types
 import json
 import datetime
+from datetime import datetime
+from datetime import date
 from frappe import _
 from frappe.model.naming import make_autoname
 from frappe.utils import nowdate, add_to_date, flt
@@ -13,42 +15,76 @@ from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
-##def on_project_before_save(doc, handler=None):
-##    #from erpnext.projects.doctype.project.project import validate 0
-##    #https://github.com/frappe/erpnext/blob/fcd0556119faf389d80fca3652e7e4f0729ebb6d/erpnext/projects/doctype/project/project.py#L126
-##    curr_date = datetime.datetime.today().strftime('%m-%d-%Y')
-##    #frappe.throw(_(curr_date))
-##    tasks = doc.tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
-##
-##    frappe.msgprint(_("tasks: {0}").format(tasks))
-##    
-##    frappe.msgprint(_("is_valid_business_date(): {0}").format(is_valid_business_date()))
-##    frappe.msgprint(_("").format())
-##    frappe.msgprint(_("").format())
-##
-##    for i in tasks:
-##        project_task_status = frappe.db.get_value('Project Task', {'parent': doc.name, 'parenttype':'Project', 'title': i.title}, 'status')
-##        if project_task_status == 'Open' and i.status == 'Closed': #the task have been recently closed
-##            i.end_date = curr_date
-##            frappe.msgprint(_("i: {0}").format(i.as_json()))
-##
-##def get_next_valid_business_date(date, assigned_to):
-##    """Get the next business date based on the assigned_to"""
-##    #mm-dd-YYYY
-##    pass
-##
-##def get_all_holidays_by_year(year):
-##    """Get all the holiday for the current year. Holiday also contains the weekends"""
-##    return frappe.db.get_all('Holiday List', 'CANADIAN HOLIDAY LIST ' + year, 'holiday_date')
-##
-##def order_task_by_name(json_obj):
-##    """Sort given json by task title"""
-##		try:
-##			return int(json_obj['title'])
-##		except KeyError:
-##			return 0
-##
-##
+def on_project_before_save(doc, handler=None):
+    #from erpnext.projects.doctype.project.project import validate 0
+    #https://github.com/frappe/erpnext/blob/fcd0556119faf389d80fca3652e7e4f0729ebb6d/erpnext/projects/doctype/project/project.py#L126
+    curr_date = datetime.today().strftime('%m-%d-%Y')
+    tasks = frappe.get_all('Project Task', fields=['*'], filters={ 'parenttype': 'Project', 'parent': doc.name })
+    tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
+
+
+    #get_next_valid_business_date_based_on_nb_days(doc.expected_end_date, "mmurray@shei.sh", 5)
+    get_employee_schedule_by_weekday('mmurray@shei.sh', 0)
+
+
+    set_task_date_based_on_expected_start_date(doc.expected_start_date, tasks):
+#    frappe.throw("OK")
+
+
+    for task in tasks:
+        project_task_status = frappe.db.get_value('Project Task', {'parent': doc.name, 'parenttype':'Project', 'title': task.title}, 'status')
+        if not task.start_date:
+            ##new project
+            set_task_date_based_on_expected_start_date(expected_start_date, tasks):
+        if project_task_status == 'Open' and i.status == 'Closed': #the task have been recently closed
+            #i.end_date = curr_date
+            frappe.msgprint(_("task: {0}").format(task.as_json()))
+
+def set_task_date_based_on_expected_start_date(expected_start_date, tasks=[]):
+    tasks[0].exp_start_date = expected_start_date
+    for task in tasks:
+        expected_time = task.expected_time
+        start_date = task.exp_start_date
+        end_date = task.exp_end_date
+
+
+def update_task_date_based_on_other_task(previous_task, tasks=[]):
+    pass
+
+def get_next_valid_business_date_based_on_nb_days(date, assigned_to, nb_days):
+    """Get the next business date based on the assigned_to"""
+    from datetime import timedelta
+    working_day = 0
+    holidays = get_all_holidays_curr_year()
+    date = datetime.strptime(str(date), '%Y-%m-%d').date()
+    schedules = get_employee_schedule_by_weekday(assigned_to, date.weekday())
+    while (str(date) in holidays) or (len(schedules) == 0) or (working_day < nb_days): #if the day is holiday or if employee isn't working on that day
+        date = date + timedelta(days=1)
+        working_day = working_day + 1
+        schedules = get_employee_schedule_by_weekday(assigned_to, date.weekday())
+    return date
+
+
+def get_all_holidays_curr_year():
+    """Get all the holiday for the current year. Holiday also contains the weekends"""
+    now = datetime.now()
+    curr_year = now.year
+    holidays = []
+    holidays_json = frappe.db.get_all('Holiday', {'parenttype': 'Holiday List', 'parent': 'CANADIAN HOLIDAY LIST ' + str(curr_year)}, 'holiday_date')
+    for h in holidays_json:
+        holidays.append(str(h['holiday_date']))
+    return holidays
+
+def order_task_by_name(json_obj):
+    """Sort given json by task title"""
+    try:
+        if json_obj['title'].split('-')[1] == '02' and json_obj['title'].split('-')[2] == 'B PREFLIGHT': #for Alto + Folia, there's 2 tasks with '02', but one have 'A' and the other 'B'
+            return 2.5 #returning 2.5 specify the task comes after the task '02' and before the '03' task
+        return int(json_obj['title'].split('-')[1]) #get the number inside the task title
+    except KeyError:
+        return 0
+
+
 ##def is_valid_business_date(date, assigned_to):
 ##    """Look if date is a valid business day based on assigned_to"""
 ##    holidays = get_all_holidays_by_year(date.year)
@@ -56,8 +92,8 @@ from erpnext.accounts.party import (get_party_account_currency)
 ##    if date in holidays or (date.weekday() == 4 and assigned_to):
 ##        return False
 ##    else:
-##        if date.weekday() == 4 and 
-##        return True
+##        if date.weekday() == 4:# and 
+##            return True
 ##
 ##def in_between(now, start, end):
 ##    if start <= end:
@@ -73,21 +109,30 @@ from erpnext.accounts.party import (get_party_account_currency)
 ###    for schedule in schedules:
 ##
 ##    print("night" if in_between(datetime.now().time(), time(23), time(4)) else "day")
-##
-##def get_employee_schedule_by_weekday(email, weekday):
-##    import calendar
-##    weekday_name = calendar.day_name[weekday].lower()  #'wednesday'
-##    employee_name = frappe.db.get_value('User', email, 'full_name')
-##    workstation = frappe.db.get_value('Employee', {'employee_name':employee_name}, 'workstation')
-##    is_working = frappe.get_all('Workstation Working Hour', fields=[weekday_name], filters={ 'parenttype': 'Workstation', 'parent': workstation })
-##    return is_working
-##
-##def get_pause_in_schedule(schedules = []):
-##    pass
-##
-##def get_task_end_date(estimate_days, start_day, assigned_to):
-##    """Find the valid end date of a task"""
-##    pass
+
+def get_employee_schedule_by_weekday(email, weekday):
+    import calendar
+    weekday_name = calendar.day_name[weekday].lower()  #'wednesday'
+    employee_name = frappe.db.get_value('User', email, 'full_name')
+    workstation = frappe.db.get_value('Employee', {'employee_name':employee_name}, 'workstation')
+    working_time = frappe.db.get_all('Workstation Working Hour', fields=['start_time', 'end_time'], filters={ 'parenttype': 'Workstation', 'parent': workstation, weekday_name:True })
+    working_time.sort(key=order_time_by_start_time, reverse=False) #order to know start time to end time in order
+    return working_time
+
+def order_time_by_start_time(json_obj):
+    """Sort given json by start_time"""
+    try:
+        time_list = str(json_obj['start_time']).split(':')[:-1]
+        return float('.'.join(time_list)) #return time as float. ie 12h30 = 12.30
+    except KeyError:
+        return 0
+
+def get_pause_in_schedule(schedules = []):
+    pass
+
+def get_task_end_date(estimate_days, start_day, assigned_to):
+    """Find the valid end date of a task"""
+    pass
 
 def get_dashboard_info(party_type, party):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
