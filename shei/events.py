@@ -6,6 +6,8 @@ import frappe
 import types
 import json
 import datetime
+import unidecode
+from datetime import timedelta
 from datetime import datetime
 from datetime import date
 from frappe import _
@@ -19,26 +21,36 @@ def on_project_before_save(doc, handler=None):
     #from erpnext.projects.doctype.project.project import validate 0
     #https://github.com/frappe/erpnext/blob/fcd0556119faf389d80fca3652e7e4f0729ebb6d/erpnext/projects/doctype/project/project.py#L126
     curr_date = datetime.today().strftime('%m-%d-%Y')
-    tasks = frappe.get_all('Project Task', fields=['*'], filters={ 'parenttype': 'Project', 'parent': doc.name })
-    tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
-
+    project_tasks = frappe.get_all('Project Task', fields=['*'], filters={ 'parenttype': 'Project', 'parent': doc.name })
+    project_tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
 
     #get_next_valid_business_date_based_on_nb_days(doc.expected_end_date, "mmurray@shei.sh", 5)
-    get_employee_schedule_by_weekday('mmurray@shei.sh', 0)
-
-
-    set_task_date_based_on_expected_start_date(doc.expected_start_date, tasks):
+    #get_employee_schedule_by_weekday('mmurray@shei.sh', 0)
+    get_employee_working_hour_for_given_day('nlaperriere@shei.sh', 3)
+    ##set_task_date_based_on_expected_start_date(doc.expected_start_date, tasks)
 #    frappe.throw("OK")
 
-
-    for task in tasks:
-        project_task_status = frappe.db.get_value('Project Task', {'parent': doc.name, 'parenttype':'Project', 'title': task.title}, 'status')
-        if not task.start_date:
+    for project_task in project_tasks:
+        project_task_status = frappe.db.get_value('Project Task', {'parent': doc.name, 'parenttype':'Project', 'title': project_task.title}, 'status')
+        if not project_task.start_date:
             ##new project
-            set_task_date_based_on_expected_start_date(expected_start_date, tasks):
-        if project_task_status == 'Open' and i.status == 'Closed': #the task have been recently closed
+            project_task.start_date = doc.expected_start_date
+            frappe.msgprint(_("project_task: {0}").format(project_task))
+            task = frappe.db.get_value('Task', {'name': project_task.task_id}, '*')
+            frappe.msgprint(_("task: {0}").format(task))
+
+            frappe.msgprint(_("task.expected_time: {0}").format(task.expected_time))
+
+            task_estimate_day = task.expected_time // get_employee_working_hour_for_given_day(task.assigned_to, 4)
+            task_estimate_remaining_hour = task.expected_time % get_employee_working_hour_for_given_day(task.assigned_to, 4)
+            
+            end_date = get_next_valid_business_date_based_on_nb_days(project_task.start_date, task.assigned_to, task_estimate_day)
+            frappe.throw(_("S: {0}  --  E:{1}").format(project_task.start_date, end_date))
+            #set_task_date_based_on_expected_start_date(expected_start_date, tasks)
+        if project_task_status == 'Open' and task.status == 'Closed': #the task have been recently closed
             #i.end_date = curr_date
             frappe.msgprint(_("task: {0}").format(task.as_json()))
+
 
 def set_task_date_based_on_expected_start_date(expected_start_date, tasks=[]):
     tasks[0].exp_start_date = expected_start_date
@@ -47,21 +59,32 @@ def set_task_date_based_on_expected_start_date(expected_start_date, tasks=[]):
         start_date = task.exp_start_date
         end_date = task.exp_end_date
 
+def get_employee_working_hour_for_given_day(emp_email, weekday):
+    """Returns the number of hour an employee must work for a given day"""
+    schedules = get_employee_schedule_by_weekday(emp_email, weekday)
+    total_work_time = timedelta(hours=0, minutes=0)
+    for s in schedules: 
+        time = s['end_time'] - s['start_time']
+        total_work_time = total_work_time + time
+    return total_work_time
 
 def update_task_date_based_on_other_task(previous_task, tasks=[]):
     pass
 
 def get_next_valid_business_date_based_on_nb_days(date, assigned_to, nb_days):
     """Get the next business date based on the assigned_to"""
-    from datetime import timedelta
     working_day = 0
     holidays = get_all_holidays_curr_year()
     date = datetime.strptime(str(date), '%Y-%m-%d').date()
     schedules = get_employee_schedule_by_weekday(assigned_to, date.weekday())
     while (str(date) in holidays) or (len(schedules) == 0) or (working_day < nb_days): #if the day is holiday or if employee isn't working on that day
+        frappe.msgprint(_("scheudle: {0}  --  working_day: {1}  --  ").format(schedules, working_day))
         date = date + timedelta(days=1)
         working_day = working_day + 1
         schedules = get_employee_schedule_by_weekday(assigned_to, date.weekday())
+        frappe.msgprint(_("Len schedule: {0}").format(len(schedules)))
+        frappe.msgprint(_("(str(date) in holidays): {0} or (len(schedules) == 0): {1} or (working_day < nb_days): {2}").format((str(date) in holidays), (len(schedules) == 0), (working_day < nb_days)))
+
     return date
 
 
@@ -113,10 +136,20 @@ def order_task_by_name(json_obj):
 def get_employee_schedule_by_weekday(email, weekday):
     import calendar
     weekday_name = calendar.day_name[weekday].lower()  #'wednesday'
-    employee_name = frappe.db.get_value('User', email, 'full_name')
-    workstation = frappe.db.get_value('Employee', {'employee_name':employee_name}, 'workstation')
+    employee_name = frappe.db.get_value('User', email, ['first_name', 'last_name'], as_dict = True)
+    frappe.msgprint(_("employee_name: {0}").format(employee_name))
+
+    workstation = frappe.db.get_value('Employee', {'first_name':unidecode.unidecode(employee_name.first_name), 'last_name': unidecode.unidecode(employee_name.last_name)}, 'workstation')
+    if not workstation: #Employee don't have a naming convention. Some of them use first_name and Last_name, other put everything into the first_name as 'last_name, first_name'
+        emp_name = unidecode.unidecode(employee_name.last_name) + ', ' + unidecode.unidecode(employee_name.first_name)
+        workstation = frappe.db.get_value('Employee', {'employee_name':emp_name}, 'workstation')
+    
+    frappe.msgprint(_("email: {0}, employee_name: {1}, workstation: {2}").format(email, employee_name, workstation))
+
     working_time = frappe.db.get_all('Workstation Working Hour', fields=['start_time', 'end_time'], filters={ 'parenttype': 'Workstation', 'parent': workstation, weekday_name:True })
+    frappe.msgprint(_("wt: {0}, workstation: {1}, weekday_name: {2}").format(working_time, workstation, weekday_name))
     working_time.sort(key=order_time_by_start_time, reverse=False) #order to know start time to end time in order
+
     return working_time
 
 def order_time_by_start_time(json_obj):
