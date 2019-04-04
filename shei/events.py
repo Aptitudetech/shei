@@ -18,75 +18,108 @@ from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
 def on_project_before_save(doc, handler=None):
-    #from erpnext.projects.doctype.project.project import validate 0
-    #https://github.com/frappe/erpnext/blob/fcd0556119faf389d80fca3652e7e4f0729ebb6d/erpnext/projects/doctype/project/project.py#L126
     curr_date = datetime.today().strftime('%m-%d-%Y')
     project_tasks = frappe.get_all('Project Task', fields=['*'], filters={ 'parenttype': 'Project', 'parent': doc.name })
     project_tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
-
-    #get_next_valid_business_date_based_on_nb_days(doc.expected_end_date, "mmurray@shei.sh", 5)
-    #get_employee_schedule_by_weekday('mmurray@shei.sh', 0)
-    get_employee_working_hour_for_given_day('nlaperriere@shei.sh', 3)
-    ##set_task_date_based_on_expected_start_date(doc.expected_start_date, tasks)
-#    frappe.throw("OK")
-
+    new_tasks = []
+    end_time = None
+    prev_task = None
     for project_task in project_tasks:
         project_task_status = frappe.db.get_value('Project Task', {'parent': doc.name, 'parenttype':'Project', 'title': project_task.title}, 'status')
         if not project_task.start_date:
             ##new project
-            project_task.start_date = doc.expected_start_date
-            frappe.msgprint(_("project_task: {0}").format(project_task))
+            if not prev_task:
+                project_task.start_date = doc.expected_start_date
+            else:
+                project_task.start_date = get_start_date(project_task.assigned_to, prev_task.end_date, end_time)
             task = frappe.db.get_value('Task', {'name': project_task.task_id}, '*')
-            frappe.msgprint(_("task: {0}").format(task))
-
-            frappe.msgprint(_("task.expected_time: {0}").format(task.expected_time))
-
-            task_estimate_day = task.expected_time // get_employee_working_hour_for_given_day(task.assigned_to, 4)
-            task_estimate_remaining_hour = task.expected_time % get_employee_working_hour_for_given_day(task.assigned_to, 4)
+            end_date, task_estimate_remaining_hour = get_next_valid_business_date_based_on_task_estimate(project_task.start_date, task.assigned_to, task.expected_time, end_time)
+            end_time = get_task_end_time_based_on_emp_schedules(task.assigned_to, end_date, task_estimate_remaining_hour)
             
-            end_date = get_next_valid_business_date_based_on_nb_days(project_task.start_date, task.assigned_to, task_estimate_day)
-            frappe.throw(_("S: {0}  --  E:{1}").format(project_task.start_date, end_date))
-            #set_task_date_based_on_expected_start_date(expected_start_date, tasks)
-        if project_task_status == 'Open' and task.status == 'Closed': #the task have been recently closed
-            #i.end_date = curr_date
-            frappe.msgprint(_("task: {0}").format(task.as_json()))
+            frappe.msgprint(_("start_date: {3}  --  end_date: {0}  --  task.expected_time:{1}  --  end_time: {2}").format(end_date, task.expected_time, end_time, project_task.start_date))
+            
+            project_task.end_date = end_date
+            new_tasks.append(project_task) #then empty he list in UI and replace by this list
+            prev_task = project_task
+
+def get_start_date(assigned_to, prev_task_end_date, end_time):
+    schedules = get_employee_schedule_by_weekday(assigned_to, prev_task_end_date.weekday())
+    if len(schedules) == 0:
+        return get_next_business_date(assigned_to, prev_task_end_date)
+    else:
+        end_shift_gauge = timedelta(hours=1) #let an hour at the end of the shift to cleanup, finishup things, ...
+        end_shift = schedules[-1]['end_time']
+        if (end_shift - end_time) >= end_shift_gauge:
+            return prev_task_end_date
+        else:
+            return get_next_business_date(assigned_to, prev_task_end_date)
+
+def get_next_business_date(assigned_to, date):
+    holidays = get_all_holidays_curr_year()
+    date = datetime.strptime(str(date), '%Y-%m-%d').date()
+    schedules = get_employee_schedule_by_weekday(assigned_to, date.weekday())
+    while (str(date) in holidays) or (len(schedules) == 0): 
+        date = date + timedelta(days=1)
+        schedules = get_employee_schedule_by_weekday(assigned_to, date.weekday())
+    return date
 
 
-def set_task_date_based_on_expected_start_date(expected_start_date, tasks=[]):
-    tasks[0].exp_start_date = expected_start_date
-    for task in tasks:
-        expected_time = task.expected_time
-        start_date = task.exp_start_date
-        end_date = task.exp_end_date
+def get_task_end_time_based_on_emp_schedules(assigned_to, end_date, remaining_hour):
+    """Return the end time of a task based on the employee schedule for the given date"""
+    schedules = get_employee_schedule_by_weekday(assigned_to, end_date.weekday())
+    for schedule in schedules:
+        if (schedule['start_time'] + remaining_hour) <= schedule['end_time']:####
+            return remaining_hour +  schedule['start_time']
+        else:
+            remaining_hour = remaining_hour - (schedule['end_time'] - schedule['start_time'])
+
 
 def get_employee_working_hour_for_given_day(emp_email, weekday):
     """Returns the number of hour an employee must work for a given day"""
     schedules = get_employee_schedule_by_weekday(emp_email, weekday)
     total_work_time = timedelta(hours=0, minutes=0)
-    for s in schedules: 
-        time = s['end_time'] - s['start_time']
+    for schedule in schedules: 
+        time = schedule['end_time'] - schedule['start_time']
         total_work_time = total_work_time + time
     return total_work_time
 
-def update_task_date_based_on_other_task(previous_task, tasks=[]):
-    pass
-
-def get_next_valid_business_date_based_on_nb_days(date, assigned_to, nb_days):
-    """Get the next business date based on the assigned_to"""
-    working_day = 0
+def get_next_valid_business_date_based_on_task_estimate(date, assigned_to, estimate, end_time):
+    """Get the next business date based on the assigned_to and the remaining hour left"""
     holidays = get_all_holidays_curr_year()
     date = datetime.strptime(str(date), '%Y-%m-%d').date()
     schedules = get_employee_schedule_by_weekday(assigned_to, date.weekday())
-    while (str(date) in holidays) or (len(schedules) == 0) or (working_day < nb_days): #if the day is holiday or if employee isn't working on that day
-        frappe.msgprint(_("scheudle: {0}  --  working_day: {1}  --  ").format(schedules, working_day))
+    estimate_remaining_hour = estimate
+    if end_time and schedules: #if they work that day
+        emp_working_hour = str(end_time).split(':')[:-1]
+        emp_working_hour[1] = str(int(emp_working_hour[1]) * 100 / 60) # transform the minutes to base 10 ie 9h30 -> 9.30 -> 9.5
+        emp_working_hour = float('.'.join(emp_working_hour)) #return time as float. ie 12h30 = 12.30
+    else:
+        emp_working_hour = str(get_employee_working_hour_for_given_day(assigned_to, date.weekday())).split(':')[:-1]
+        emp_working_hour[1] = str(int(emp_working_hour[1]) * 100 / 60) # transform the minutes to base 10 ie 9h30 -> 9.30 -> 9.5
+        emp_working_hour = float('.'.join(emp_working_hour)) #return time as float. ie 12h30 = 12.30
+    estimate_day = estimate_remaining_hour // emp_working_hour
+    if estimate_day == 0:
+        return date, estimate_remaining_hour
+    while (str(date) in holidays) or (len(schedules) == 0) or (estimate_remaining_hour >= emp_working_hour): #if the day is holiday or if employee isn't working on that day
         date = date + timedelta(days=1)
-        working_day = working_day + 1
         schedules = get_employee_schedule_by_weekday(assigned_to, date.weekday())
-        frappe.msgprint(_("Len schedule: {0}").format(len(schedules)))
-        frappe.msgprint(_("(str(date) in holidays): {0} or (len(schedules) == 0): {1} or (working_day < nb_days): {2}").format((str(date) in holidays), (len(schedules) == 0), (working_day < nb_days)))
+        if len(schedules) != 0:
+            estimate_remaining_hour = estimate_remaining_hour - emp_working_hour
+            if estimate_remaining_hour >= emp_working_hour:
+                emp_working_hour = str(get_employee_working_hour_for_given_day(assigned_to, date.weekday())).split(':')[:-1] ##put those 2 line in a method
+                emp_working_hour[1] = str(int(emp_working_hour[1]) * 100 / 60) # transform the minutes to base 10 ie 9h30 -> 9.30 -> 9.5
+                emp_working_hour = float('.'.join(emp_working_hour)) #return time as float. ie 12h30 = 12.30
+                estimate_day = estimate_remaining_hour // emp_working_hour
+    date = date + timedelta(days=1) #we need to calculate the left over hours - they will be done the day after
+    date = get_next_business_date(assigned_to, date) #check if the new date is a valid date for the assigned_to
 
-    return date
+    time = str(estimate_remaining_hour).split('.')
+    if len(time[1]) == 1: #if original nbr = 1.4, we want to keep the 4, but as a 40
+        time[1] = int(int(time[1]) * 10 * 0.6) #the double in is used to remove the '.0' at the end of the number
+    else:
+        time[1] = int(int(time[1]) * 0.6)
 
+    return date, timedelta(hours=int(time[0]), minutes=time[1])
 
 def get_all_holidays_curr_year():
     """Get all the holiday for the current year. Holiday also contains the weekends"""
@@ -107,49 +140,16 @@ def order_task_by_name(json_obj):
     except KeyError:
         return 0
 
-
-##def is_valid_business_date(date, assigned_to):
-##    """Look if date is a valid business day based on assigned_to"""
-##    holidays = get_all_holidays_by_year(date.year)
-##
-##    if date in holidays or (date.weekday() == 4 and assigned_to):
-##        return False
-##    else:
-##        if date.weekday() == 4:# and 
-##            return True
-##
-##def in_between(now, start, end):
-##    if start <= end:
-##        return start <= now <= end
-##    else: # over midnight e.g., 23:30-04:15
-##        return start <= now or now <= end
-##
-##
-##def is_time_in_schedule(time, schedules = []):
-##    """Look if given time is between the time inside the schedule"""
-##    from datetime import datetime, time
-##    
-###    for schedule in schedules:
-##
-##    print("night" if in_between(datetime.now().time(), time(23), time(4)) else "day")
-
 def get_employee_schedule_by_weekday(email, weekday):
     import calendar
     weekday_name = calendar.day_name[weekday].lower()  #'wednesday'
     employee_name = frappe.db.get_value('User', email, ['first_name', 'last_name'], as_dict = True)
-    frappe.msgprint(_("employee_name: {0}").format(employee_name))
-
     workstation = frappe.db.get_value('Employee', {'first_name':unidecode.unidecode(employee_name.first_name), 'last_name': unidecode.unidecode(employee_name.last_name)}, 'workstation')
     if not workstation: #Employee don't have a naming convention. Some of them use first_name and Last_name, other put everything into the first_name as 'last_name, first_name'
         emp_name = unidecode.unidecode(employee_name.last_name) + ', ' + unidecode.unidecode(employee_name.first_name)
         workstation = frappe.db.get_value('Employee', {'employee_name':emp_name}, 'workstation')
-    
-    frappe.msgprint(_("email: {0}, employee_name: {1}, workstation: {2}").format(email, employee_name, workstation))
-
     working_time = frappe.db.get_all('Workstation Working Hour', fields=['start_time', 'end_time'], filters={ 'parenttype': 'Workstation', 'parent': workstation, weekday_name:True })
-    frappe.msgprint(_("wt: {0}, workstation: {1}, weekday_name: {2}").format(working_time, workstation, weekday_name))
     working_time.sort(key=order_time_by_start_time, reverse=False) #order to know start time to end time in order
-
     return working_time
 
 def order_time_by_start_time(json_obj):
@@ -160,12 +160,6 @@ def order_time_by_start_time(json_obj):
     except KeyError:
         return 0
 
-def get_pause_in_schedule(schedules = []):
-    pass
-
-def get_task_end_date(estimate_days, start_day, assigned_to):
-    """Find the valid end date of a task"""
-    pass
 
 def get_dashboard_info(party_type, party):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
