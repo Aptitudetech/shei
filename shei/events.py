@@ -17,6 +17,7 @@ from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
+#test
 #def on_project_before_save(doc, handler=None):
 #    curr_date = datetime.today().strftime('%m-%d-%Y')
 #    project_tasks = frappe.get_all('Project Task', fields=['*'], filters={ 'parenttype': 'Project', 'parent': doc.name })
