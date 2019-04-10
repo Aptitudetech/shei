@@ -141,7 +141,8 @@ class PriceConfigurator(Document):
 		return measure / 304.8
 
 	def get_sqft(self, height, width):
-		sqft = (height * width) / 144
+		frappe.msgprint(_("height: {0} width: {1}").format(height, width))
+		sqft = (height * width) #/ 144
 		if sqft < 1:
 			frappe.throw("Sorry, the dimensions are too small")
 		return sqft
@@ -248,14 +249,18 @@ class PriceConfigurator(Document):
 		factor = 1
 		sqft_per_panel = int(sqft_per_panel) #round the number down
 		price_per_sqft = float(frappe.db.get_value('Item', item, 'price_per_sqft'))
-		sqft_per_panel_list = frappe.get_all('Panel Price Range', fields=['panel_range', 'panel_price'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
+		sqft_per_panel_list = frappe.db.get_all('Panel Factor', fields=['panel_range', 'panel_factor'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
+		frappe.msgprint(_("1- tABLE: {0}").format( sqft_per_panel_list))
+
 		sqft_per_panel_list.sort(key=self.sort_list_by_panel_range, reverse=False) #Need to order to be able to get the right prices
+		frappe.msgprint(_("tABLE: {0}").format( sqft_per_panel_list))
 		for p in sqft_per_panel_list:
 			if qty == p.panel_range:
-				factor = p['panel_price']
+				factor = p['panel_factor']
 				break
 			if qty > p.panel_range:
-				factor = p['panel_price']
+				factor = p['panel_factor']
+		frappe.msgprint(_("price_per_sqft: {0} * qty: {1} * factor: {2} * sqft_per_panel: {3}").format(price_per_sqft, qty, factor, sqft_per_panel))
 		return (price_per_sqft * qty * factor * sqft_per_panel)
 
 	def get_av_nuts_price(self, qty):
