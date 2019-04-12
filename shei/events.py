@@ -36,7 +36,7 @@ def on_project_before_save(doc_name,  proj_tasks=[]):
             else:
                 project_task.start_date, end_time = get_start_date_time(project_task.assigned_to, prev_task.end_date, end_time)
             task = frappe.db.get_value('Task', {'name': project_task.task_id}, '*')
-            end_date, task_estimate_remaining_hour = get_next_valid_business_date_based_on_task_estimate(project_task.start_date, task.assigned_to, task.expected_time, end_time)
+            end_date, task_estimate_remaining_hour = get_next_valid_business_date_based_on_task_estimate(project_task['start_date'], task.assigned_to, task.expected_time, end_time)
             end_time = get_task_end_time_based_on_emp_schedules(task.assigned_to, end_date, task_estimate_remaining_hour)
             
             frappe.msgprint(_("start_date: {3}  --  end_date: {0}  --  task.expected_time:{1}  --  end_time: {2}  --  task_estimate_remaining_hour: {4}").format(end_date, task.expected_time, end_time, project_task.start_date, task_estimate_remaining_hour))
@@ -48,34 +48,29 @@ def on_project_before_save(doc_name,  proj_tasks=[]):
     else:
         index = 0
         for pro_task in proj_tasks:
-            if pro_task['start_date'] != str(project_tasks[index]['start_date']) or pro_task['end_date'] != str(project_tasks[index]['end_date']): # in the db, the date is a Date while in the UI, it's a string
-                if pro_task['start_date'] != str(project_tasks[index]['start_date']):
-                    start_date = pro_task['start_date']
-                else:
-                    start_date = pro_task['end_date']
-                
-                for project_task in proj_tasks:
+            if pro_task['end_date'] != str(project_tasks[index]['end_date']): # in the db, the date is a Date while in the UI, it's a string
+                end_date = pro_task['end_date']
+                index = index + 1                
+                remaining_project_tasks = proj_tasks[index:] #we want to loop over the element after the modified one
+                for project_task in remaining_project_tasks:  #proj_tasks
                     if not prev_task:
-                        project_task['start_date'] = start_date
+                        project_task['start_date'] = end_date
                         curr_time = now_datetime()
                         modified_date = str(curr_time).split(' ')[0]
                         end_time = str(curr_time).split(' ')[1].split(':')[:-1]
-                        end_time = timedelta(hours=int(end_time[0]), minutes=int(end_time[1])) #time as string, need to convert it to timedelta
+                        end_time = timedelta(hours=11, minutes=00) #time as string, need to convert it to timedelta
+###                        end_time = timedelta(hours=int(end_time[0]), minutes=int(end_time[1])) #time as string, need to convert it to timedelta
                     else:
                         project_task['start_date'], end_time = get_start_date_time(project_task['assigned_to'], prev_task['end_date'], end_time)
-                    
-                    
                     task = frappe.db.get_value('Task', {'name': project_task['task_id']}, '*')
                     end_date, task_estimate_remaining_hour = get_next_valid_business_date_based_on_task_estimate(project_task['start_date'], task.assigned_to, task.expected_time, end_time)
                     end_time = get_task_end_time_based_on_emp_schedules(task.assigned_to, end_date, task_estimate_remaining_hour)
-                    frappe.msgprint(_("else start_date: {3}  --  end_date: {0}  --  task.expected_time:{1}  --  end_time: {2}  --  task_estimate_remaining_hour: {4}").format(end_date, task.expected_time, end_time, project_task['start_date'], task_estimate_remaining_hour))
-                    
+                    frappe.msgprint(_("start_date: {3}  --  end_date: {0}  --  task.expected_time:{1}  --  end_time: {2}  --  task_estimate_remaining_hour: {4}").format(end_date, task.expected_time, end_time, project_task['start_date'], task_estimate_remaining_hour))
                     project_task['end_date'] = end_date
                     new_tasks.append(project_task) #then empty he list in UI and replace by this list
                     prev_task = project_task
                 break
             else:
-                frappe.msgprint(_("ELSE"))
                 index = index + 1
     doc.set("tasks", [])
     doc.set("tasks", new_tasks)
@@ -146,17 +141,30 @@ def convert_hour_to_number(hour):
         time[1] = str(int(time[1]) * 100 / 60)
     return float('.'.join(time))
 
+def get_remaining_working_hour(emp_working_hour, end_time, schedules=[]):
+    """Calculate remaining time before"""
+    for s in schedules:
+        if end_time > s['start_time'] and end_time < s['end_time']:
+            return emp_working_hour - (end_time - s['start_time'])
+        emp_working_hour - (s['end_time'] - s['start_time'])
+
 def get_next_valid_business_date_based_on_task_estimate(date, assigned_to, estimate, end_time):
     """Get the next business date based on the assigned_to and the remaining hour left"""
-    frappe.msgprint(_("date: {0}  --  end_time: {1} ").format(date, end_time))
     holidays = get_all_holidays_curr_year()
     date = datetime.strptime(str(date), '%Y-%m-%d').date()
     schedules = get_employee_schedule_by_weekday(assigned_to, date)
     estimate_remaining_hour = estimate
     estimate_day = 1000 #need to rethink how to have a vaue here
+    
     emp_working_hour = get_employee_working_hour_for_given_day(assigned_to, date)
-    if end_time: #the working_hour for that day will be equal to the remaining time before the end of the day
-        emp_working_hour = schedules[-1]['end_time'] - end_time #remaining time before the end of the day
+    if end_time and emp_working_hour: #the working_hour for that day will be equal to the remaining time before the end of the day
+
+        emp_working_hour = get_remaining_working_hour(emp_working_hour, end_time, schedules)
+        frappe.msgprint(_("(emp_working_hour: {0}").format(emp_working_hour))
+
+        #if end_time > schedules[0]['start_time']:
+        #    emp_working_hour = emp_working_hour - (end_time - schedules[0]['start_time'])
+        
     if emp_working_hour: #if emp works
         emp_working_hour = convert_hour_to_number(emp_working_hour)
         estimate_day = estimate_remaining_hour // emp_working_hour
@@ -167,8 +175,8 @@ def get_next_valid_business_date_based_on_task_estimate(date, assigned_to, estim
         estimate_remaining_hour = estimate_remaining_hour - emp_working_hour
         date = get_next_business_date(assigned_to, date)
         schedules = get_employee_schedule_by_weekday(assigned_to, date)
-    frappe.msgprint(_("date: {0}  --  estimate_remaining_hour: {1} -- emp_working_hour: {2}").format(date, estimate_remaining_hour, emp_working_hour))
-
+    frappe.msgprint(_("BW (emp_working_hour: {0}").format(emp_working_hour))
+    
     while (estimate_remaining_hour >= emp_working_hour):
         emp_working_hour = convert_hour_to_number(get_employee_working_hour_for_given_day(assigned_to, date))
         #if len(schedules) != 0:
@@ -178,6 +186,8 @@ def get_next_valid_business_date_based_on_task_estimate(date, assigned_to, estim
             break
         estimate_remaining_hour = estimate_remaining_hour - emp_working_hour        
         date = get_next_business_date(assigned_to, date)
+    #frappe.msgprint(_("AW (emp_working_hour: {0}").format(emp_working_hour))
+    
     time = convert_number_to_hour(estimate_remaining_hour)
     return date, time
 
@@ -371,7 +381,7 @@ def on_sales_invoice_validate(doc, handler=None):
                 "user": frappe.session.user
             })
             if user_restriction:
-                frappe.throw("You're not allowed to create invoices from here !") 
+                frappe.throw("Yo 're not allowed to create invoices from here !") 
 
 @frappe.whitelist()
 #Create a work order from a sales order
@@ -431,6 +441,5 @@ def create_work_order(so_name = None, mfg_items = []):
     sales_order_doc.flags.ignore_permissions = True
     sales_order_doc.save()
     frappe.msgprint("The Work Order have been updated")
-
 
 
