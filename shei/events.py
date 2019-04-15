@@ -49,6 +49,8 @@ def on_project_before_save(doc_name,  proj_tasks=[]):
         index = 0
         for pro_task in proj_tasks:
             if pro_task['end_date'] != str(project_tasks[index]['end_date']): # in the db, the date is a Date while in the UI, it's a string
+                new_tasks.append(pro_task) #add the last modified element into the list
+
                 end_date = pro_task['end_date']
                 index = index + 1                
                 remaining_project_tasks = proj_tasks[index:] #we want to loop over the element after the modified one
@@ -69,11 +71,18 @@ def on_project_before_save(doc_name,  proj_tasks=[]):
                     project_task['end_date'] = end_date
                     new_tasks.append(project_task) #then empty he list in UI and replace by this list
                     prev_task = project_task
+                    frappe.msgprint(_("project_task: {0}  ---   ed: {1}").format(project_task['title'], project_task['end_date']))
+
                 break
             else:
+                new_tasks.append(pro_task)
                 index = index + 1
+                #frappe.msgprint(_("proj_tasks: {0}").format(proj_tasks['title'], proj_tasks['end_date']))
+
     doc.set("tasks", [])
     doc.set("tasks", new_tasks)
+    
+    frappe.msgprint(_("new_tasks: {0}").format(new_tasks))
     
 
 def get_start_date_time(assigned_to, prev_task_end_date, end_time):
@@ -160,7 +169,6 @@ def get_next_valid_business_date_based_on_task_estimate(date, assigned_to, estim
     if end_time and emp_working_hour: #the working_hour for that day will be equal to the remaining time before the end of the day
 
         emp_working_hour = get_remaining_working_hour(emp_working_hour, end_time, schedules)
-        frappe.msgprint(_("(emp_working_hour: {0}").format(emp_working_hour))
 
         #if end_time > schedules[0]['start_time']:
         #    emp_working_hour = emp_working_hour - (end_time - schedules[0]['start_time'])
@@ -175,7 +183,6 @@ def get_next_valid_business_date_based_on_task_estimate(date, assigned_to, estim
         estimate_remaining_hour = estimate_remaining_hour - emp_working_hour
         date = get_next_business_date(assigned_to, date)
         schedules = get_employee_schedule_by_weekday(assigned_to, date)
-    frappe.msgprint(_("BW (emp_working_hour: {0}").format(emp_working_hour))
     
     while (estimate_remaining_hour >= emp_working_hour):
         emp_working_hour = convert_hour_to_number(get_employee_working_hour_for_given_day(assigned_to, date))
@@ -186,7 +193,6 @@ def get_next_valid_business_date_based_on_task_estimate(date, assigned_to, estim
             break
         estimate_remaining_hour = estimate_remaining_hour - emp_working_hour        
         date = get_next_business_date(assigned_to, date)
-    #frappe.msgprint(_("AW (emp_working_hour: {0}").format(emp_working_hour))
     
     time = convert_number_to_hour(estimate_remaining_hour)
     return date, time
