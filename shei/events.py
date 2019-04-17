@@ -17,13 +17,25 @@ from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
-@frappe.whitelist()
-def on_project_before_save(doc_name,  proj_tasks=[]):
-    doc = frappe.get_doc('Project', doc_name)
+#    #frappe.call({ 
+    #    method:"frappe.client.get_list", 
+    #    args:{ 
+    #        doctype:"Crate Informations", 
+    #        filters: [{key:'Project', value:doc_name} ], 
+    #        fields: ["*"] }, 
+    #    callback: function(r) { } 
+    #    } 
+    #});
+
+#@frappe.whitelist()
+def on_project_before_save(doc,  handler=None):
+    #doc = frappe.get_doc('Project', doc_name)
     curr_date = datetime.today().strftime('%m-%d-%Y')
     project_tasks = frappe.get_all('Project Task', fields=['*'], filters={ 'parenttype': 'Project', 'parent': doc.name })
     project_tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
-    proj_tasks = json.loads( proj_tasks)
+    proj_tasks = json.loads(doc.tasks)
+    frappe.msgprint(_("len: {0}").format(len(proj_tasks)))
+    frappe.msgprint(_("len: {0}").format(len(project_tasks)))
     proj_tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
     new_tasks = []
     end_time = None
@@ -79,10 +91,9 @@ def on_project_before_save(doc_name,  proj_tasks=[]):
                 index = index + 1
                 #frappe.msgprint(_("proj_tasks: {0}").format(proj_tasks['title'], proj_tasks['end_date']))
 
-    doc.set("tasks", [])
-    doc.set("tasks", new_tasks)
+    doc.update({'crates' : new_tasks})
+    return new_tasks
     
-    frappe.msgprint(_("new_tasks: {0}").format(new_tasks))
     
 
 def get_start_date_time(assigned_to, prev_task_end_date, end_time):

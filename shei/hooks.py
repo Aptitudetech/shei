@@ -75,11 +75,11 @@ doc_events = {
             'shei.events.on_customer_after_insert'
         ]
     },
-#    'Project': {
-#        'before_save': [
-#            'shei.events.on_project_before_save'
-#        ],
-#    },
+    'Project': {
+        'before_save': [
+            'shei.events.on_project_before_save'
+        ],
+    },
     'Sales Invoice': {
         #'validate':[
         #    'shei.events.on_sales_invoice_validate'

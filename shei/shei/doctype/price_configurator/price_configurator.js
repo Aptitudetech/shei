@@ -341,6 +341,7 @@ frappe.ui.form.on('Price Configurator', {
 					freeze: true,
 					freeze_message: "This operation may takes few minutes, please wait...",
 			callback: function() {
+				refresh_field("price_configurator_items");
 					}
 			});
 	},

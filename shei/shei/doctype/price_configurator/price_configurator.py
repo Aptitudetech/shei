@@ -172,8 +172,17 @@ class PriceConfigurator(Document):
 			item.item_panel_price_w_back = self.get_sqft_per_panel_price(item.item_sqft_per_panel, item.item_product, item.item_quantity)
 			item.item_discount_pourcent = pc_total_discount_pourcent
 			item.item_discount_dollar = self.get_discount_pourcent(pc_total_discount_pourcent, item.item_panel_price_w_back)
-			item.item_discount_price = item.item_panel_price_w_back - item.item_discount_dollar
-			item.item_line_price_cad = (item.item_discount_price * item.item_quantity) + item.zclip_price
+			if item.item_discount_dollar > 0:
+				item.item_discount_price = item.item_panel_price_w_back - item.item_discount_dollar
+				item.item_line_price_cad = (item.item_discount_price * item.item_quantity) + item.zclip_price
+
+			else:
+				item.item_discount_price = 0
+				item.item_line_price_cad = item.item_panel_price_w_back
+
+			#item.item_line_price_cad = (item.item_discount_price * item.item_quantity) + item.zclip_price
+
+
 			item.item_line_price_usd = self.convert_cad_to_usd(item.item_line_price_cad)
 			item.item_unit_price_cad = item.item_discount_price + (item.zclip_price / item.item_quantity) #get the price for 1 panel
 			item.item_unit_price_usd = self.convert_cad_to_usd(item.item_unit_price_cad)
@@ -248,7 +257,7 @@ class PriceConfigurator(Document):
 	def get_sqft_per_panel_price(self, sqft_per_panel, item, qty):
 		"""Get sqft price based on the given sqft"""
 		factor = 1
-		sqft_per_panel = int(sqft_per_panel) #round the number down
+		sqft_per_panel = sqft_per_panel #round the number down
 		price_per_sqft = float(frappe.db.get_value('Item', item, 'price_per_sqft'))
 		sqft_per_panel_list = frappe.db.get_all('Panel Factor', fields=['panel_range', 'panel_factor'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
 
