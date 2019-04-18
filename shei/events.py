@@ -17,82 +17,96 @@ from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
-#    #frappe.call({ 
-    #    method:"frappe.client.get_list", 
-    #    args:{ 
-    #        doctype:"Crate Informations", 
-    #        filters: [{key:'Project', value:doc_name} ], 
-    #        fields: ["*"] }, 
-    #    callback: function(r) { } 
-    #    } 
-    #});
+#doc.is_new()
+def update_project_status(task_title, status, project_name): #name of the first open
+    if status == 'On Hold': #if the status is On Hold, we don't want to override it with other value
+        return 'On Hold'
+    if task_title == 'FOLIA-00-DEPOSIT' or task_title == 'ALTO-00-DEPOSIT':
+        status = 'Deposit'
+    if task_title == 'FOLIA-02-A WAITING FOR FILE' or task_title == 'ALTO-02-A WAITING FOR FILE':
+        status = 'File'
+    if task_title == 'FOLIA-02-B PREFLIGHT' or task_title == 'ALTO-02-B PREFLIGHT':
+        status = 'Preflight'
+    if task_title == 'FOLIA-03-DRAWING TECHICAL' or task_title == 'ALTO-03-DRAWING TECHICAL':
+        status = 'PDF'
+    if task_title == 'FOLIA-07-MATERIAL ORDERING' or task_title == 'ALTO-09-DEBURRING-CLEANING-PAINTING':
+        status = 'Production'
+    if task_title == 'FOLIA-04-SAMPLE PREPARATION' or task_title == 'ALTO-04-SAMPLE PREPARATION':
+        status = 'Sample'
+    if task_title == 'FOLIA-12-INSPECTION / PACKAGING' or task_title == 'ALTO-12-INSPECTION / PACKAGING':
+        status = 'Ship'
+    return status
 
-#@frappe.whitelist()
+
 def on_project_before_save(doc,  handler=None):
-    #doc = frappe.get_doc('Project', doc_name)
     curr_date = datetime.today().strftime('%m-%d-%Y')
     project_tasks = frappe.get_all('Project Task', fields=['*'], filters={ 'parenttype': 'Project', 'parent': doc.name })
     project_tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
-    proj_tasks = json.loads(doc.tasks)
-    frappe.msgprint(_("len: {0}").format(len(proj_tasks)))
-    frappe.msgprint(_("len: {0}").format(len(project_tasks)))
+    #proj_tasks = json.loads(doc.tasks)
+    #proj_tasks = json.dumps(doc.tasks) 
+    proj_tasks = []
+    proj_tasks = (t.as_json() for t in doc.tasks)
+    #proj_tasks = (doc.tasks).as_dict()
+    frappe.msgprint(_("len: {0}").format(proj_tasks))
+    frappe.msgprint(_("len: {0}").format(project_tasks))
     proj_tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
     new_tasks = []
     end_time = None
     prev_task = None
-    if proj_tasks and not project_tasks: #if there's something in the uI and nothing in the db
-        for project_task in proj_tasks:
-            project_task_status = frappe.db.get_value('Project Task', {'parent': doc.name, 'parenttype':'Project', 'title': project_task.title}, 'status')
-            if not prev_task:
-                project_task.start_date = doc.expected_start_date
-            else:
-                project_task.start_date, end_time = get_start_date_time(project_task.assigned_to, prev_task.end_date, end_time)
-            task = frappe.db.get_value('Task', {'name': project_task.task_id}, '*')
-            end_date, task_estimate_remaining_hour = get_next_valid_business_date_based_on_task_estimate(project_task['start_date'], task.assigned_to, task.expected_time, end_time)
-            end_time = get_task_end_time_based_on_emp_schedules(task.assigned_to, end_date, task_estimate_remaining_hour)
-            
-            frappe.msgprint(_("start_date: {3}  --  end_date: {0}  --  task.expected_time:{1}  --  end_time: {2}  --  task_estimate_remaining_hour: {4}").format(end_date, task.expected_time, end_time, project_task.start_date, task_estimate_remaining_hour))
-            
-            project_task.end_date = end_date
-            new_tasks.append(project_task) #then empty he list in UI and replace by this list
-            prev_task = project_task
-            #elif :
-    else:
-        index = 0
-        for pro_task in proj_tasks:
-            if pro_task['end_date'] != str(project_tasks[index]['end_date']): # in the db, the date is a Date while in the UI, it's a string
-                new_tasks.append(pro_task) #add the last modified element into the list
-
-                end_date = pro_task['end_date']
-                index = index + 1                
-                remaining_project_tasks = proj_tasks[index:] #we want to loop over the element after the modified one
-                for project_task in remaining_project_tasks:  #proj_tasks
-                    if not prev_task:
-                        project_task['start_date'] = end_date
-                        curr_time = now_datetime()
-                        modified_date = str(curr_time).split(' ')[0]
-                        end_time = str(curr_time).split(' ')[1].split(':')[:-1]
-                        end_time = timedelta(hours=11, minutes=00) #time as string, need to convert it to timedelta
-###                        end_time = timedelta(hours=int(end_time[0]), minutes=int(end_time[1])) #time as string, need to convert it to timedelta
-                    else:
-                        project_task['start_date'], end_time = get_start_date_time(project_task['assigned_to'], prev_task['end_date'], end_time)
-                    task = frappe.db.get_value('Task', {'name': project_task['task_id']}, '*')
-                    end_date, task_estimate_remaining_hour = get_next_valid_business_date_based_on_task_estimate(project_task['start_date'], task.assigned_to, task.expected_time, end_time)
-                    end_time = get_task_end_time_based_on_emp_schedules(task.assigned_to, end_date, task_estimate_remaining_hour)
-                    frappe.msgprint(_("start_date: {3}  --  end_date: {0}  --  task.expected_time:{1}  --  end_time: {2}  --  task_estimate_remaining_hour: {4}").format(end_date, task.expected_time, end_time, project_task['start_date'], task_estimate_remaining_hour))
-                    project_task['end_date'] = end_date
-                    new_tasks.append(project_task) #then empty he list in UI and replace by this list
-                    prev_task = project_task
-                    frappe.msgprint(_("project_task: {0}  ---   ed: {1}").format(project_task['title'], project_task['end_date']))
-
-                break
-            else:
-                new_tasks.append(pro_task)
-                index = index + 1
-                #frappe.msgprint(_("proj_tasks: {0}").format(proj_tasks['title'], proj_tasks['end_date']))
-
-    doc.update({'crates' : new_tasks})
-    return new_tasks
+#    if proj_tasks and not project_tasks: #if there's something in the uI and nothing in the db
+#        for project_task in proj_tasks:
+#            project_task_status = frappe.db.get_value('Project Task', {'parent': doc.name, 'parenttype':'Project', 'title': project_task.title}, 'status')
+#            if not prev_task:
+#                project_task.start_date = doc.expected_start_date
+#            else:
+#                project_task.start_date, end_time = get_start_date_time(project_task.assigned_to, prev_task.end_date, end_time)
+#            task = frappe.db.get_value('Task', {'name': project_task.task_id}, '*')
+#            end_date, task_estimate_remaining_hour = get_next_valid_business_date_based_on_task_estimate(project_task['start_date'], task.assigned_to, task.expected_time, end_time)
+#            end_time = get_task_end_time_based_on_emp_schedules(task.assigned_to, end_date, task_estimate_remaining_hour)
+#            
+#            frappe.msgprint(_("start_date: {3}  --  end_date: {0}  --  task.expected_time:{1}  --  end_time: {2}  --  task_estimate_remaining_hour: {4}").format(end_date, task.expected_time, end_time, project_task.start_date, task_estimate_remaining_hour))
+#            
+#            project_task.end_date = end_date
+#            new_tasks.append(project_task) #then empty he list in UI and replace by this list
+#            prev_task = project_task
+#            #elif :
+#    else:
+#        index = 0
+#        for pro_task in proj_tasks:
+#            if pro_task['end_date'] != str(project_tasks[index]['end_date']): # in the db, the date is a Date while in the UI, it's a string
+#                doc.status = update_project_status(project_tasks[index+1]['title'], doc.status, doc.name) #the next open task is the task after this one
+#                new_tasks.append(pro_task) #add the last modified element into the list
+#
+#                end_date = pro_task['end_date']
+#                index = index + 1                
+#                remaining_project_tasks = proj_tasks[index:] #we want to loop over the element after the modified one
+#                for project_task in remaining_project_tasks:  #proj_tasks
+#                    if not prev_task:
+#                        project_task['start_date'] = end_date
+#                        curr_time = now_datetime()
+#                        modified_date = str(curr_time).split(' ')[0]
+#                        end_time = str(curr_time).split(' ')[1].split(':')[:-1]
+#                        end_time = timedelta(hours=11, minutes=00) #time as string, need to convert it to timedelta
+####                        end_time = timedelta(hours=int(end_time[0]), minutes=int(end_time[1])) #time as string, need to convert it to timedelta
+#                    else:
+#                        project_task['start_date'], end_time = get_start_date_time(project_task['assigned_to'], prev_task['end_date'], end_time)
+#                    task = frappe.db.get_value('Task', {'name': project_task['task_id']}, '*')
+#                    end_date, task_estimate_remaining_hour = get_next_valid_business_date_based_on_task_estimate(project_task['start_date'], task.assigned_to, task.expected_time, end_time)
+#                    end_time = get_task_end_time_based_on_emp_schedules(task.assigned_to, end_date, task_estimate_remaining_hour)
+#                    frappe.msgprint(_("start_date: {3}  --  end_date: {0}  --  task.expected_time:{1}  --  end_time: {2}  --  task_estimate_remaining_hour: {4}").format(end_date, task.expected_time, end_time, project_task['start_date'], task_estimate_remaining_hour))
+#                    project_task['end_date'] = end_date
+#                    new_tasks.append(project_task) #then empty he list in UI and replace by this list
+#                    prev_task = project_task
+#                    frappe.msgprint(_("project_task: {0}  ---   ed: {1}").format(project_task['title'], project_task['end_date']))
+#
+#                break
+#            else:
+#                new_tasks.append(pro_task)
+#                index = index + 1
+#                #frappe.msgprint(_("proj_tasks: {0}").format(proj_tasks['title'], proj_tasks['end_date']))
+#
+#    doc.update({'crates' : new_tasks})
+#    return new_tasks
     
     
 
