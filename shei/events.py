@@ -19,8 +19,6 @@ from erpnext.accounts.party import (get_party_account_currency)
 
 #doc.is_new()
 def update_project_status(task_title):
-    ##if status == 'On Hold': #if the status is On Hold, we don't want to override it with other value
-    ##    return 'On Hold'
     if task_title == 'FOLIA-00-DEPOSIT' or task_title == 'ALTO-00-DEPOSIT':
         status = 'Deposit'
     if task_title == 'FOLIA-02-A WAITING FOR FILE' or task_title == 'ALTO-02-A WAITING FOR FILE':
@@ -46,12 +44,12 @@ def get_last_open_project(kanban_task_status, project_tasks=[]):
             return update_project_status(task.title) #the next open task is the task after this one
 
 def on_project_before_save(doc,  handler=None):
-    if doc.is_new():
+    if doc.is_new() or doc.sub_type not in ['Alto', 'Folia']:
         return
     curr_date = datetime.today().strftime('%m-%d-%Y')
     project_tasks = frappe.get_all('Project Task', fields=['*'], filters={ 'parenttype': 'Project', 'parent': doc.name })
     project_tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
-    doc.kanban_task_status = get_last_open_project(doc.kanban_task_status, project_tasks)
+    #doc.kanban_task_status = get_last_open_project(doc.kanban_task_status, project_tasks)
     proj_tasks = []
     for pt in doc.get('tasks'):
         obj = json.loads(pt.as_json())

@@ -10,6 +10,47 @@
 	<style>
 		{% include "erpnext/templates/includes/projects.css" %}
 	</style>
+	<style>
+		.one, .two, .three, .four{
+			position:absolute;
+			margin-top:-10px;
+			z-index:1;
+			height:40px;
+			width:40px;
+			border-radius:25px;
+		}
+		.one{
+			left:25%;
+		}
+		.two{
+			left:50%;
+		}
+		.three{
+			left:75%;
+		}
+		.four{
+			left:100%;
+		}
+		.primary-color{
+			background-color:#4989bd;
+		}
+		.success-color{
+			background-color:#5cb85c;
+		}
+		.danger-color{
+			background-color:#d9534f;
+		}
+		.warning-color{
+			background-color:#f0ad4e;
+		}
+		.info-color{
+			background-color:#5bc0de;
+		}
+		.no-color{
+			background-color:inherit;
+		}
+
+	</style>
 {% endblock %}
 
 
@@ -20,16 +61,83 @@
 	aria-valuemin="0" aria-valuemax="100" style="width:{{ doc.percent_complete|round|int }}%;">
 	</div>
 </div>
-{% endif %}		
+{% endif %}	
+
+{% set tasks = doc.tasks%}
+{% set first_open_task = (tasks|sort(attribute='subject')|selectattr("status", "equalto", "Open")|first) %}
+<br>
+<br>
+{% set task_number = (first_open_task.subject.split('-')[1]|int) %}
+{% set task_product = first_open_task.subject.split('-')[0] %}
+{% if task_number <= 2 %}
+	{% set task_stage = 'Preflight' %}
+	{% set progress_pourcentage = 25 %}
+{% elif (task_number <= 7 and  task_product == 'Folia') or (task_number <= 9 and task_product == 'Alto') %}
+	{% set task_stage = 'PDF Approval' %}
+	{% set progress_pourcentage = 50 %}
+{% elif task_number >= 12 %}
+	{% set task_stage = 'Shipping' %}
+	{% set progress_pourcentage = 100 %}
+{% else %}
+	{% set task_stage = 'Production' %}
+	{% set progress_pourcentage = 75 %}
+{% endif %}
+<br>
+{{ task_stage }}
+
+<div class="container">
+	<div class="row"><br />
+		<div class="col-md-12">
+		<div class="progress"  style="width: 102%;">
+		<div data-toggle="tooltip" data-placement="top" title="Preflight" class="one danger-color"><div style="text-align: center; margin-top: 10px;">asd</div></div>
+		<div data-toggle="tooltip" data-placement="top" title="PDF Approval" class="two warning-color"></div>
+		<div data-toggle="tooltip" data-placement="top" title="Production" class="three success-color"></div>
+		<div data-toggle="tooltip" data-placement="top" title="Shipping" class="four primary-color" style="text-align: center;">
+			<span style="text-align: center; margin-top: 10px;" class="glyphicon glyphicon-plane" aria-hidden="true"></span>
+		</div>
+		{% set task_number = (first_open_task.subject.split('-')[1]|int) %}
+		{% set task_product = first_open_task.subject.split('-')[0] %}
+		{% if task_number <= 2 %}
+			{% set task_stage = 'Preflight' %}
+			{% set progress_pourcentage = 25 %}
+			<div class="progress-bar progress-bar-danger" style="width: {{progress_pourcentage}}%"></div>
+		{% elif (task_number <= 7 and  task_product == 'Folia') or (task_number <= 9 and task_product == 'Alto') %}
+			{% set task_stage = 'PDF Approval' %}
+			{% set progress_pourcentage = 50 %}
+			<div class="progress-bar progress-bar-warning" style="width: {{progress_pourcentage}}%"></div>
+		{% elif task_number >= 12 %}
+			{% set task_stage = 'Shipping' %}
+			{% set progress_pourcentage = 100 %}
+			<div class="progress-bar progress-bar-primary" style="width: {{progress_pourcentage}}%"></div>
+		{% else %}
+			{% set task_stage = 'Production' %}
+			{% set progress_pourcentage = 75 %}
+			<div class="progress-bar progress-bar-success" style="width: {{progress_pourcentage}}%"></div>
+		{% endif %}
+		</div>
+        <hr />
+		
+	</div>
+	</div>
+</div>
+{% set nbr = 25%}
+
+
+
+
+
+
+
+
 
 <div class="clearfix">
   <h4 style="float: left;">{{ _("Tasks") }}</h4>
-  <a class="btn btn-secondary btn-default btn-sm" style="float: right; position: relative; top: 10px;" href='/tasks?new=1&project={{ doc.project_name }}'>{{ _("New task") }}</a>
 </div>
 
 <p>
 <!-- <a class='small underline task-status-switch' data-status='Open'>{{ _("Show closed") }}</a> -->
 </p>
+
 
 {% if doc.tasks %}
 	<div class='project-task-section'>
@@ -47,7 +155,7 @@
 
 <a href="https://wetransfer.com/" target="_blank">
 	<span class="glyphicon glyphicon-upload" aria-hidden="true"></span>
-	<strong>Transfert your file</strong>
+	<strong data-toggle="tooltip" data-placement="top" title="Transfert your file with WeTransfer">Transfert your file</strong>
 </a>
 
 
