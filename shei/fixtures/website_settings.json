@@ -1,0 +1,41 @@
+[
+ {
+  "address": "", 
+  "banner_html": null, 
+  "banner_image": "/files/Screenshot_from_2018-09-07_09-53-56.png", 
+  "brand_html": "<img src='/files/small_sh_logo.png' style='width: 25px;height = 25px'>", 
+  "chat_enable": 0, 
+  "chat_enable_from": "00:00:0", 
+  "chat_enable_to": "19:53:54", 
+  "chat_operators": [], 
+  "chat_room_name": "", 
+  "chat_welcome_message": "", 
+  "copyright": "The SH Group", 
+  "disable_signup": 1, 
+  "docstatus": 0, 
+  "doctype": "Website Settings", 
+  "favicon": "/files/shei_favicon.ico", 
+  "footer_items": [], 
+  "google_analytics_id": "", 
+  "head_html": "", 
+  "hide_footer_signup": 1, 
+  "home_page": "sh-environnements-immersifs", 
+  "modified": "2019-04-26 14:45:24.618170", 
+  "name": "Website Settings", 
+  "navbar_search": 0, 
+  "robots_txt": null, 
+  "subdomain": null, 
+  "title_prefix": null, 
+  "top_bar_items": [
+   {
+    "label": "Frequent Q/A", 
+    "parent_label": null, 
+    "right": 1, 
+    "target": "target = \"_blank\"", 
+    "url": "http://shei.sh/"
+   }
+  ], 
+  "website_theme": "Standard", 
+  "website_theme_image_link": null
+ }
+]

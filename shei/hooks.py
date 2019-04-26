@@ -147,6 +147,8 @@ doc_events = {
 
 fixtures = [
     {'dt': 'Print Node Settings'},
+    {'dt': 'Website Settings'},
+    {'dt': 'Portal Settings'},
     {
         "dt": "Custom Field",
 	    "filters": {

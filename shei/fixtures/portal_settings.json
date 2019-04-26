@@ -1,0 +1,213 @@
+[
+ {
+  "custom_menu": [], 
+  "default_role": null, 
+  "docstatus": 0, 
+  "doctype": "Portal Settings", 
+  "hide_standard_menu": 0, 
+  "menu": [
+   {
+    "enabled": 1, 
+    "reference_doctype": "Project", 
+    "role": null, 
+    "route": "/project", 
+    "target": null, 
+    "title": "Projects"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Request for Quotation", 
+    "role": "Supplier", 
+    "route": "/rfq", 
+    "target": null, 
+    "title": "Request for Quotations"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Sales Order", 
+    "role": "Customer", 
+    "route": "/orders", 
+    "target": null, 
+    "title": "Orders"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Sales Invoice", 
+    "role": "Customer", 
+    "route": "/invoices", 
+    "target": null, 
+    "title": "Invoices"
+   }, 
+   {
+    "enabled": 1, 
+    "reference_doctype": "Delivery Note", 
+    "role": "Customer", 
+    "route": "/shipments", 
+    "target": null, 
+    "title": "Shipments"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Issue", 
+    "role": "Customer", 
+    "route": "/issues", 
+    "target": null, 
+    "title": "Issues"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Address", 
+    "role": null, 
+    "route": "/addresses", 
+    "target": null, 
+    "title": "Addresses"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Announcement", 
+    "role": null, 
+    "route": "/announcement", 
+    "target": null, 
+    "title": "Announcements"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Course", 
+    "role": "Student", 
+    "route": "/course", 
+    "target": null, 
+    "title": "Courses"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Assessment Plan", 
+    "role": "Student", 
+    "route": "/assessment", 
+    "target": null, 
+    "title": "Assessment Schedule"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Fees", 
+    "role": "Student", 
+    "route": "/fees", 
+    "target": null, 
+    "title": "Fees"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Quotation", 
+    "role": "Customer", 
+    "route": "/quotes", 
+    "target": null, 
+    "title": "Quotes"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Supplier Quotation", 
+    "role": "Supplier", 
+    "route": "/supplier-quotations", 
+    "target": null, 
+    "title": "Supplier Quotation"
+   }, 
+   {
+    "enabled": 1, 
+    "reference_doctype": "Quotation", 
+    "role": "Customer", 
+    "route": "/quotations", 
+    "target": null, 
+    "title": "Quotations"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Timesheet", 
+    "role": "Customer", 
+    "route": "/timesheets", 
+    "target": null, 
+    "title": "Timesheets"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Lab Test", 
+    "role": "Patient", 
+    "route": "/lab-test", 
+    "target": null, 
+    "title": "Lab Test"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Patient Encounter", 
+    "role": "Patient", 
+    "route": "/prescription", 
+    "target": null, 
+    "title": "Prescription"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Patient Appointment", 
+    "role": "Patient", 
+    "route": "/patient-appointments", 
+    "target": null, 
+    "title": "Patient Appointment"
+   }, 
+   {
+    "enabled": 1, 
+    "reference_doctype": "Newsletter", 
+    "role": null, 
+    "route": "/newsletters", 
+    "target": null, 
+    "title": "Newsletter"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Student Admission", 
+    "role": null, 
+    "route": "/admissions", 
+    "target": null, 
+    "title": "Admission"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Grant Application", 
+    "role": "Non Profit Portal User", 
+    "route": "/grant-application", 
+    "target": null, 
+    "title": "Grant Application"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Chapter", 
+    "role": null, 
+    "route": "/chapters", 
+    "target": null, 
+    "title": "Chapter"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Patient", 
+    "role": "Patient", 
+    "route": "/personal-details", 
+    "target": null, 
+    "title": "Personal Details"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Certification Application", 
+    "role": null, 
+    "route": "/certification", 
+    "target": null, 
+    "title": "Certification"
+   }, 
+   {
+    "enabled": 0, 
+    "reference_doctype": "Material Request", 
+    "role": "Customer", 
+    "route": "/material-requests", 
+    "target": null, 
+    "title": "Material Request"
+   }
+  ], 
+  "modified": "2019-04-24 14:16:22.395539", 
+  "name": "Portal Settings"
+ }
+]
