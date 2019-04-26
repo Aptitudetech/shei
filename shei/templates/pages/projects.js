@@ -1,5 +1,4 @@
 frappe.ready(function() {
-
 	$('.task-status-switch').on('click', function() {
 		var $btn = $(this);
 		if($btn.attr('data-status')==='Open') {

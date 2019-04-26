@@ -11,7 +11,7 @@
 		{% include "erpnext/templates/includes/projects.css" %}
 	</style>
 	<style>
-		.one, .two, .three, .four{
+		.one, .two, .three, .four, .five{
 			position:absolute;
 			margin-top:-10px;
 			z-index:1;
@@ -20,148 +20,151 @@
 			border-radius:25px;
 		}
 		.one{
-			left:25%;
+			left:0%;
 		}
 		.two{
-			left:50%;
+			left:25%;
 		}
 		.three{
-			left:75%;
+			left:50%;
 		}
 		.four{
+			left:75%;
+		}
+		.five{
 			left:100%;
 		}
-		.primary-color{
-			background-color:#4989bd;
+		#project_stage_box {
+			border-radius: 10px;
+			padding: 20px; 
+			width: 200px;
+			height: 60px;  
 		}
-		.success-color{
-			background-color:#5cb85c;
+		#project_stage_description {
+			border-radius: 25px;
+			background-color: white;
+			padding: 20px; 
+			width: 200px;
+			height: 300px; 
+			margin-top: -20px;
+			margin-left: 40px;
+			z-index: 1;
+			font-weight: 400;
 		}
-		.danger-color{
-			background-color:#d9534f;
+		#project_stage_label {
+			margin-top: -10px; 
+			text-align: left; 
+			color: white; 
+			font-weight: 700;
 		}
-		.warning-color{
-			background-color:#f0ad4e;
-		}
-		.info-color{
-			background-color:#5bc0de;
-		}
-		.no-color{
-			background-color:inherit;
-		}
-
 	</style>
 {% endblock %}
 
-
 {% block page_content %}
+
 {% if doc.percent_complete %}
 <div class="progress progress-hg">
-	<div class="progress-bar progress-bar-{{ "warning" if doc.percent_complete|round < 100 else "success" }} active" 				role="progressbar" aria-valuenow="{{ doc.percent_complete|round|int }}"
+	<div class="progress-bar progress-bar-{{ "warning" if doc.percent_complete|round < 100 else "success" }} active"role="progressbar" aria-valuenow="{{ doc.percent_complete|round|int }}"
 	aria-valuemin="0" aria-valuemax="100" style="width:{{ doc.percent_complete|round|int }}%;">
 	</div>
 </div>
 {% endif %}	
 
 {% set tasks = doc.tasks%}
+
 {% set first_open_task = (tasks|sort(attribute='subject')|selectattr("status", "equalto", "Open")|first) %}
 <br>
 <br>
 {% set task_number = (first_open_task.subject.split('-')[1]|int) %}
 {% set task_product = first_open_task.subject.split('-')[0] %}
-{% if task_number <= 2 %}
-	{% set task_stage = 'Preflight' %}
-	{% set progress_pourcentage = 25 %}
-{% elif (task_number <= 7 and  task_product == 'Folia') or (task_number <= 9 and task_product == 'Alto') %}
-	{% set task_stage = 'PDF Approval' %}
-	{% set progress_pourcentage = 50 %}
-{% elif task_number >= 12 %}
-	{% set task_stage = 'Shipping' %}
-	{% set progress_pourcentage = 100 %}
-{% else %}
-	{% set task_stage = 'Production' %}
-	{% set progress_pourcentage = 75 %}
-{% endif %}
-<br>
-{{ task_stage }}
+
+{{task_number}}
+
 
 <div class="container">
 	<div class="row"><br />
 		<div class="col-md-12">
 		<div class="progress"  style="width: 102%;">
-		<div data-toggle="tooltip" data-placement="top" title="Preflight" class="one danger-color"><div style="text-align: center; margin-top: 10px;">asd</div></div>
-		<div data-toggle="tooltip" data-placement="top" title="PDF Approval" class="two warning-color"></div>
-		<div data-toggle="tooltip" data-placement="top" title="Production" class="three success-color"></div>
-		<div data-toggle="tooltip" data-placement="top" title="Shipping" class="four primary-color" style="text-align: center;">
-			<span style="text-align: center; margin-top: 10px;" class="glyphicon glyphicon-plane" aria-hidden="true"></span>
-		</div>
+		<!--display the progress bar based on the project stage-->
 		{% set task_number = (first_open_task.subject.split('-')[1]|int) %}
 		{% set task_product = first_open_task.subject.split('-')[0] %}
-		{% if task_number <= 2 %}
+		{% if task_number == 0 %}
+			{% set task_stage = 'Deposit' %}
+			{% set progress_pourcentage = 0 %}
+			{% set progress_color = '#5cb85c' %}
+			{% set project_stage_description = "Waiting on message... <br><br><br> 1-3 days" %}
+		{% elif task_number <= 2 %}
 			{% set task_stage = 'Preflight' %}
 			{% set progress_pourcentage = 25 %}
-			<div class="progress-bar progress-bar-danger" style="width: {{progress_pourcentage}}%"></div>
+			{% set progress_color = '#E78037' %}
+			{% set project_stage_description = "We examine your files and make sure they are print ready. Please make sure your files are done according to our graphic preparation guide to avoid delays <br><br><br> 1-3 days" %}
 		{% elif (task_number <= 7 and  task_product == 'Folia') or (task_number <= 9 and task_product == 'Alto') %}
 			{% set task_stage = 'PDF Approval' %}
 			{% set progress_pourcentage = 50 %}
-			<div class="progress-bar progress-bar-warning" style="width: {{progress_pourcentage}}%"></div>
+			{% set progress_color = '#A3A3A3' %}
+			{% set project_stage_description = "Once your file is print ready, we send you a pdf file to approve. The lead time for your project will begin once you have approved the PDF file <br><br><br> 1-3 days" %}
 		{% elif task_number >= 12 %}
 			{% set task_stage = 'Shipping' %}
 			{% set progress_pourcentage = 100 %}
-			<div class="progress-bar progress-bar-primary" style="width: {{progress_pourcentage}}%"></div>
+			{% set progress_color = '#629BD0' %}
+			{% set project_stage_description = "We carefully inspect each panel to ensure that your panels conform to our strict quality standards. We then carefully pack you panels so they are shipping on a cloud. <br><br><br> 3-7 days" %}
 		{% else %}
 			{% set task_stage = 'Production' %}
 			{% set progress_pourcentage = 75 %}
-			<div class="progress-bar progress-bar-success" style="width: {{progress_pourcentage}}%"></div>
+			{% set progress_color = '#FCBE38' %}
+			{% set project_stage_description = "Production begins! We will produce beautiful, quality panels for you. <br><br><br> 3-6 weeks" %}
 		{% endif %}
+
+
+		<!--Deposit dot-->
+		<div data-toggle="tooltip" data-placement="top" title="Deposit" class="one" style="background-color: #5cb85c;">
+				<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon glyphicon-usd" aria-hidden="true"></span>
 		</div>
-        <hr />
+		<!--Preflight dot-->
+		<div data-toggle="tooltip" data-placement="top" title="Preflight" class="two" style="background-color: #E78037;">
+			<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon glyphicon-copy" aria-hidden="true"></span>
+		</div>
+		<!--PDF Approval dot-->
+		<div data-toggle="tooltip" data-placement="top" title="PDF Approval" class="three" style="background-color: #A3A3A3;">
+			<span style="text-align: center; margin-top: 11px; margin-left: 14px" class="glyphicon glyphicon-check" aria-hidden="true"></span>
+		</div>
+		<!--Production dot-->
+		<div data-toggle="tooltip" data-placement="top" title="Production" class="four" style="background-color: #FCBE38;">
+			<span style="text-align: center; margin-top: 11px; margin-left: 13px" class="glyphicon glyphicon-th-large" aria-hidden="true"></span>
+		</div>
+		<!--Shipping dot-->
+		<div data-toggle="tooltip" data-placement="top" title="Shipping" class="five" style="text-align: center; background-color: #629BD0;">
+			<span style="text-align: center; margin-top: 11px;" class="glyphicon glyphicon-plane" aria-hidden="true"></span>
+		</div>
 		
-	</div>
-	</div>
-</div>
-{% set nbr = 25%}
+		<div class="progress-bar progress-bar-striped active" style="background-color: {{progress_color}} !important; width: {{progress_pourcentage}}%"></div>
 
-
-
-
-
-
-
-
-
-<div class="clearfix">
-  <h4 style="float: left;">{{ _("Tasks") }}</h4>
-</div>
-
-<p>
-<!-- <a class='small underline task-status-switch' data-status='Open'>{{ _("Show closed") }}</a> -->
-</p>
-
-
-{% if doc.tasks %}
-	<div class='project-task-section'>
-		<div class='project-task'>
-		{% include "erpnext/templates/includes/projects/project_tasks.html" %}
 		</div>
-		<p><a id= 'more-task' style='display: none;' class='more-tasks small underline'>{{ _("More") }}</a><p>
 	</div>
-{% else %}
-	<p class="text-muted">{{ _("No tasks") }}</p>
-{% endif %}
+	</div>
+</div>
+
+
+<div>
+	<div id="project_stage_box" style="background-color: {{progress_color}};"><p id="project_stage_label" >{{task_stage}}</p></div>
+	<p id="project_stage_description" style="color: {{progress_color}}; border: 2px solid {{progress_color}};">
+		{{project_stage_description}}
+	</p>
+</div>
+
+
+<hr />
+
 
 
 <div class='padding'></div>
-
 <a href="https://wetransfer.com/" target="_blank">
 	<span class="glyphicon glyphicon-upload" aria-hidden="true"></span>
 	<strong data-toggle="tooltip" data-placement="top" title="Transfert your file with WeTransfer">Transfert your file</strong>
 </a>
 
-
 {% if doc.attachments %}
 <div class='padding'></div>
-
 <h4>{{ _("Attachments") }}</h4>
 	<div class="project-attachments">
 		{% for attachment in doc.attachments %}
@@ -171,17 +174,12 @@
 					<div class="col-xs-9">
 						<span class="indicator red file-name"> {{ attachment.file_name }}</span>
 					</div>
-					<div class="col-xs-3">
-						<span class="pull-right file-size">{{ attachment.file_size }}</span>
-					</div>
 				</div>
 			</a>
 		</div>
 		{% endfor %}
 	</div>
 {% endif %}
-
-</div>
 
 <script>
 	{% include "frappe/public/js/frappe/provide.js" %}

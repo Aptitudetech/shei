@@ -19,9 +19,6 @@ def get_context(context):
 	project.tasks = get_tasks(project.name, start=0, item_status='open',
 		search=frappe.form_dict.get("search"))
 
-	project.timesheets = get_timesheets(project.name, start=0,
-		search=frappe.form_dict.get("search"))
-
 	if project_user.view_attachments:
 		project.attachments = get_attachments(project.name)
 
@@ -32,28 +29,9 @@ def get_tasks(project, start=0, search=None, item_status=None):
 	filters = {"project": project}
 	if search:
 		filters["subject"] = ("like", "%{0}%".format(search))
-	# if item_status:
-# 		filters["status"] = item_status
 	tasks = frappe.get_all("Task", filters=filters,
-		fields=["name", "subject", "status", "_seen", "_comments", "modified", "description"],
-		limit_start=start, limit_page_length=10)
-
-	for task in tasks:
-		task.todo = frappe.get_all('ToDo',filters={'reference_name':task.name, 'reference_type':'Task'},
-		fields=["assigned_by", "owner", "modified", "modified_by"])
-
-		if task.todo:
-			task.todo=task.todo[0]
-			task.todo.user_image = frappe.db.get_value('User', task.todo.owner, 'user_image')
-
-		
-		task.comment_count = len(json.loads(task._comments or "[]"))
-
-		task.css_seen = ''
-		if task._seen:
-			if frappe.session.user in json.loads(task._seen):
-				task.css_seen = 'seen'
-
+		fields=["subject", "status"],
+		limit_start=start, limit_page_length=None)
 	return tasks
 
 @frappe.whitelist()
