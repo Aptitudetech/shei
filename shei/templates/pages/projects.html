@@ -70,24 +70,23 @@
 </div>
 {% endif %}	
 
-{% set tasks = doc.tasks%}
-
-{% set first_open_task = (tasks|sort(attribute='subject')|selectattr("status", "equalto", "Open")|first) %}
-<br>
-<br>
-{% set task_number = (first_open_task.subject.split('-')[1]|int) %}
-{% set task_product = first_open_task.subject.split('-')[0] %}
-
-{{task_number}}
-
+<!--Get the first unfinished open task for the project-->
+{% set curr_project = frappe.get_doc("Project", doc.name) %}
+{% set tasks = [] %}
+{% for t in curr_project.tasks %}
+	{% if t.status != "Closed" %}
+		{{ tasks.append(t.title) or ''}}
+	{% endif %}
+{% endfor %}
+{% set first_open_task = (tasks|sort|first) %}
 
 <div class="container">
 	<div class="row"><br />
 		<div class="col-md-12">
 		<div class="progress"  style="width: 102%;">
 		<!--display the progress bar based on the project stage-->
-		{% set task_number = (first_open_task.subject.split('-')[1]|int) %}
-		{% set task_product = first_open_task.subject.split('-')[0] %}
+		{% set task_number = (first_open_task.split('-')[1]|int) %}
+		{% set task_product = first_open_task.split('-')[0] %}
 		{% if task_number == 0 %}
 			{% set task_stage = 'Deposit' %}
 			{% set progress_pourcentage = 0 %}

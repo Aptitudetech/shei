@@ -31,7 +31,7 @@ def get_tasks(project, start=0, search=None, item_status=None):
 		filters["subject"] = ("like", "%{0}%".format(search))
 	tasks = frappe.get_all("Task", filters=filters,
 		fields=["subject", "status"],
-		limit_start=start, limit_page_length=None)
+		limit_start=start, limit_page_length=20)
 	return tasks
 
 @frappe.whitelist()
