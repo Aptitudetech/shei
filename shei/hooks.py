@@ -153,6 +153,13 @@ fixtures = [
         "dt": "Custom Field",
 	    "filters": {
         	"name": ["in", [
+                "Project-shipping_informations",
+                "Project-third_party",
+                "Project-waybill",
+                "Project-shipper",
+                "Project-crates",
+                "Item-hts_name",
+                "Project-kanban_task_status",
                 "Workstation Working Hour-saturday",
                 "Workstation Working Hour-friday",
                 "Workstation Working Hour-thursday",
@@ -273,6 +280,9 @@ fixtures = [
          	]]
     	}
     },
+    {'dt': 'Website Settings'},
+    {'dt': 'Portal Settings'},
+    {'dt': 'Web Page'},
     {
         "dt": "Print Format",
 	    "filters": {

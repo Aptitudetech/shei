@@ -39,7 +39,7 @@
     "title": "Invoices"
    }, 
    {
-    "enabled": 1, 
+    "enabled": 0, 
     "reference_doctype": "Delivery Note", 
     "role": "Customer", 
     "route": "/shipments", 
@@ -111,7 +111,7 @@
     "title": "Supplier Quotation"
    }, 
    {
-    "enabled": 1, 
+    "enabled": 0, 
     "reference_doctype": "Quotation", 
     "role": "Customer", 
     "route": "/quotations", 
@@ -207,7 +207,7 @@
     "title": "Material Request"
    }
   ], 
-  "modified": "2019-04-24 14:16:22.395539", 
+  "modified": "2019-05-08 09:17:04.180319", 
   "name": "Portal Settings"
  }
 ]
