@@ -57,7 +57,9 @@ app_include_js = "/assets/js/shei.js"
 # Permissions
 # -----------
 # Permissions evaluated in scripted ways
-
+permission_query_conditions = {
+ 	"Project": "shei.permissions.get_project_permissions_query_conditions",
+}
 
 # Document Events
 # ---------------
@@ -153,6 +155,7 @@ fixtures = [
         "dt": "Custom Field",
 	    "filters": {
         	"name": ["in", [
+                "Project-restricted_to_role",
                 "Project-shipping_informations",
                 "Project-third_party",
                 "Project-waybill",
