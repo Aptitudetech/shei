@@ -58,6 +58,9 @@ app_include_js = "/assets/js/shei.js"
 # -----------
 # Permissions evaluated in scripted ways
 
+permission_query_conditions = {
+ 	"Project": "shei.permissions.get_project_permissions_query_conditions",
+}
 
 # Document Events
 # ---------------
@@ -75,16 +78,7 @@ doc_events = {
             'shei.events.on_customer_after_insert'
         ]
     },
-#    'Project': {
-#        'before_save': [
-#            'shei.events.on_project_before_save'
-#        ],
-#    },
     'Sales Invoice': {
-        #'validate':[
-        #    'shei.events.on_sales_invoice_validate'
-        #],
-
         'on_submit': [
             'shei.events.on_sales_invoice_submit'
         ],
@@ -151,6 +145,7 @@ fixtures = [
         "dt": "Custom Field",
 	    "filters": {
         	"name": ["in", [
+                "Project-restricted_to_role",
                 "Workstation Working Hour-saturday",
                 "Workstation Working Hour-friday",
                 "Workstation Working Hour-thursday",
