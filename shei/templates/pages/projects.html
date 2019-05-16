@@ -4,6 +4,7 @@
 
 {% block header %}
 	<h1>{{ doc.project_name }}</h1>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
 {% endblock %}
 
 {% block style %}
@@ -154,12 +155,23 @@
 
 <hr />
 
-
+<div data-widget-host="habitat" id="wt_embed" style="width: 25%;">
+	<script type="text/props">
+	  {
+		"wtEmbedKey": "a0124faf-6f51-4fb2-979b-b48552843532",
+		"wtEmbedOutput": ".wt_embed_output"
+	  }
+	</script>
+</div>
+  <script async src="https://prod-embed-cdn.wetransfer.net/v1/latest.js"></script>
+  <input type="text" name="wt_embed_output" id="wt_embed_output" class="wt_embed_output" onInput="myFunction" />
+  
 
 <div class='padding'></div>
-<a href="https://wetransfer.com/" target="_blank">
+<p>Problem with the link above? </p>
+<a href="https://wetransfer.com/?to={{doc.project_manager}}&msg={{doc.name}}" target="_blank">
 	<span class="glyphicon glyphicon-upload" aria-hidden="true"></span>
-	<strong data-toggle="tooltip" data-placement="top" title="Transfert your file with WeTransfer">Transfert your file</strong>
+	<strong data-toggle="tooltip" data-placement="top" title="Transfert your file with WeTransfer">Click here to transfert your file</strong>
 </a>
 
 {% if doc.attachments %}
@@ -181,6 +193,22 @@
 {% endif %}
 
 <script>
+	$("#wt_embed_output").on('input', function(){ alert( "Handler for .change() called." ); });
+	//$( "#wt_embed_output" ).change(function() {
+  
+
+	function myFunction() {
+		var x = document.getElementById("wt_embed_output").value;
+		alert("The input value has changed. The new value is: " + x);
+		console.log(x);
+		console.log("OK");
+	}
+	//document.getElementById("wt_embed").addEventListener("loadeddata", myFunction);
+	document.getElementById("wt_embed_output").addEventListener("oninput", myFunction);
+	document.getElementById("wt_embed_output").value= "changes value";
+</script>
+<script>
+
 	{% include "frappe/public/js/frappe/provide.js" %}
 	{% include "frappe/public/js/frappe/form/formatters.js" %}
 </script>

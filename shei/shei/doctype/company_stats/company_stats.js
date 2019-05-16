@@ -4,15 +4,13 @@
 frappe.ui.form.on('Company Stats', {
 	refresh: function(frm) {
 		frm.disable_save();
-		console.log("hey");
-		console.log(cur_frm.doc.so_curr_month);
-
-		var node = document.createElement("p");                 // Create a <li> node
-		var textnode = document.createTextNode("some Text");         // Create a text node
-		node.appendChild(textnode);                              // Append the text to <li>
-		document.getElementById("so_today").appendChild(node);     // Append <li> to <ul> with id="myList"
-	},
-	after_rendering: function(frm){
+		//console.log("hey");
+		//console.log(cur_frm.doc.so_curr_month);
+//
+		//var node = document.createElement("p");                 // Create a <li> node
+		//var textnode = document.createTextNode("some Text");         // Create a text node
+		//node.appendChild(textnode);                              // Append the text to <li>
+		//document.getElementById("so_today").appendChild(node);     // Append <li> to <ul> with id="myList"
 	},
 	btn_load_complete_report: function(frm) {
 		frappe.call({
