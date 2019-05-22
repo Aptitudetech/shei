@@ -58,6 +58,23 @@
 			color: white; 
 			font-weight: 700;
 		}
+		* {
+		box-sizing: border-box;
+		}
+
+		/* Create two equal columns that floats next to each other */
+		.column {
+		float: left;
+		width: 50%;
+		padding: 10px;
+		}
+
+		/* Clear floats after the columns */
+		.row:after {
+		content: "";
+		display: table;
+		clear: both;
+		}
 	</style>
 {% endblock %}
 
@@ -144,18 +161,67 @@
 	</div>
 </div>
 
+<div class="row">
+	<div class="column">
+		<div id="project_stage_box" style="background-color: {{progress_color}};"><p id="project_stage_label" >{{task_stage}}</p></div>
+		<p id="project_stage_description" style="color: {{progress_color}}; border: 2px solid {{progress_color}};">
+			{{project_stage_description}}
+		</p>
+	</div>
+	<div class="column">
+		{% set shipping_address = frappe.get_list('Sales Order', filters={'project': '(1370) YOHO NATIONAL PARK', 'status': ['IN', ['Completed', 'To Bill', 'To Deliver and Bill']]}, fields=['shipping_address'])[0] %}
+		<p>Shipping Address: <br> <strong>{{shipping_address['shipping_address']}}</strong></p>
+		<p>Have a lift? ask other info for the list</p>
+		<button type="button" class="btn btn-info" style="background: {{progress_color}};">Update Shipping Informations</button>
+		<!-- Only display those informations when the package is at Shipping-->
+		{% if task_number >= 12 %}
+			<p>Expected Delivery Date: <strong>{{doc.expected_end_date}}</strong></p>
+			<p>Shipper:
+				<a href="{{ frappe.db.get_value('Shipping Company', doc.shipping_company, 'website') }}" target="_blank">
+					<strong data-toggle="tooltip" data-placement="top" title="Go to {{doc.shipping_company}} website">{{doc.shipping_company}}</strong>
+				</a>
+			</p>
 
-<div>
-	<div id="project_stage_box" style="background-color: {{progress_color}};"><p id="project_stage_label" >{{task_stage}}</p></div>
-	<p id="project_stage_description" style="color: {{progress_color}}; border: 2px solid {{progress_color}};">
-		{{project_stage_description}}
-	</p>
+			<p>Tracking Number: 
+				<strong>
+					<a href="{{ frappe.db.get_value('Shipping Company', doc.shipping_company, 'tracking_website') }}" target="_blank">
+						<strong data-toggle="tooltip" data-placement="top" title="Track your package">{{doc.waybill}}</strong>
+					</a>
+				</strong>
+			</p>
+			<table class="table table-hover">
+				<thead>
+					<caption style="text-align: center;">Shipment Crates</caption>
+					<tr>
+						<th scope="col">#</th>
+						<th scope="col">Lenght (inches)</th>
+						<th scope="col">Width (inches)</th>
+						<th scope="col">Height (inches)</th>
+						<th scope="col">Gross Weight (lbs)</th>
+						<th scope="col">Net Weight (lbs)</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for crate in doc.crates %}
+					<tr>
+						<th scope="row">{{ loop.index }}</th>
+						<td>{{ crate.crate_lenght }}</td>
+						<td>{{ crate.crate_width }}</td>
+						<td>{{ crate.crate_height }}</td>
+						<td>{{ crate.crate_gross_weight }}</td>
+						<td>{{ crate.crate_net_weight }}</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		{% endif %}
+	</div>
 </div>
 
-
+<br> <br>
 <hr />
 
-<div data-widget-host="habitat" id="wt_embed" style="width: 25%;">
+<div data-widget-host="habitat" id="wt_embed" style="width: 25%;" onclick="myFunction()">
 	<script type="text/props">
 	  {
 		"wtEmbedKey": "a0124faf-6f51-4fb2-979b-b48552843532",
@@ -164,7 +230,7 @@
 	</script>
 </div>
   <script async src="https://prod-embed-cdn.wetransfer.net/v1/latest.js"></script>
-  <input type="text" name="wt_embed_output" id="wt_embed_output" class="wt_embed_output" onInput="myFunction" />
+  <input type="text" name="wt_embed_output" id="wt_embed_output" class="wt_embed_output" />
   
 
 <div class='padding'></div>
@@ -193,19 +259,29 @@
 {% endif %}
 
 <script>
-	$("#wt_embed_output").on('input', function(){ alert( "Handler for .change() called." ); });
+	//$("#wt_embed_output").on('input', function(){ alert( "Handler for .change() called." ); });
 	//$( "#wt_embed_output" ).change(function() {
-  
-
+	/*	jQuery('.wt_embed_output').bind('DOMSubtreeModified',function(event) {
+			console.log("Something has changed inside .classname or #id");
+		});
+*/
 	function myFunction() {
-		var x = document.getElementById("wt_embed_output").value;
+		console.log("allo");
+		var x = "";
+		var cpt = 0;
+		/* && document.getElementsByClassName('wt_embed__message')[0].getElementsByClassName('main')[0].textContent != 'Select files to upload'*/
+		//while (cpt <= 20 && document.getElementsByClassName('wt_embed__message')[0].getElementsByClassName('main')[0].textContent != 'Upload completed!'){
+		//	setTimeout(2000);
+			var x = document.getElementById("wt_embed_output").value;
+			cpt += 2;
+		//}
 		alert("The input value has changed. The new value is: " + x);
 		console.log(x);
 		console.log("OK");
 	}
-	//document.getElementById("wt_embed").addEventListener("loadeddata", myFunction);
-	document.getElementById("wt_embed_output").addEventListener("oninput", myFunction);
-	document.getElementById("wt_embed_output").value= "changes value";
+	//document.getElementById("wt_embed_output").addEventListener("input change paste click", myFunction());
+//document.getElementsByClassName('wt_embed__message')[0].getElementsByClassName('main')[0].addEventListener("input change paste", myFunction());
+	/////////document.getElementsByClassName('wt_embed__message')[0].getElementsByClassName('main')[0].textContent = 'Upload completed!'
 </script>
 <script>
 
