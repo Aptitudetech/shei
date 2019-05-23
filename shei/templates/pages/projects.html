@@ -155,10 +155,10 @@
 		</p>
 	</div>
 	<div class="col-sm-6" style="width: 75%;  ">
-		{% set shipping_address = frappe.get_list('Sales Order', filters={'project': '(1370) YOHO NATIONAL PARK', 'status': ['IN', ['Completed', 'To Bill', 'To Deliver and Bill']]}, fields=['shipping_address'])[0] %}
+		{% set shipping_address = frappe.get_list('Sales Order', filters={'project': doc.name, 'status': ['IN', ['Completed', 'To Bill', 'To Deliver and Bill']]}, fields=['shipping_address'])[0] %}
 		<p>Shipping Address: <br> <strong>{{shipping_address['shipping_address']}}</strong></p>
 		<p>Have a lift? ask other info for the list</p>
-		<button type="button" class="btn btn-info" style="background: {{progress_color}};" onclick="update_shipping_address()">Update Shipping Informations</button>
+		<a href="" class="btn btn-info btn-rounded mb-4" data-toggle="modal" style="background: {{progress_color}};" data-target="#modalLoginForm">Update Shipping Informations</a>
 		<!-- Only display those informations when the package is at Shipping-->
 		{% if task_number >= 12 %}
 			<p>Expected Delivery Date: <strong>{{doc.expected_end_date}}</strong></p>
@@ -252,25 +252,32 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">Change Shipping Address</h4>
+		<h4 class="modal-title w-100 font-weight-bold">Change Shipping Address</h4>
+		<p id="modal_error_message" style="color: red; font-style: italic;"></p>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div class="modal-body mx-3">
+
+		<div class="md-form mb-4">
+			<label data-error="wrong" data-success="right" for="address_title">* Address Title</label>
+			<input type="text" id="address_title" class="form-control validate" required>
+		</div>
+
         <div class="md-form mb-4">
-			<input type="text" id="address_line_1" class="form-control validate" required>
 			<label data-error="wrong" data-success="right" for="address_line_1">* Address Line 1</label>
+			<input type="text" id="address_line_1" class="form-control validate" required>
         </div>
 
         <div class="md-form mb-3">
-			<input type="text" id="address_city" class="form-control validate" required>
 			<label data-error="wrong" data-success="right" for="address_city">* City/Town</label>
+			<input type="text" id="address_city" class="form-control validate" required>
 		</div>
 		
         <div class="md-form mb-2">
-			<input type="text" id="address_country" class="form-control validate" required>
 			<label data-error="wrong" data-success="right" for="address_country">* Country</label>
+			<input type="text" id="address_country" class="form-control validate" required>
 		</div>
 
       </div>
@@ -281,30 +288,42 @@
   </div>
 </div>
 
-<div class="text-center">
-  <a href="" class="btn btn-default btn-rounded mb-4" data-toggle="modal" data-target="#modalLoginForm">Launch
-    Modal Login Form</a>
-</div>
-
-
-
-
-
-
-
-
 
 
 
 <script>
 	function update_shipping_address() {
 		console.log("Test");
-		address_line_1 = document.getElementById('address_line_1');
-		address_city = document.getElementById('address_city');
-		address_country = document.getElementById('address_country');
-		console.log(address_line_1);
-		console.log(address_city);
-		console.log(address_country);
+		address_line_1 = document.getElementById('address_line_1').value;
+		address_city = document.getElementById('address_city').value;
+		address_country = document.getElementById('address_country').value;
+		address_title = document.getElementById('address_title').value;
+		if (address_line_1 == null || address_line_1.trim() == "" 
+			|| address_city == null || address_city.trim() == ""  
+			|| address_country == null || address_country.trim() == ""
+			|| address_title == null || address_title.trim() == "")
+		{
+			document.getElementById("modal_error_message").innerHTML = "Please fill all mandatory fields";
+			console.log(address_line_1);
+			console.log(address_city);
+			console.log(address_country);
+		}
+		else{
+			document.getElementById("modal_error_message").innerHTML = "";
+			frappe.call({
+				method: "shei.templates.pages.projects.update_shipping_address",
+				args: {
+					'doc_name': "{{ doc.name }}",
+					'customer': "{{ doc.customer }}",
+					'address_line_1': address_line_1,
+					'address_city': address_city,
+					'address_country': address_country,
+					'address_title': address_title,
+				},
+				callback: function(content) {
+				}
+			});
+		}
 	}
 	function myFunction() {
 		if(document.getElementsByClassName('wt_embed__message')[0].getElementsByClassName('main')[0].textContent != 'Upload completed!'){
