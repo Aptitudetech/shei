@@ -4,7 +4,6 @@
 
 {% block header %}
 	<h1>{{ doc.project_name }}</h1>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
 {% endblock %}
 
 {% block style %}
@@ -24,16 +23,16 @@
 			left:0%;
 		}
 		.two{
-			left:25%;
+			left:20%;
 		}
 		.three{
-			left:50%;
+			left:40%;
 		}
 		.four{
-			left:75%;
+			left:60%;
 		}
 		.five{
-			left:100%;
+			left:80%;
 		}
 		#project_stage_box {
 			border-radius: 10px;
@@ -62,19 +61,6 @@
 		box-sizing: border-box;
 		}
 
-		/* Create two equal columns that floats next to each other */
-		.column {
-		float: left;
-		width: 50%;
-		padding: 10px;
-		}
-
-		/* Clear floats after the columns */
-		.row:after {
-		content: "";
-		display: table;
-		clear: both;
-		}
 	</style>
 {% endblock %}
 
@@ -101,7 +87,7 @@
 <div class="container">
 	<div class="row"><br />
 		<div class="col-md-12">
-		<div class="progress"  style="width: 102%;">
+		<div class="progress"  style="width: 84%;">
 		<!--display the progress bar based on the project stage-->
 		{% set task_number = (first_open_task.split('-')[1]|int) %}
 		{% set task_product = first_open_task.split('-')[0] %}
@@ -162,17 +148,17 @@
 </div>
 
 <div class="row">
-	<div class="column">
+	<div class="col-sm-6" style="width: 25%;  ">
 		<div id="project_stage_box" style="background-color: {{progress_color}};"><p id="project_stage_label" >{{task_stage}}</p></div>
 		<p id="project_stage_description" style="color: {{progress_color}}; border: 2px solid {{progress_color}};">
 			{{project_stage_description}}
 		</p>
 	</div>
-	<div class="column">
+	<div class="col-sm-6" style="width: 75%;  ">
 		{% set shipping_address = frappe.get_list('Sales Order', filters={'project': '(1370) YOHO NATIONAL PARK', 'status': ['IN', ['Completed', 'To Bill', 'To Deliver and Bill']]}, fields=['shipping_address'])[0] %}
 		<p>Shipping Address: <br> <strong>{{shipping_address['shipping_address']}}</strong></p>
 		<p>Have a lift? ask other info for the list</p>
-		<button type="button" class="btn btn-info" style="background: {{progress_color}};">Update Shipping Informations</button>
+		<button type="button" class="btn btn-info" style="background: {{progress_color}};" onclick="update_shipping_address()">Update Shipping Informations</button>
 		<!-- Only display those informations when the package is at Shipping-->
 		{% if task_number >= 12 %}
 			<p>Expected Delivery Date: <strong>{{doc.expected_end_date}}</strong></p>
@@ -189,16 +175,16 @@
 					</a>
 				</strong>
 			</p>
-			<table class="table table-hover">
+			<table class="table table-hover" style="width: 75%">
 				<thead>
-					<caption style="text-align: center;">Shipment Crates</caption>
+					<caption style="text-align: left;">Shipment Crates</caption>
 					<tr>
 						<th scope="col">#</th>
-						<th scope="col">Lenght (inches)</th>
-						<th scope="col">Width (inches)</th>
-						<th scope="col">Height (inches)</th>
-						<th scope="col">Gross Weight (lbs)</th>
-						<th scope="col">Net Weight (lbs)</th>
+						<th scope="col">Lenght(in)</th>
+						<th scope="col">Width(in)</th>
+						<th scope="col">Height(in)</th>
+						<th scope="col">Gross Weight(lbs)</th>
+						<th scope="col">Net Weight(lbs)</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -221,7 +207,7 @@
 <br> <br>
 <hr />
 
-<div data-widget-host="habitat" id="wt_embed" style="width: 25%;" onclick="myFunction()">
+<div data-widget-host="habitat" id="wt_embed" style="width: 25%;" > 
 	<script type="text/props">
 	  {
 		"wtEmbedKey": "a0124faf-6f51-4fb2-979b-b48552843532",
@@ -258,30 +244,86 @@
 	</div>
 {% endif %}
 
+
+
+
+<div class="modal fade" id="modalLoginForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Change Shipping Address</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-4">
+			<input type="text" id="address_line_1" class="form-control validate" required>
+			<label data-error="wrong" data-success="right" for="address_line_1">* Address Line 1</label>
+        </div>
+
+        <div class="md-form mb-3">
+			<input type="text" id="address_city" class="form-control validate" required>
+			<label data-error="wrong" data-success="right" for="address_city">* City/Town</label>
+		</div>
+		
+        <div class="md-form mb-2">
+			<input type="text" id="address_country" class="form-control validate" required>
+			<label data-error="wrong" data-success="right" for="address_country">* Country</label>
+		</div>
+
+      </div>
+      <div class="modal-footer d-flex justify-content-center">
+        <button class="btn btn-default" onclick="update_shipping_address()">Save and change the shipping address</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="text-center">
+  <a href="" class="btn btn-default btn-rounded mb-4" data-toggle="modal" data-target="#modalLoginForm">Launch
+    Modal Login Form</a>
+</div>
+
+
+
+
+
+
+
+
+
+
+
 <script>
-	//$("#wt_embed_output").on('input', function(){ alert( "Handler for .change() called." ); });
-	//$( "#wt_embed_output" ).change(function() {
-	/*	jQuery('.wt_embed_output').bind('DOMSubtreeModified',function(event) {
-			console.log("Something has changed inside .classname or #id");
-		});
-*/
-	function myFunction() {
-		console.log("allo");
-		var x = "";
-		var cpt = 0;
-		/* && document.getElementsByClassName('wt_embed__message')[0].getElementsByClassName('main')[0].textContent != 'Select files to upload'*/
-		//while (cpt <= 20 && document.getElementsByClassName('wt_embed__message')[0].getElementsByClassName('main')[0].textContent != 'Upload completed!'){
-		//	setTimeout(2000);
-			var x = document.getElementById("wt_embed_output").value;
-			cpt += 2;
-		//}
-		alert("The input value has changed. The new value is: " + x);
-		console.log(x);
-		console.log("OK");
+	function update_shipping_address() {
+		console.log("Test");
+		address_line_1 = document.getElementById('address_line_1');
+		address_city = document.getElementById('address_city');
+		address_country = document.getElementById('address_country');
+		console.log(address_line_1);
+		console.log(address_city);
+		console.log(address_country);
 	}
-	//document.getElementById("wt_embed_output").addEventListener("input change paste click", myFunction());
-//document.getElementsByClassName('wt_embed__message')[0].getElementsByClassName('main')[0].addEventListener("input change paste", myFunction());
-	/////////document.getElementsByClassName('wt_embed__message')[0].getElementsByClassName('main')[0].textContent = 'Upload completed!'
+	function myFunction() {
+		if(document.getElementsByClassName('wt_embed__message')[0].getElementsByClassName('main')[0].textContent != 'Upload completed!'){
+			setTimeout(myFunction, 500);
+		}
+		else{
+			var wt_output = document.getElementById("wt_embed_output").value;
+			frappe.call({
+				method: "shei.templates.pages.projects.upload_wetransfer_link",
+				args: {
+					'doc_name': "{{ doc.name }}",
+					'link': wt_output,
+				},
+				callback: function(content) {
+				}
+			});
+		}
+	}
+	window.addEventListener("load", myFunction);
 </script>
 <script>
 
