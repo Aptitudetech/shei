@@ -61,6 +61,10 @@ permission_query_conditions = {
  	"Project": "shei.permissions.get_project_permissions_query_conditions",
 }
 
+#has_permission = {
+# 	"Report": "shei.permissions.has_permission_to_report",
+#}
+
 # Document Events
 # ---------------
 # Hook on document methods and events

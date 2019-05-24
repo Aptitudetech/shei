@@ -60,7 +60,15 @@
 		* {
 		box-sizing: border-box;
 		}
-
+		#1address_container {
+			background-color: #f89925; 
+			opacity: 0.5; 
+			width: auto; 
+			height: auto;
+		}
+		#1address_container:hover {
+			opacity: 1.0;
+		}
 	</style>
 {% endblock %}
 
@@ -87,63 +95,61 @@
 <div class="container">
 	<div class="row"><br />
 		<div class="col-md-12">
-		<div class="progress"  style="width: 84%;">
-		<!--display the progress bar based on the project stage-->
-		{% set task_number = (first_open_task.split('-')[1]|int) %}
-		{% set task_product = first_open_task.split('-')[0] %}
-		{% if task_number == 0 %}
-			{% set task_stage = 'Deposit' %}
-			{% set progress_pourcentage = 0 %}
-			{% set progress_color = '#5cb85c' %}
-			{% set project_stage_description = "Waiting on message... <br><br><br> 1-3 days" %}
-		{% elif task_number <= 2 %}
-			{% set task_stage = 'Preflight' %}
-			{% set progress_pourcentage = 25 %}
-			{% set progress_color = '#E78037' %}
-			{% set project_stage_description = "We examine your files and make sure they are print ready. Please make sure your files are done according to our graphic preparation guide to avoid delays <br><br><br> 1-3 days" %}
-		{% elif (task_number <= 7 and  task_product == 'Folia') or (task_number <= 9 and task_product == 'Alto') %}
-			{% set task_stage = 'PDF Approval' %}
-			{% set progress_pourcentage = 50 %}
-			{% set progress_color = '#A3A3A3' %}
-			{% set project_stage_description = "Once your file is print ready, we send you a pdf file to approve. The lead time for your project will begin once you have approved the PDF file <br><br><br> 1-3 days" %}
-		{% elif task_number >= 12 %}
-			{% set task_stage = 'Shipping' %}
-			{% set progress_pourcentage = 100 %}
-			{% set progress_color = '#629BD0' %}
-			{% set project_stage_description = "We carefully inspect each panel to ensure that your panels conform to our strict quality standards. We then carefully pack you panels so they are shipping on a cloud. <br><br><br> 3-7 days" %}
-		{% else %}
-			{% set task_stage = 'Production' %}
-			{% set progress_pourcentage = 75 %}
-			{% set progress_color = '#FCBE38' %}
-			{% set project_stage_description = "Production begins! We will produce beautiful, quality panels for you. <br><br><br> 3-6 weeks" %}
-		{% endif %}
+			<div class="progress"  style="width: 84%;">
+			<!--display the progress bar based on the project stage-->
+			{% set task_number = (first_open_task.split('-')[1]|int) %}
+			{% set task_product = first_open_task.split('-')[0] %}
+			{% if task_number == 0 %}
+				{% set task_stage = 'Deposit' %}
+				{% set progress_pourcentage = 0 %}
+				{% set progress_color = '#5cb85c' %}
+				{% set project_stage_description = "Waiting on message... <br><br><br> 1-3 days" %}
+			{% elif task_number <= 2 %}
+				{% set task_stage = 'Preflight' %}
+				{% set progress_pourcentage = 25 %}
+				{% set progress_color = '#E78037' %}
+				{% set project_stage_description = "We examine your files and make sure they are print ready. Please make sure your files are done according to our graphic preparation guide to avoid delays <br><br><br> 1-3 days" %}
+			{% elif (task_number <= 7 and  task_product == 'Folia') or (task_number <= 9 and task_product == 'Alto') %}
+				{% set task_stage = 'PDF Approval' %}
+				{% set progress_pourcentage = 50 %}
+				{% set progress_color = '#A3A3A3' %}
+				{% set project_stage_description = "Once your file is print ready, we send you a pdf file to approve. The lead time for your project will begin once you have approved the PDF file <br><br><br> 1-3 days" %}
+			{% elif task_number >= 12 %}
+				{% set task_stage = 'Shipping' %}
+				{% set progress_pourcentage = 100 %}
+				{% set progress_color = '#629BD0' %}
+				{% set project_stage_description = "We carefully inspect each panel to ensure that your panels conform to our strict quality standards. We then carefully pack you panels so they are shipping on a cloud. <br><br><br> 3-7 days" %}
+			{% else %}
+				{% set task_stage = 'Production' %}
+				{% set progress_pourcentage = 75 %}
+				{% set progress_color = '#FCBE38' %}
+				{% set project_stage_description = "Production begins! We will produce beautiful, quality panels for you. <br><br><br> 3-6 weeks" %}
+			{% endif %}
 
 
-		<!--Deposit dot-->
-		<div data-toggle="tooltip" data-placement="top" title="Deposit" class="one" style="background-color: #5cb85c;">
+			<!--Deposit dot-->
+			<div data-toggle="tooltip" data-placement="top" title="Deposit" class="one" style="background-color: #5cb85c;">
 				<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon glyphicon-usd" aria-hidden="true"></span>
+			</div>
+			<!--Preflight dot-->
+			<div data-toggle="tooltip" data-placement="top" title="Preflight" class="two" style="background-color: #E78037;">
+				<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon glyphicon-copy" aria-hidden="true"></span>
+			</div>
+			<!--PDF Approval dot-->
+			<div data-toggle="tooltip" data-placement="top" title="PDF Approval" class="three" style="background-color: #A3A3A3;">
+				<span style="text-align: center; margin-top: 11px; margin-left: 14px" class="glyphicon glyphicon-check" aria-hidden="true"></span>
+			</div>
+			<!--Production dot-->
+			<div data-toggle="tooltip" data-placement="top" title="Production" class="four" style="background-color: #FCBE38;">
+				<span style="text-align: center; margin-top: 11px; margin-left: 13px" class="glyphicon glyphicon-th-large" aria-hidden="true"></span>
+			</div>
+			<!--Shipping dot-->
+			<div data-toggle="tooltip" data-placement="top" title="Shipping" class="five" style="text-align: center; background-color: #629BD0;">
+				<span style="text-align: center; margin-top: 11px;" class="glyphicon glyphicon-plane" aria-hidden="true"></span>
+			</div>
+			<div class="progress-bar progress-bar-striped active" style="background-color: {{progress_color}} !important; width: {{progress_pourcentage}}%"></div>
+			</div>
 		</div>
-		<!--Preflight dot-->
-		<div data-toggle="tooltip" data-placement="top" title="Preflight" class="two" style="background-color: #E78037;">
-			<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon glyphicon-copy" aria-hidden="true"></span>
-		</div>
-		<!--PDF Approval dot-->
-		<div data-toggle="tooltip" data-placement="top" title="PDF Approval" class="three" style="background-color: #A3A3A3;">
-			<span style="text-align: center; margin-top: 11px; margin-left: 14px" class="glyphicon glyphicon-check" aria-hidden="true"></span>
-		</div>
-		<!--Production dot-->
-		<div data-toggle="tooltip" data-placement="top" title="Production" class="four" style="background-color: #FCBE38;">
-			<span style="text-align: center; margin-top: 11px; margin-left: 13px" class="glyphicon glyphicon-th-large" aria-hidden="true"></span>
-		</div>
-		<!--Shipping dot-->
-		<div data-toggle="tooltip" data-placement="top" title="Shipping" class="five" style="text-align: center; background-color: #629BD0;">
-			<span style="text-align: center; margin-top: 11px;" class="glyphicon glyphicon-plane" aria-hidden="true"></span>
-		</div>
-		
-		<div class="progress-bar progress-bar-striped active" style="background-color: {{progress_color}} !important; width: {{progress_pourcentage}}%"></div>
-
-		</div>
-	</div>
 	</div>
 </div>
 
@@ -158,7 +164,9 @@
 		{% set shipping_address = frappe.get_list('Sales Order', filters={'project': doc.name, 'status': ['IN', ['Completed', 'To Bill', 'To Deliver and Bill']]}, fields=['shipping_address'])[0] %}
 		<p>Shipping Address: <br> <strong>{{shipping_address['shipping_address']}}</strong></p>
 		<p>Have a lift? ask other info for the list</p>
-		<a href="" class="btn btn-info btn-rounded mb-4" data-toggle="modal" style="background: {{progress_color}};" data-target="#modalLoginForm">Update Shipping Informations</a>
+		<a href="" class="btn btn-info btn-rounded mb-4" data-toggle="modal" style="background: {{progress_color}};" data-target="#modalLoginForm">
+			Update Shipping Informations
+		</a>
 		<!-- Only display those informations when the package is at Shipping-->
 		{% if task_number >= 12 %}
 			<p>Expected Delivery Date: <strong>{{doc.expected_end_date}}</strong></p>
@@ -167,7 +175,6 @@
 					<strong data-toggle="tooltip" data-placement="top" title="Go to {{doc.shipping_company}} website">{{doc.shipping_company}}</strong>
 				</a>
 			</p>
-
 			<p>Tracking Number: 
 				<strong>
 					<a href="{{ frappe.db.get_value('Shipping Company', doc.shipping_company, 'tracking_website') }}" target="_blank">
@@ -215,8 +222,8 @@
 	  }
 	</script>
 </div>
-  <script async src="https://prod-embed-cdn.wetransfer.net/v1/latest.js"></script>
-  <input type="text" name="wt_embed_output" id="wt_embed_output" class="wt_embed_output" />
+<script async src="https://prod-embed-cdn.wetransfer.net/v1/latest.js"></script>
+<input type="text" name="wt_embed_output" id="wt_embed_output" class="wt_embed_output" hidden/>
   
 
 <div class='padding'></div>
@@ -227,19 +234,19 @@
 </a>
 
 {% if doc.attachments %}
-<div class='padding'></div>
-<h4>{{ _("Attachments") }}</h4>
+	<div class='padding'></div>
+	<h4>{{ _("Attachments") }}</h4>
 	<div class="project-attachments">
 		{% for attachment in doc.attachments %}
-		<div class="attachment">
-			<a class="no-decoration attachment-link" href="{{ attachment.file_url }}" target="blank">
-				<div class="row">
-					<div class="col-xs-9">
-						<span class="indicator red file-name"> {{ attachment.file_name }}</span>
+			<div class="attachment">
+				<a class="no-decoration attachment-link" href="{{ attachment.file_url }}" target="blank">
+					<div class="row">
+						<div class="col-xs-9">
+							<span class="indicator red file-name"> {{ attachment.file_name }}</span>
+						</div>
 					</div>
-				</div>
-			</a>
-		</div>
+				</a>
+			</div>
 		{% endfor %}
 	</div>
 {% endif %}
@@ -247,51 +254,89 @@
 
 
 
-<div class="modal fade" id="modalLoginForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-  aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header text-center">
-		<h4 class="modal-title w-100 font-weight-bold">Change Shipping Address</h4>
-		<p id="modal_error_message" style="color: red; font-style: italic;"></p>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body mx-3">
+<div class="modal fade" id="modalLoginForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header text-center">
+				<h4 class="modal-title w-100 font-weight-bold">Change Shipping Address</h4>
+				<label id="modal_error_message" style="color: red; font-style: italic;"></label>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body mx-3">
+				{% set address_list = frappe.get_list("Dynamic Link", filters={"parenttype": "Address", "link_doctype": "Customer", "link_name": doc.customer}, fields=["parent"]) %}
+				<div class="container" id="address_container">
+					{% for a in address_list %}
+						{% set address = frappe.get_list("Address", fields=["name", "phone", "country", "pincode", "state", "city", "address_line1", ], filters={"name": a['parent']})[0] %}
+						{% if address is defined%}
+							<input type="radio" class="custom-control-input" name="address" value="{{address.name}}"><label style="font-size: 15px;">{{address.name}}</label>
+							<div>
+								<p>{{address.address_line1}}, {{address.city or ''}}, {{address.state or ''}}, <br> 
+									{{address.pincode or ''}}, {{address.country}} <br> 
+									{{address.phone or ''}}
+								</p>
+							</div>
+						<br>
+						{% endif %}
+					{% endfor %}
+					<input type="radio" class="custom-control-input" name="address" value="Other"><label style="font-size: 15px;">Other</label>
+				</div>
+				<div id="other_address" style="display: none;">   			
+					<div class="md-form mb-4">
+						<label data-error="wrong" data-success="right" for="address_title">* Address Title</label>
+						<input type="text" id="address_title" class="form-control validate" required>
+					</div>
 
-		<div class="md-form mb-4">
-			<label data-error="wrong" data-success="right" for="address_title">* Address Title</label>
-			<input type="text" id="address_title" class="form-control validate" required>
+					<div class="md-form mb-3">
+						<label data-error="wrong" data-success="right" for="address_line_1">* Address Line 1</label>
+						<input type="text" id="address_line_1" class="form-control validate" required>
+					</div>
+
+					<div class="md-form mb-3">
+						<label data-error="wrong" data-success="right" for="address_city">* City/Town</label>
+						<input type="text" id="address_city" class="form-control validate" required>
+					</div>
+					
+					<div class="md-form mb-2">
+						<label data-error="wrong" data-success="right" for="address_country">* Country</label>
+						<input type="text" id="address_country" class="form-control validate" required>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer d-flex justify-content-center">
+				<button class="btn btn-default" onclick="update_shipping_address()">Save and change the shipping address</button>
+			</div>
 		</div>
-
-        <div class="md-form mb-4">
-			<label data-error="wrong" data-success="right" for="address_line_1">* Address Line 1</label>
-			<input type="text" id="address_line_1" class="form-control validate" required>
-        </div>
-
-        <div class="md-form mb-3">
-			<label data-error="wrong" data-success="right" for="address_city">* City/Town</label>
-			<input type="text" id="address_city" class="form-control validate" required>
-		</div>
-		
-        <div class="md-form mb-2">
-			<label data-error="wrong" data-success="right" for="address_country">* Country</label>
-			<input type="text" id="address_country" class="form-control validate" required>
-		</div>
-
-      </div>
-      <div class="modal-footer d-flex justify-content-center">
-        <button class="btn btn-default" onclick="update_shipping_address()">Save and change the shipping address</button>
-      </div>
-    </div>
-  </div>
+	</div>
 </div>
 
 
 
 
 <script>
+	var rad = document.getElementsByName('address');
+	var prev = null;
+	for (var i = 0; i < rad.length; i++) {
+		rad[i].addEventListener('change', function() {
+			(prev) ? console.log(prev.value + "first"): null;
+			
+			if (this !== prev) {
+				prev = this;
+			}
+			console.log(this.value + "last")
+			if (this.value == 'Other'){
+				document.getElementById("other_address").style.display = "block";
+			}
+			else{
+				document.getElementById("other_address").style.display = "none";
+			}
+			//this.style.opacity = "1";
+			//rad[i].setAttribute("style", "opacity: 1;");
+		});
+	}
+
+
 	function update_shipping_address() {
 		console.log("Test");
 		address_line_1 = document.getElementById('address_line_1').value;

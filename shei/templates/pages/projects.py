@@ -39,18 +39,17 @@ def update_shipping_address(doc_name, customer, address_title, address_line_1, a
 	address.flags.ignore_permissions = True
 	address.save()
 	frappe.msgprint(_("name: {0}").format( address.name ))
+	#Takes all address for a client X where shipping address = Prefered Shipping Address or adress type = shipping && Customer == customer
+	addresses = frappe.get_list('Address', filters={'is_shipping_address': True, 'disabled': False, 'address_type': ['IN', ['Billing', 'Shipping']]}, fields=['name'])
+	
 	sales_orders = frappe.get_list('Sales Order', filters={'project': doc_name, 'status': ['IN', ['Completed', 'To Bill', 'To Deliver and Bill']]}, fields=['name'])
-	for so in sales_orders:
-		sales_order = frappe.get_doc('Sales Order', so.name)
-		sales_order.update({
-			"shipping_address_name": address.name,
-		})
-		sales_order.flags.ignore_permissions = True
-		sales_order.save()
-		frappe.msgprint(_("sales_order: {0}").format( sales_order.name ))
+	#for so in sales_orders:
+	#	sales_order = frappe.get_doc('Sales Order', so.name)
+	#	sales_order.update({
+	#		"shipping_address_name": address.name,
+	#	})
+	#	sales_order.flags.ignore_permissions = True
+	#	sales_order.save()
+	#	frappe.msgprint(_("sales_order: {0}").format( sales_order.name ))
 
 #look if already exist add name + dropdown for country + allow to see existing address (could be a good idea)
-
-@frappe.whitelist()
-def nearest(items, curr_date):
-    return min(items, key=lambda x: abs(x - curr_date))
