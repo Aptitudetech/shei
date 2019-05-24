@@ -2,7 +2,7 @@
  {
   "address": "", 
   "banner_html": null, 
-  "banner_image": "/files/Screenshot_from_2018-09-07_09-53-56.png", 
+  "banner_image": "/files/banner_sh.png", 
   "brand_html": "<img src='/files/small_sh_logo.png' style='width: 25px;height = 25px'>", 
   "chat_enable": 0, 
   "chat_enable_from": "00:00:0", 
@@ -20,7 +20,7 @@
   "head_html": "", 
   "hide_footer_signup": 1, 
   "home_page": "sh-environnements-immersifs", 
-  "modified": "2019-04-26 14:45:24.618170", 
+  "modified": "2019-05-16 12:31:18.786982", 
   "name": "Website Settings", 
   "navbar_search": 0, 
   "robots_txt": null, 
