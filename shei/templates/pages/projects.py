@@ -23,7 +23,8 @@ def upload_wetransfer_link(doc_name, link):
 
 @frappe.whitelist()
 def update_shipping_address(doc_name, customer, address_title, address_line_1, address_city, address_country):
-	frappe.msgprint(_("Hey  --  {0}  --  {1} --  {2} --  {3}").format(address_title, address_line_1, address_city, address_country))
+	if frappe.db.exists('Address', address_title+"-Shipping"):
+		frappe.throw("Sorry, this address title already exist. Please choose something else")
 	address = frappe.new_doc('Address')
 	address.update({
 		"address_title": address_title,
@@ -39,17 +40,5 @@ def update_shipping_address(doc_name, customer, address_title, address_line_1, a
 	address.flags.ignore_permissions = True
 	address.save()
 	frappe.msgprint(_("name: {0}").format( address.name ))
-	#Takes all address for a client X where shipping address = Prefered Shipping Address or adress type = shipping && Customer == customer
-	addresses = frappe.get_list('Address', filters={'is_shipping_address': True, 'disabled': False, 'address_type': ['IN', ['Billing', 'Shipping']]}, fields=['name'])
-	
-	sales_orders = frappe.get_list('Sales Order', filters={'project': doc_name, 'status': ['IN', ['Completed', 'To Bill', 'To Deliver and Bill']]}, fields=['name'])
-	#for so in sales_orders:
-	#	sales_order = frappe.get_doc('Sales Order', so.name)
-	#	sales_order.update({
-	#		"shipping_address_name": address.name,
-	#	})
-	#	sales_order.flags.ignore_permissions = True
-	#	sales_order.save()
-	#	frappe.msgprint(_("sales_order: {0}").format( sales_order.name ))
+	###send email
 
-#look if already exist add name + dropdown for country + allow to see existing address (could be a good idea)
