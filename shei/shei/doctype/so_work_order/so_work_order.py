@@ -17,8 +17,17 @@ class SOWorkOrder(Document):
 				if len(thickness.split('/')) == 2:
 					thickness = int(thickness.split('/')[0]) / int(thickness.split('/')[1])
 				weight_per_sqft = frappe.db.get_value('Panel Thickness', {'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'thickness': thickness, 'product':product}, 'panel_weight')
-				if item.measurement == 'MM':
-					sqft = (item.width / 304.8) * (item.height / 304.8)
-				elif item.measurement == 'Inches':
-					sqft = (item.width / 12) * (item.height / 12)
+				try:
+					if item.measurement == 'MM':
+						sqft = (int(item.width) / 304.8) * (int(item.height) / 304.8)
+					elif item.measurement == 'Inches':
+						sqft = (int(item.width) / 12) * (int(item.height) / 12)
+				except ValueError:
+					frappe.msgprint(_("Sorry, some height/width have been change since last time. The value of sqft have been set to 0. <br> To change the value, you need to set a height and width manually in <strong>SO Work Order/{0}</strong> for the following item: {1}").format(self.name, item.item_code))
+					sqft = 0
+					item.width = 0
+					item.height = 0
+				if not sqft:
+					sqft = 0
 				item.net_weight = sqft * weight_per_sqft * item.quantity
+
