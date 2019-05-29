@@ -7,7 +7,7 @@ import frappe
 from frappe import _, scrub
 from frappe.utils import getdate, nowdate, flt, cint
 
-class PMOnlyFirstOpenTaskbyOpenProject(object):
+class FirstOpenTaskbyOpenProject(object):
 	def __init__(self, filters=None):
 		self.filters = frappe._dict(filters or {})
 		self.filters.report_date = getdate(self.filters.report_date or nowdate())
@@ -16,10 +16,8 @@ class PMOnlyFirstOpenTaskbyOpenProject(object):
 			else self.filters.report_date
 
 	def run(self, args):
-		#party_naming_by = frappe.db.get_value(args.get("naming_by")[0], None, args.get("naming_by")[1])
 		columns = self.get_columns(args)
 		data = self.get_data(args)
-		#frappe.msgprint('<pre>{0}</pre>'.format(frappe.as_json(data)))
 		chart = self.get_chart_data(columns, data)
 		return columns, data, None, chart
 
@@ -99,4 +97,4 @@ class PMOnlyFirstOpenTaskbyOpenProject(object):
 def execute(filters=None):
 	args = {
 	}
-	return PMOnlyFirstOpenTaskbyOpenProject(filters).run(args)
+	return FirstOpenTaskbyOpenProject(filters).run(args)

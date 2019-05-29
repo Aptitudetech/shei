@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 /* eslint-disable */
 
-frappe.query_reports["PM Only - First Open Task by Open Project"] = {
+frappe.query_reports["First Open Task by Open Project"] = {
 	"filters": [
 
 	]
