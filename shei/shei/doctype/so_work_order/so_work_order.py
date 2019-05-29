@@ -25,8 +25,7 @@ class SOWorkOrder(Document):
 				except ValueError:
 					frappe.msgprint(_("Sorry, some height/width have been change since last time. The value of sqft have been set to 0. <br> To change the value, you need to set a height and width manually in <strong>SO Work Order/{0}</strong> for the following item: {1}").format(self.name, item.item_code))
 					sqft = 0
-					item.width = 0
-					item.height = 0
+					
 				if not sqft:
 					sqft = 0
 				item.net_weight = sqft * weight_per_sqft * item.quantity
