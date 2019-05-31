@@ -404,7 +404,7 @@ def on_sales_invoice_validate(doc, handler=None):
                 "user": frappe.session.user
             })
             if user_restriction:
-                frappe.throw("Yo 're not allowed to create invoices from here !") 
+                frappe.throw("You're not allowed to create invoices from here") 
 
 @frappe.whitelist()
 #Create a work order from a sales order

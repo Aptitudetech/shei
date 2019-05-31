@@ -200,7 +200,7 @@
 							<caption style="text-align: left;">{{_("Shipment Crates")}}</caption>
 							<tr>
 								<th scope="col">#</th>
-								<th scope="col">{{_("Lenght(in)")}}</th>
+								<th scope="col">{{_("Length(in)")}}</th>
 								<th scope="col">{{_("Width(in)")}}</th>
 								<th scope="col">{{_("Height(in)")}}</th>
 								<th scope="col">{{_("Gross Weight(lbs)")}}</th>
@@ -211,7 +211,7 @@
 						{% for crate in doc.crates %}
 							<tr>
 								<th scope="row">{{ loop.index }}</th>
-								<td>{{ crate.crate_lenght }}</td>
+								<td>{{ crate.crate_ length }}</td>
 								<td>{{ crate.crate_width }}</td>
 								<td>{{ crate.crate_height }}</td>
 								<td>{{ crate.crate_gross_weight }}</td>
@@ -475,20 +475,15 @@
 	var prev_contact = null;
 	for (var i = 0; i < contact_rad.length; i++) {
 		contact_rad[i].addEventListener('change', function() {
-			//(prev_contact) ? console.log(prev_contact.value + "first"): null;
-			
 			if (this !== prev_contact) {
 				prev_contact = this;
 			}
-			//console.log(this.value + "last")
 			if (this.value == 'Other'){
 				document.getElementById("other_contact").style.display = "block";
 			}
 			else{
 				document.getElementById("other_contact").style.display = "none";
 			}
-			//this.style.opacity = "1";
-			//rad[i].setAttribute("style", "opacity: 1;");
 		});
 	}
 

@@ -159,6 +159,10 @@ fixtures = [
         "dt": "Custom Field",
 	    "filters": {
         	"name": ["in", [
+                "Project-have_dock",
+                "Project-is_residential_address",
+                "Project-absolute_end_date",
+                "Project-shipping_company",
                 "Project-restricted_to_role",
                 "Project-shipping_informations",
                 "Project-third_party",
@@ -287,8 +291,6 @@ fixtures = [
          	]]
     	}
     },
-    {'dt': 'Website Settings'},
-    {'dt': 'Portal Settings'},
     {'dt': 'Web Page'},
     {
         "dt": "Print Format",
