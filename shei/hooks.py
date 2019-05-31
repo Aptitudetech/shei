@@ -57,7 +57,13 @@ app_include_js = "/assets/js/shei.js"
 # Permissions
 # -----------
 # Permissions evaluated in scripted ways
+permission_query_conditions = {
+ 	"Project": "shei.permissions.get_project_permissions_query_conditions",
+}
 
+#has_permission = {
+# 	"Report": "shei.permissions.has_permission_to_report",
+#}
 
 # Document Events
 # ---------------
@@ -75,8 +81,13 @@ doc_events = {
             'shei.events.on_customer_after_insert'
         ]
     },
+    'Quotation': {
+        'validate': [
+            'shei.events.on_quotation_validate'
+        ]
+    },
 #    'Project': {
- #       'before_save': [
+#        'before_save': [
 #            'shei.events.on_project_before_save'
 #        ],
 #    },
@@ -147,10 +158,24 @@ doc_events = {
 
 fixtures = [
     {'dt': 'Print Node Settings'},
+    {'dt': 'Website Settings'},
+    {'dt': 'Portal Settings'},
     {
         "dt": "Custom Field",
 	    "filters": {
         	"name": ["in", [
+                "Project-have_dock",
+                "Project-is_residential_address",
+                "Project-absolute_end_date",
+                "Project-shipping_company",
+                "Project-restricted_to_role",
+                "Project-shipping_informations",
+                "Project-third_party",
+                "Project-waybill",
+                "Project-shipper",
+                "Project-crates",
+                "Item-hts_name",
+                "Project-kanban_task_status",
                 "Workstation Working Hour-saturday",
                 "Workstation Working Hour-friday",
                 "Workstation Working Hour-thursday",
@@ -271,10 +296,13 @@ fixtures = [
          	]]
     	}
     },
+    {'dt': 'Web Page'},
     {
         "dt": "Print Format",
 	    "filters": {
         	"name": ["in", [
+                "shei - Bill Of Lading",
+                "shei - Commercial Invoice",
 			    "SHEI - SO Work Order",
                 "shei - Cheque BNC",
                 "shei - Packing Slip",

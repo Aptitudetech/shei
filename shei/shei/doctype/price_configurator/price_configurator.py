@@ -141,13 +141,12 @@ class PriceConfigurator(Document):
 		return measure / 304.8
 
 	def get_sqft(self, height, width):
-		sqft = (height * width) / 144
-		if sqft < 1:
-			frappe.throw("Sorry, the dimensions are too small")
+		sqft = (height * width) #/ 144
+		#if sqft < 1:
+	#		frappe.throw(_("Sorry, the dimensions are too small : {0}  -  {1}").format( height, width  ))
 		return sqft
 
 	def get_discount_pourcent(self, total_discount_pourcent, panel_w_back):
-		frappe.msgprint(_("tdp: {0}  ---  pwb: {1}").format(total_discount_pourcent, panel_w_back))
 		if total_discount_pourcent > 0:
 			return (total_discount_pourcent / 100 ) * panel_w_back
 		else:
@@ -165,13 +164,25 @@ class PriceConfigurator(Document):
 			height_ft = self.convert_mm_to_foot(item.item_height_mm)
 			width_ft = self.convert_mm_to_foot(item.item_width_mm)
 			item.item_sqft_per_panel = self.get_sqft(height_ft, width_ft)
-			item.zclip_qty = self.get_zclip_quantity(item.item_height_mm)
+			if item.is_zclip:
+				item.zclip_qty = self.get_zclip_quantity(item.item_height_mm)
+			else:
+				item.zclip_qty = 0
 			item.zclip_price = self.get_zclip_price(item.zclip_qty, item.item_width_mm, item.item_quantity)
 			item.item_panel_price_w_back = self.get_sqft_per_panel_price(item.item_sqft_per_panel, item.item_product, item.item_quantity)
 			item.item_discount_pourcent = pc_total_discount_pourcent
 			item.item_discount_dollar = self.get_discount_pourcent(pc_total_discount_pourcent, item.item_panel_price_w_back)
-			item.item_discount_price = item.item_panel_price_w_back - item.item_discount_dollar
-			item.item_line_price_cad = (item.item_discount_price * item.item_quantity) + item.zclip_price
+			if item.item_discount_dollar > 0:
+				item.item_discount_price = item.item_panel_price_w_back - item.item_discount_dollar
+				item.item_line_price_cad = (item.item_discount_price * item.item_quantity) + item.zclip_price
+
+			else:
+				item.item_discount_price = 0
+				item.item_line_price_cad = item.item_panel_price_w_back
+
+			#item.item_line_price_cad = (item.item_discount_price * item.item_quantity) + item.zclip_price
+
+
 			item.item_line_price_usd = self.convert_cad_to_usd(item.item_line_price_cad)
 			item.item_unit_price_cad = item.item_discount_price + (item.zclip_price / item.item_quantity) #get the price for 1 panel
 			item.item_unit_price_usd = self.convert_cad_to_usd(item.item_unit_price_cad)
@@ -246,16 +257,19 @@ class PriceConfigurator(Document):
 	def get_sqft_per_panel_price(self, sqft_per_panel, item, qty):
 		"""Get sqft price based on the given sqft"""
 		factor = 1
-		sqft_per_panel = int(sqft_per_panel) #round the number down
+		sqft_per_panel = sqft_per_panel #round the number down
 		price_per_sqft = float(frappe.db.get_value('Item', item, 'price_per_sqft'))
-		sqft_per_panel_list = frappe.get_all('Panel Price Range', fields=['panel_range', 'panel_price'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
+		sqft_per_panel_list = frappe.db.get_all('Panel Factor', fields=['panel_range', 'panel_factor'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
+
 		sqft_per_panel_list.sort(key=self.sort_list_by_panel_range, reverse=False) #Need to order to be able to get the right prices
 		for p in sqft_per_panel_list:
 			if qty == p.panel_range:
-				factor = p['panel_price']
+				factor = p['panel_factor']
 				break
 			if qty > p.panel_range:
-				factor = p['panel_price']
+				factor = p['panel_factor']
+		frappe.msgprint(_(" <strong>item: {0} </strong> --  sqft_per_panel: {1}  --  factor: {2}  --  qty: {3}").format(item, sqft_per_panel, factor, qty))
+		
 		return (price_per_sqft * qty * factor * sqft_per_panel)
 
 	def get_av_nuts_price(self, qty):
@@ -270,7 +284,7 @@ class PriceConfigurator(Document):
 				break
 			if qty > av.av_nuts_range:
 				price = av['av_nuts_price']
-		return (qty * price)
+		return (qty * price) 
 
 	def get_zclip_quantity(self, height):
 		"""get zclkip quantity based on panel height"""
@@ -321,16 +335,11 @@ def create_price_configurator(quote_name = None):
 	quote = frappe.get_doc('Quotation', quote_name)
 	quote_shipping_address = frappe.db.get_value('Address', quote.shipping_address_name, ['city', 'country', 'state', 'pincode'], as_dict=True)
 	pc_name = frappe.db.get_value('Quotation', quote_name, 'price_configurator')
-
-
-
 	if pc_name:
 		version = len(pc_name.split('v'))
 		if version == 1:
-			frappe.msgprint(_("len: {0}").format(len(pc_name.split('v'))))
 			pc_name = pc_name + 'v1'
 		else:
-			frappe.msgprint(_("len2: {0}").format(pc_name.split('v')[1]))
 			nb = int(pc_name.split('v')[1])
 			nb = nb + 1
 			pc_name = "PC-" + quote_name.split("-")[1] + 'v' + str(nb)
@@ -365,3 +374,8 @@ def create_price_configurator(quote_name = None):
 	quote.update({ 'price_configurator' : pc_name})
 	quote.flags.ignore_permissions = True
 	quote.save()
+
+
+
+
+

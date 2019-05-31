@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 /* eslint-disable */
 
-frappe.query_reports["Accounts Receivable Summary SHEI"] = {
+frappe.query_reports["First Open Task by Open Project"] = {
 	"filters": [
 
 	]
