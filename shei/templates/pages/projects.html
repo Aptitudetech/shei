@@ -366,11 +366,14 @@
 
 					<!--Address Section-->
 					<h2>{{_("Shipping Address")}}</h2>
+					{% set shipping_address_list = [] %}
 					{% set address_list = frappe.get_list("Dynamic Link", filters={"parenttype": "Address", "link_doctype": "Customer", "link_name": doc.customer}, fields=["parent"]) %}
 					<div class="container" id="address_container">
 						<div id="accordion">
 							{% for a in address_list %}
 								{% set address = frappe.get_list("Address", fields=["name", "phone", "country", "pincode", "state", "city", "address_line1", ], filters={"name": a['parent']})[0] %}
+								{% set shipping_address_list = shipping_address_list.append(address.name) %}
+								
 								{% if address is defined%}
 									{% set address_id = address.name|replace(" ", "_")|replace("(", "")|replace(")", "")|replace("&", "")%}
 									<div class="card">
@@ -392,6 +395,22 @@
 													{{address.address_line1}}, {{address.city or ''}}, {{address.state or ''}}, <br> 
 													{{address.pincode or ''}}, {{address.country}} <br> 
 													{{address.phone or ''}}
+													<br>
+													<select id="have_dock_{{address.name}}" class="btn btn-secondary dropdown-toggle">
+															<option value=""></option>
+															<option value="Yes">Yes</option>
+															<option value="No">No</option>
+													</select>
+													<label>{{_("Have a dock")}}</label>
+													<br>
+													<div style="margin-top: 10px;">
+														<select id="is_residential_{{address.name}}" class="btn btn-secondary dropdown-toggle">
+															<option value=""></option>
+															<option value="Yes">Yes</option>
+															<option value="No">No</option>
+														</select>
+														<label>{{_("Is a residential address")}}</label>
+													</div>
 												</div>
 											</div>
 										</div>
@@ -424,9 +443,9 @@
 							<br>
 							
 							{% set countries = frappe.get_list('Country', 'name') %}
-							<select name="country" class="btn btn-secondary dropdown-toggle">
+							<select id="address_country" class="btn btn-secondary dropdown-toggle">
 								{% for country in countries %}
-									<option id="address_country" value="{{country.name}}">{{country.name}}</option>
+									<option value="{{country.name}}">{{country.name}}</option>
 								{% endfor %}
 							</select>
 						</div>
@@ -464,8 +483,6 @@
 				else{
 					document.getElementById("other_address").style.display = "none";
 				}
-				//this.style.opacity = "1";
-				//rad[i].setAttribute("style", "opacity: 1;");
 			});
 		//}
 	}
@@ -493,13 +510,47 @@
 		add_shipping();
 	}
 
+	function get_dropdown_value(select_id){
+		var dock_selected_index = document.getElementById(select_id).selectedIndex;
+		var dock_options = document.getElementById(select_id).options;
+		return dock_options[dock_selected_index].text;
+	}
+
 	function add_shipping(){
 		document.getElementById("modal_error_message_address").innerHTML = "";
 
-		address_line_1 = document.getElementById('address_line_1').value;
-		address_city = document.getElementById('address_city').value;
-		address_country = document.getElementById('address_country').value;
-		address_title = document.getElementById('address_title').value;
+		var address_rad = document.getElementsByName('address');
+		var prev_address = null;
+		for (var i = 0; i < address_rad.length; i++) {
+			address_rad[i]
+			if (this.value == 'Other'){
+				document.getElementById("other_contact").style.display = "block";
+			}
+			else{
+				document.getElementById("other_contact").style.display = "none";
+			}
+		}
+		//sales_orders[0].shipping_address_name == address.name
+
+
+		var address_line_1 = document.getElementById('address_line_1').value;
+		var address_city = document.getElementById('address_city').value;
+		var address_title = document.getElementById('address_title').value;
+		var address_country = get_dropdown_value("address_country");
+
+		var shipping_address_list = {{shipping_address_list|tojson}};
+		var address_info_list = [];
+		shipping_address_list.forEach(function(element) {
+			var dock_id = "have_dock_" + element
+			var residential_id = "is_residential_" + element
+			var dock = document.getElementById(dock_id).value;
+			var residential = document.getElementById(residential_id).value;
+			var address_info = {};
+			address_info['address_name'] = element;
+			address_info['have_dock'] = dock;
+			address_info['is_residential'] = residential;
+			address_info_list.push(address_info);
+		});
 
 		if ((address_line_1.trim() != "" || address_city.trim() != "" || address_title.trim() != "") 
 			&& (address_line_1.trim() == "" || address_city.trim() == ""  || address_title.trim() == ""))

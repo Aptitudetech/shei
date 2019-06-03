@@ -24,7 +24,7 @@ def upload_wetransfer_link(doc_name, link):
 @frappe.whitelist()
 def update_shipping_address(doc_name, customer, address_title, address_line_1, address_city, address_country):
 	from frappe.email.doctype.email_template.email_template import get_email_template
-
+	frappe.throw(_("address_info_list").format(address_info_list))
 	if frappe.db.exists('Address', address_title+"-Shipping"):
 		frappe.throw(_("Sorry, this address title already exist. Please choose something else"))
 	address = frappe.new_doc('Address')
