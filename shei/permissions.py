@@ -2,19 +2,16 @@
 
 import frappe
 
-#def get_product_configurator_permissions_query_conditions(user):
-#        if not user:
-#                user = frappe.session.user
-#
-#        if 'SHEI - Product Configurator User' in frappe.get_roles(user):
-#                pcu = frappe.db.exists("Product Configurator", {"user_email": user})
-#                if pcu:
-#                        return '''(`tabProduct Configurator`.name = "{pcu}")'''.format(pcu=frappe.db.escape(pcu))
-#
-#def has_permission_to_product_configurator(doc, user):
-#        if 'SHEI - Product Configurator User' in frappe.get_roles(user):
-#                pcu = frappe.db.exists("Product Configurator", { "user_email": user })
-#                if pcu:
-#                        return doc.name == pcu
-#https://discuss.erpnext.com/t/auto-email-reports-timings/42618/6
+def get_project_permissions_query_conditions(user):
+    if not user:
+        user = frappe.session.user
+    return "(ifnull(`tabProject`.restricted_to_role, '') IN ('', '{0}'))".format("', '".join(frappe.get_roles(user)))
+    
+#def has_permission_to_report(doc, user):
+#    if 'Project Manager' in frappe.get_roles(user) and frappe.session.user != "Administrator" and doc.name == "PM Only - First Open Task by Open Project":
+#		reports = map(lambda p: p.for_value, frappe.get_all("User Permission", fields="for_value", filters={
+#			'user': user,
+#			'allow': 'Report'}))
+#		if reports:
+#			return doc.name in reports
 

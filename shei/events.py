@@ -6,88 +6,254 @@ import frappe
 import types
 import json
 import datetime
+import unidecode
+from datetime import timedelta
+from datetime import datetime
+from datetime import date
 from frappe import _
 from frappe.model.naming import make_autoname
-from frappe.utils import nowdate, add_to_date, flt
+from frappe.utils import nowdate, add_to_date, flt, now_datetime
 from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
-##def on_project_before_save(doc, handler=None):
-##    #from erpnext.projects.doctype.project.project import validate 0
-##    #https://github.com/frappe/erpnext/blob/fcd0556119faf389d80fca3652e7e4f0729ebb6d/erpnext/projects/doctype/project/project.py#L126
-##    curr_date = datetime.datetime.today().strftime('%m-%d-%Y')
-##    #frappe.throw(_(curr_date))
-##    tasks = doc.tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
-##
-##    frappe.msgprint(_("tasks: {0}").format(tasks))
-##    
-##    frappe.msgprint(_("is_valid_business_date(): {0}").format(is_valid_business_date()))
-##    frappe.msgprint(_("").format())
-##    frappe.msgprint(_("").format())
-##
-##    for i in tasks:
-##        project_task_status = frappe.db.get_value('Project Task', {'parent': doc.name, 'parenttype':'Project', 'title': i.title}, 'status')
-##        if project_task_status == 'Open' and i.status == 'Closed': #the task have been recently closed
-##            i.end_date = curr_date
-##            frappe.msgprint(_("i: {0}").format(i.as_json()))
-##
-##def get_next_valid_business_date(date, assigned_to):
-##    """Get the next business date based on the assigned_to"""
-##    #mm-dd-YYYY
-##    pass
-##
-##def get_all_holidays_by_year(year):
-##    """Get all the holiday for the current year. Holiday also contains the weekends"""
-##    return frappe.db.get_all('Holiday List', 'CANADIAN HOLIDAY LIST ' + year, 'holiday_date')
-##
-##def order_task_by_name(json_obj):
-##    """Sort given json by task title"""
-##		try:
-##			return int(json_obj['title'])
-##		except KeyError:
-##			return 0
-##
-##
-##def is_valid_business_date(date, assigned_to):
-##    """Look if date is a valid business day based on assigned_to"""
-##    holidays = get_all_holidays_by_year(date.year)
-##
-##    if date in holidays or (date.weekday() == 4 and assigned_to):
-##        return False
-##    else:
-##        if date.weekday() == 4 and 
-##        return True
-##
-##def in_between(now, start, end):
-##    if start <= end:
-##        return start <= now <= end
-##    else: # over midnight e.g., 23:30-04:15
-##        return start <= now or now <= end
-##
-##
-##def is_time_in_schedule(time, schedules = []):
-##    """Look if given time is between the time inside the schedule"""
-##    from datetime import datetime, time
-##    
-###    for schedule in schedules:
-##
-##    print("night" if in_between(datetime.now().time(), time(23), time(4)) else "day")
-##
-##def get_employee_schedule_by_weekday(email, weekday):
-##    import calendar
-##    weekday_name = calendar.day_name[weekday].lower()  #'wednesday'
-##    employee_name = frappe.db.get_value('User', email, 'full_name')
-##    workstation = frappe.db.get_value('Employee', {'employee_name':employee_name}, 'workstation')
-##    is_working = frappe.get_all('Workstation Working Hour', fields=[weekday_name], filters={ 'parenttype': 'Workstation', 'parent': workstation })
-##    return is_working
-##
-##def get_pause_in_schedule(schedules = []):
-##    pass
-##
-##def get_task_end_date(estimate_days, start_day, assigned_to):
-##    """Find the valid end date of a task"""
-##    pass
+#doc.is_new()
+def update_project_status(task_title):
+    if task_title == 'FOLIA-00-DEPOSIT' or task_title == 'ALTO-00-DEPOSIT':
+        status = 'Deposit'
+    if task_title == 'FOLIA-02-A WAITING FOR FILE' or task_title == 'ALTO-02-A WAITING FOR FILE':
+        status = 'File'
+    if task_title == 'FOLIA-02-B PREFLIGHT' or task_title == 'ALTO-02-B PREFLIGHT':
+        status = 'Preflight'
+    if task_title == 'FOLIA-03-DRAWING TECHICAL' or task_title == 'ALTO-03-DRAWING TECHICAL':
+        status = 'PDF'
+    if task_title == 'FOLIA-07-MATERIAL ORDERING' or task_title == 'ALTO-09-DEBURRING-CLEANING-PAINTING':
+        status = 'Production'
+    if task_title == 'FOLIA-04-SAMPLE PREPARATION' or task_title == 'ALTO-04-SAMPLE PREPARATION':
+        status = 'Sample'
+    if task_title == 'FOLIA-12-INSPECTION / PACKAGING' or task_title == 'ALTO-12-INSPECTION / PACKAGING':
+        status = 'Ship'
+    frappe.msgprint(_("status: {0}").format(status))
+    return status
+
+def get_last_open_project(kanban_task_status, project_tasks=[]):
+    if kanban_task_status == 'On Hold':
+        return 'On Hold'
+    for task in project_tasks:
+        if task.status == 'Open':
+            return update_project_status(task.title) #the next open task is the task after this one
+
+def on_project_before_save(doc,  handler=None):
+    if doc.is_new() or doc.sub_type not in ['Alto', 'Folia']:
+        return
+    curr_date = datetime.today().strftime('%m-%d-%Y')
+    project_tasks = frappe.get_all('Project Task', fields=['*'], filters={ 'parenttype': 'Project', 'parent': doc.name })
+    project_tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
+    #doc.kanban_task_status = get_last_open_project(doc.kanban_task_status, project_tasks)
+    proj_tasks = []
+    for pt in doc.get('tasks'):
+        obj = json.loads(pt.as_json())
+        proj_tasks.append(obj)
+    proj_tasks.sort(key=order_task_by_name, reverse=False) #Need to order to be able to get the last closed task
+    new_tasks = []
+    end_time = None
+    prev_task = None
+    if proj_tasks and not project_tasks: #if there's something in the uI and nothing in the db
+        for project_task in proj_tasks:
+            project_task_status = frappe.db.get_value('Project Task', {'parent': doc.name, 'parenttype':'Project', 'title': project_task.title}, 'status')
+            if not prev_task:
+                project_task.start_date = doc.expected_start_date
+            else:
+                project_task.start_date, end_time = get_start_date_time(project_task.assigned_to, prev_task.end_date, end_time)
+            task = frappe.db.get_value('Task', {'name': project_task.task_id}, '*')
+            end_date, task_estimate_remaining_hour = get_next_valid_business_date_based_on_task_estimate(project_task['start_date'], task.assigned_to, task.expected_time, end_time)
+            end_time = get_task_end_time_based_on_emp_schedules(task.assigned_to, end_date, task_estimate_remaining_hour)
+            
+            frappe.msgprint(_("start_date: {3}  --  end_date: {0}  --  task.expected_time:{1}  --  end_time: {2}  --  task_estimate_remaining_hour: {4}").format(end_date, task.expected_time, end_time, project_task.start_date, task_estimate_remaining_hour))
+            
+            project_task.end_date = end_date
+            new_tasks.append(project_task) #then empty he list in UI and replace by this list
+            prev_task = project_task
+            #elif :
+    else:
+        index = 0
+        for pro_task in proj_tasks:
+            if pro_task['end_date'] != str(project_tasks[index]['end_date']): # in the db, the date is a Date while in the UI, it's a string
+                ##doc.kanban_task_status = update_project_status(project_tasks[index+1]['title'], doc.kanban_task_status, doc.name) #the next open task is the task after this one
+                new_tasks.append(pro_task) #add the last modified element into the list
+
+                end_date = pro_task['end_date']
+                index = index + 1                
+                remaining_project_tasks = proj_tasks[index:] #we want to loop over the element after the modified one
+                for project_task in remaining_project_tasks:  #proj_tasks
+                    if not prev_task:
+                        project_task['start_date'] = end_date
+                        curr_time = now_datetime()
+                        modified_date = str(curr_time).split(' ')[0]
+                        end_time = str(curr_time).split(' ')[1].split(':')[:-1]
+                        end_time = timedelta(hours=11, minutes=00) #time as string, need to convert it to timedelta
+###                        end_time = timedelta(hours=int(end_time[0]), minutes=int(end_time[1])) #time as string, need to convert it to timedelta
+                    else:
+                        project_task['start_date'], end_time = get_start_date_time(project_task['assigned_to'], prev_task['end_date'], end_time)
+                    task = frappe.db.get_value('Task', {'name': project_task['task_id']}, '*')
+                    end_date, task_estimate_remaining_hour = get_next_valid_business_date_based_on_task_estimate(project_task['start_date'], task.assigned_to, task.expected_time, end_time)
+                    end_time = get_task_end_time_based_on_emp_schedules(task.assigned_to, end_date, task_estimate_remaining_hour)
+                    frappe.msgprint(_("start_date: {3}  --  end_date: {0}  --  task.expected_time:{1}  --  end_time: {2}  --  task_estimate_remaining_hour: {4}").format(end_date, task.expected_time, end_time, project_task['start_date'], task_estimate_remaining_hour))
+                    project_task['end_date'] = end_date
+                    new_tasks.append(project_task) #then empty he list in UI and replace by this list
+                    prev_task = project_task
+                    #frappe.msgprint(_("project_task: {0}  ---   ed: {1}").format(project_task['title'], project_task['end_date']))
+                break
+            else:
+                new_tasks.append(pro_task)
+                index = index + 1
+    doc.update({'tasks' : new_tasks})
+    
+    
+
+def get_start_date_time(assigned_to, prev_task_end_date, end_time):
+    schedules = get_employee_schedule_by_weekday(assigned_to, prev_task_end_date)
+    if len(schedules) == 0:
+        start_date = get_next_business_date(assigned_to, prev_task_end_date)
+        start_time = get_employee_schedule_by_weekday(assigned_to, start_date)[0]['start_time']
+        return start_date, start_time
+    else:
+        end_shift_gauge = timedelta(hours=1) #let an hour at the end of the shift to cleanup, finishup things, ...
+        end_shift = schedules[-1]['end_time']
+        if (end_shift - end_time) >= end_shift_gauge:
+            return prev_task_end_date, end_time
+        else:
+            start_date = get_next_business_date(assigned_to, prev_task_end_date)
+            start_time = get_employee_schedule_by_weekday(assigned_to, start_date)[0]['start_time']
+            return start_date, start_time
+
+def get_next_business_date(assigned_to, date):
+    holidays = get_all_holidays_curr_year()
+    date = datetime.strptime(str(date), '%Y-%m-%d').date()
+    date = date + timedelta(days=1)
+    schedules = get_employee_schedule_by_weekday(assigned_to, date)
+    while (str(date) in holidays) or (len(schedules) == 0): 
+        date = date + timedelta(days=1)
+        schedules = get_employee_schedule_by_weekday(assigned_to, date)
+    return date
+
+
+def get_task_end_time_based_on_emp_schedules(assigned_to, end_date, remaining_hour):
+    """Return the end time of a task based on the employee schedule for the given date"""
+    schedules = get_employee_schedule_by_weekday(assigned_to, end_date)
+    for schedule in schedules:
+        if (schedule['start_time'] + remaining_hour) <= schedule['end_time']:####
+            return remaining_hour +  schedule['start_time']
+        else:
+            remaining_hour = remaining_hour - (schedule['end_time'] - schedule['start_time'])
+
+def get_employee_working_hour_for_given_day(emp_email, date):
+    """Returns the number of hour an employee must work for a given day"""
+    schedules = get_employee_schedule_by_weekday(emp_email, date)
+    total_work_time = timedelta(hours=0, minutes=0)
+    for schedule in schedules: 
+        time = schedule['end_time'] - schedule['start_time']
+        total_work_time = total_work_time + time
+    return total_work_time
+
+def convert_number_to_hour(number):
+    """Convert a given number to hours: 7.25 = 7:15"""
+    time = str(number).split('.')
+    if len(time[1]) == 1: #if original nbr = 1.4, we want to keep the 4, but as a 40
+        time[1] = int(int(time[1]) * 10 * 0.6) #the double in is used to remove the '.0' at the end of the number
+    elif not time[1]: #if the number doesn't have minute, set it to 00
+        time[1] == '00'
+    else:
+        time[1] = int(int(time[1]) * 0.6)
+    return timedelta(hours=int(time[0]), minutes=time[1])
+
+def convert_hour_to_number(hour):
+    """Convert a given hour to a number: 7:15 = 7.25"""
+    time = str(hour).split(':')[:-1]
+    if len(time[1]) == 1: #if original nbr = 1:40, we want to keep the 4, but as a 40
+        time[1] = str(int(int(time[1]) * 10 * 0.6)) #the double in is used to remove the '.0' at the end of the number
+    else:
+        time[1] = str(int(time[1]) * 100 / 60)
+    return float('.'.join(time))
+
+def get_remaining_working_hour(emp_working_hour, end_time, schedules=[]):
+    """Calculate remaining time before"""
+    for s in schedules:
+        if end_time > s['start_time'] and end_time < s['end_time']:
+            return emp_working_hour - (end_time - s['start_time'])
+        emp_working_hour - (s['end_time'] - s['start_time'])
+
+def get_next_valid_business_date_based_on_task_estimate(date, assigned_to, estimate, end_time):
+    """Get the next business date based on the assigned_to and the remaining hour left"""
+    holidays = get_all_holidays_curr_year()
+    date = datetime.strptime(str(date), '%Y-%m-%d').date()
+    schedules = get_employee_schedule_by_weekday(assigned_to, date)
+    estimate_remaining_hour = estimate
+    estimate_day = 1000 #need to rethink how to have a vaue here
+    emp_working_hour = get_employee_working_hour_for_given_day(assigned_to, date)
+    if end_time and emp_working_hour: #the working_hour for that day will be equal to the remaining time before the end of the day
+        emp_working_hour = get_remaining_working_hour(emp_working_hour, end_time, schedules)
+    if emp_working_hour: #if emp works
+        emp_working_hour = convert_hour_to_number(emp_working_hour)
+        estimate_day = estimate_remaining_hour // emp_working_hour
+    if estimate_day == 0 and emp_working_hour:
+        convert_number_to_hour(estimate_remaining_hour)
+        return date, estimate_remaining_hour
+    elif estimate_day > 0 and emp_working_hour and  end_time != schedules[0]['start_time']:
+        estimate_remaining_hour = estimate_remaining_hour - emp_working_hour
+        date = get_next_business_date(assigned_to, date)
+        schedules = get_employee_schedule_by_weekday(assigned_to, date)
+    while (estimate_remaining_hour >= emp_working_hour):
+        emp_working_hour = convert_hour_to_number(get_employee_working_hour_for_given_day(assigned_to, date))
+        if estimate_remaining_hour >= emp_working_hour:
+            estimate_day = estimate_remaining_hour // emp_working_hour
+        else:
+            break
+        estimate_remaining_hour = estimate_remaining_hour - emp_working_hour        
+        date = get_next_business_date(assigned_to, date)
+    time = convert_number_to_hour(estimate_remaining_hour)
+    return date, time
+
+def get_all_holidays_curr_year():
+    """Get all the holiday for the current year. Holiday also contains the weekends"""
+    now = datetime.now()
+    curr_year = now.year
+    holidays = []
+    holidays_json = frappe.db.get_all('Holiday', {'parenttype': 'Holiday List', 'parent': 'CANADIAN HOLIDAY LIST ' + str(curr_year)}, 'holiday_date')
+    for h in holidays_json:
+        holidays.append(str(h['holiday_date']))
+    return holidays
+
+def order_task_by_name(json_obj):
+    """Sort given json by task title"""
+    try:
+        if json_obj['title'].split('-')[1] == '02' and json_obj['title'].split('-')[2] == 'B PREFLIGHT': #for Alto + Folia, there's 2 tasks with '02', but one have 'A' and the other 'B'
+            return 2.5 #returning 2.5 specify the task comes after the task '02' and before the '03' task
+        return int(json_obj['title'].split('-')[1]) #get the number inside the task title
+    except KeyError:
+        return 0
+
+def get_employee_schedule_by_weekday(email, date):
+    import calendar
+    weekday = date.weekday()
+    weekday_name = calendar.day_name[weekday].lower()  #'wednesday'
+    employee_name = frappe.db.get_value('User', email, ['first_name', 'last_name'], as_dict = True)
+    workstation = frappe.db.get_value('Employee', {'first_name':unidecode.unidecode(employee_name.first_name), 'last_name': unidecode.unidecode(employee_name.last_name)}, 'workstation')
+    if not workstation: #Employee don't have a naming convention. Some of them use first_name and Last_name, other put everything into the first_name as 'last_name, first_name'
+        emp_name = unidecode.unidecode(employee_name.last_name) + ', ' + unidecode.unidecode(employee_name.first_name)
+        workstation = frappe.db.get_value('Employee', {'employee_name':emp_name}, 'workstation')
+    working_time = frappe.db.get_all('Workstation Working Hour', fields=['start_time', 'end_time'], filters={ 'parenttype': 'Workstation', 'parent': workstation, weekday_name:True })
+    working_time.sort(key=order_time_by_start_time, reverse=False) #order to know start time to end time in order
+    return working_time
+
+def order_time_by_start_time(json_obj):
+    """Sort given json by start_time"""
+    try:
+        time_list = str(json_obj['start_time']).split(':')[:-1]
+        return float('.'.join(time_list)) #return time as float. ie 12h30 = 12.30
+    except KeyError:
+        return 0
+
 
 def get_dashboard_info(party_type, party):
 	current_fiscal_year = get_fiscal_year(nowdate(), as_dict=True)
@@ -134,6 +300,14 @@ def get_dashboard_info(party_type, party):
 def on_party_onload(doc, handler):
     doc.set_onload("dashboard_info", get_dashboard_info(doc.doctype, doc.name))
 
+def on_quotation_validate(doc, handler):
+    if doc.is_new() and not doc.tc_name:
+        if doc.language == 'en':
+            tc_name = "E-Graphics-50 Order - 50 Ship"
+        else:
+            tc_name = "F-Graphics-50 Order - 50 Ship"
+        doc.tc_name = tc_name
+        doc.terms = frappe.db.get_value('Terms and Conditions', doc.tc_name, 'terms')
 
 def on_customer_validate(doc, handler=None):
 #    if doc.is_new() and not doc.lead_name:
@@ -238,7 +412,7 @@ def on_sales_invoice_validate(doc, handler=None):
                 "user": frappe.session.user
             })
             if user_restriction:
-                frappe.throw("You're not allowed to create invoices from here !") 
+                frappe.throw("You're not allowed to create invoices from here") 
 
 @frappe.whitelist()
 #Create a work order from a sales order
@@ -298,6 +472,5 @@ def create_work_order(so_name = None, mfg_items = []):
     sales_order_doc.flags.ignore_permissions = True
     sales_order_doc.save()
     frappe.msgprint("The Work Order have been updated")
-
 
 

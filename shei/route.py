@@ -18,7 +18,7 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
         })
         if user_restriction:
             #frappe.local.response.http_status_code = 500
-            frappe.throw("You're not allowed to create invoices from here !") 
+            frappe.throw("You're not allowed to create invoices from here") 
     return make_sales_invoice(source_name, target_doc, ignore_permissions)       
 
 @frappe.whitelist()

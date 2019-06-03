@@ -1,0 +1,27 @@
+[
+ {
+  "breadcrumbs": null, 
+  "css": ".page-header {\n\tcolor: white;\n\tbackground: #263248;\n\ttext-align: center;\n\tpadding: 80px 0px;\n}\n\n.page-header .page-header-left {\n\twidth: 100%;\n}\n\n.page-header h1 {\n\tcolor: white;\n}\n\n.slide h2 {\n\tmargin-bottom: 30px;\n}\n\n.slides {\n\tmargin-top: -15px;\n}\n\n.slide {\n\tpadding: 30px 40px;\n\tmax-width: 800px;\n\tmargin: auto;\n}\n\n.container {\n\tmax-width: 900px;\n}\n\n.img-wrapper {\n\ttext-align: center;\n\tpadding: 30px;\n\tbackground-color: #eee;\n\tborder-radius: 5px;\n\tmargin-bottom: 15px;\n}", 
+  "description": "", 
+  "docstatus": 0, 
+  "doctype": "Web Page", 
+  "enable_comments": 0, 
+  "end_date": null, 
+  "header": "", 
+  "insert_code": 0, 
+  "insert_style": 0, 
+  "javascript": "$(function() { });", 
+  "main_section": "<h1>About us</h1><div>SH was established in 1975 as Syst\u00e8me Huntington Inc. (Sh [i]) and was initially specialized in the design and construction of showrooms and their components. With the mission of enhancing the value of branded environments, the company quickly became a leading provider of innovative graphic solutions.</div><div><br></div><div>ALTO<span style=\"background-color: rgb(254, 253, 250); color: rgb(0, 0, 0);\">\u2122</span></div><span style=\"background-color: rgb(254, 253, 250); color: rgb(0, 0, 0);\"> &amp; FOLIA</span><span><span style=\"color: rgb(0, 0, 0);\">\u2122</span></span><span style=\"color: rgb(0, 0, 0);\">, our personalized surface materials products, have enabled us to build various architectural elements which create durable and unique spaces. Today, we group together our offer of graphic and architectural solutions under the SH Immersive Environments brand name and we employ close to 50 employees. Our sales network extends across Canada, the United States and internationally.</span><span style=\"color: rgb(0, 0, 0);\"><br></span><span><br></span><div><br></div><span><br></span><div><br></div><span style=\"background-color: rgb(254, 253, 250); color: rgb(0, 0, 0);\"><br></span>", 
+  "modified": "2019-03-27 11:37:21.242163", 
+  "name": "sh-environnements-immersifs", 
+  "published": 1, 
+  "route": "sh-environnements-immersifs", 
+  "show_sidebar": 0, 
+  "show_title": 1, 
+  "slideshow": null, 
+  "start_date": null, 
+  "text_align": "Left", 
+  "title": "SH Environnements Immersifs", 
+  "website_sidebar": null
+ }
+]

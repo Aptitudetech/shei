@@ -1,0 +1,605 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ doc.project_name }}{% endblock %}
+
+{% block header %}
+	<h1>{{ doc.project_name }}</h1>
+{% endblock %}
+
+{% block style %}
+	<style>
+		{% include "erpnext/templates/includes/projects.css" %}
+	</style>
+	<style>
+		.one, .two, .three, .four, .five{
+			position:absolute;
+			margin-top:-10px;
+			z-index:1;
+			height:40px;
+			width:40px;
+			border-radius:25px;
+		}
+		.one{
+			left:0%;
+		}
+		.two{
+			left:20%;
+		}
+		.three{
+			left:40%;
+		}
+		.four{
+			left:60%;
+		}
+		.five{
+			left:80%;
+		}
+		#project_stage_box {
+			border-radius: 10px;
+			padding: 20px; 
+			width: 200px;
+			height: 60px;  
+		}
+		#project_stage_description {
+			border-radius: 25px;
+			background-color: white;
+			padding: 20px; 
+			width: 200px;
+			height: 300px; 
+			margin-top: -20px;
+			margin-left: 40px;
+			z-index: 1;
+			font-weight: 400;
+		}
+		#project_stage_label {
+			margin-top: -10px; 
+			text-align: left; 
+			color: white; 
+			font-weight: 700;
+		}
+		* {
+		box-sizing: border-box;
+		}
+		#1address_container {
+			background-color: #f89925; 
+			opacity: 0.5; 
+			width: auto; 
+			height: auto;
+		}
+		#1address_container:hover {
+			opacity: 1.0;
+		}
+	</style>
+{% endblock %}
+
+{% block page_content %}
+{% set sh_color = "#f89925" %}
+{% if doc.percent_complete %}
+<div class="progress progress-hg">
+	<div class="progress-bar progress-bar-{{ "warning" if doc.percent_complete|round < 100 else "success" }} active"role="progressbar" aria-valuenow="{{ doc.percent_complete|round|int }}"
+	aria-valuemin="0" aria-valuemax="100" style="width:{{ doc.percent_complete|round|int }}%;">
+	</div>
+</div>
+{% endif %}	
+
+<!--Get the first unfinished open task for the project-->
+{% set curr_project = frappe.get_doc("Project", doc.name) %}
+{% set tasks = [] %}
+{% for t in curr_project.tasks %}
+	{% if t.status != "Closed" %}
+		{{ tasks.append(t.title) or ''}}
+	{% endif %}
+{% endfor %}
+{% set first_open_task = (tasks|sort|first) %}
+
+<div class="container">
+		<div class="row"><br />
+			<div class="col-md-12">
+				<div class="progress"  style="width: 84%;">
+				<!--display the progress bar based on the project stage-->
+					{% set task_number = (first_open_task.split('-')[1]|int) %}
+					{% set task_product = first_open_task.split('-')[0] %}
+					{% if task_number == 0 %}
+						{% set task_stage = _('Deposit') %}
+						{% set progress_pourcentage = 0 %}
+						{% set progress_color = '#5cb85c' %}
+						{% set project_stage_description = _("Waiting on message... <br><br><br> 1-3 days") %}
+					{% elif task_number <= 2 %}
+						{% set task_stage = _('Preflight') %}
+						{% set progress_pourcentage = 25 %}
+						{% set progress_color = '#E78037' %}
+						{% set project_stage_description = _("We examine your files and make sure they are print ready. Please make sure your files are done according to our graphic preparation guide to avoid delays <br><br><br> 1-3 days") %}
+					{% elif (task_number <= 7 and  task_product == 'Folia') or (task_number <= 9 and task_product == 'Alto') %}
+						{% set task_stage = _('PDF Approval') %}
+						{% set progress_pourcentage = 50 %}
+						{% set progress_color = '#A3A3A3' %}
+						{% set project_stage_description = _("Once your file is print ready, we send you a pdf file to approve. The lead time for your project will begin once you have approved the PDF file <br><br><br> 1-3 days") %}
+					{% elif task_number >= 12 %}
+						{% set task_stage = _('Shipping') %}
+						{% set progress_pourcentage = 100 %}
+						{% set progress_color = '#629BD0' %}
+						{% set project_stage_description = _("We carefully inspect each panel to ensure that your panels conform to our strict quality standards. We then carefully pack you panels so they are shipping on a cloud. <br><br><br> 3-7 days") %}
+					{% else %}
+						{% set task_stage = _('Production') %}
+						{% set progress_pourcentage = 75 %}
+						{% set progress_color = '#FCBE38' %}
+						{% set project_stage_description = _("Production begins! We will produce beautiful, quality panels for you. <br><br><br> 3-6 weeks") %}
+					{% endif %}
+	
+	
+				<!--Deposit dot-->
+				<div data-toggle="tooltip" data-placement="top" title="Deposit" class="one" style="background-color: #5cb85c;">
+					<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon glyphicon-usd" aria-hidden="true"></span>
+				</div>
+				<!--Preflight dot-->
+				<div data-toggle="tooltip" data-placement="top" title="Preflight" class="two" style="background-color: #E78037;">
+					<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon glyphicon-copy" aria-hidden="true"></span>
+				</div>
+				<!--PDF Approval dot-->
+				<div data-toggle="tooltip" data-placement="top" title="PDF Approval" class="three" style="background-color: #A3A3A3;">
+					<span style="text-align: center; margin-top: 11px; margin-left: 14px" class="glyphicon glyphicon-check" aria-hidden="true"></span>
+				</div>
+				<!--Production dot-->
+				<div data-toggle="tooltip" data-placement="top" title="Production" class="four" style="background-color: #FCBE38;">
+					<span style="text-align: center; margin-top: 11px; margin-left: 13px" class="glyphicon glyphicon-th-large" aria-hidden="true"></span>
+				</div>
+				<!--Shipping dot-->
+				<div data-toggle="tooltip" data-placement="top" title="Shipping" class="five" style="text-align: center; background-color: #629BD0;">
+					<span style="text-align: center; margin-top: 11px;" class="glyphicon glyphicon-plane" aria-hidden="true"></span>
+				</div>
+				<div class="progress-bar progress-bar-striped active" style="background-color: {{sh_color}} !important; width: {{progress_pourcentage}}%"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-sm-6" style="width: 25%;  ">
+			<div id="project_stage_box" style="background-color: {{progress_color}};"><p id="project_stage_label" >{{task_stage}}</p></div>
+			<p id="project_stage_description" style="color: {{progress_color}}; border: 2px solid {{progress_color}};">
+				{{project_stage_description}}
+			</p>
+		</div>
+		{% set sales_orders = frappe.get_list('Sales Order', filters={'project': doc.name, 'status': ['IN', ['Completed', 'To Bill', 'To Deliver and Bill']]}, fields=['shipping_address', 'customer_address', 'shipping_address_name', 'contact_person', 'contact_display']) %}
+		{% if sales_orders[0] %}
+			<div class="col-sm-6" style="width: 75%;  ">
+				<div class="col-sm-6" style="width: 50%;  ">
+					<p>{{_("Shipping Address:")}} <br> <strong>{{sales_orders[0]['shipping_address']}}</strong></p>
+					<p>{{_("Shipping address have a dock?")}} <strong>{{frappe.db.get_value('Address', sales_orders[0]['shipping_address_name'], 'have_dock') or _("Unknown")}}</strong></p>
+					<p>{{_("Is a Residential address?")}} <strong>{{frappe.db.get_value('Address', sales_orders[0]['shipping_address_name'], 'is_residential_address') or _("Unknown") }}</strong></p>
+					<p>{{_("Contact Person")}}: <strong>{{sales_orders[0]['contact_display']}}</strong></p>
+					<a href="" class="btn btn-info btn-rounded mb-4" data-toggle="modal" style="background: {{sh_color}};" data-target="#modalLoginForm">
+						{{_("Update Shipping Informations")}}
+					</a>
+				</div>
+
+				<!-- Only display those informations when the package is at Shipping-->
+				{% if task_number >= 12 %}
+					<div class="col-sm-6" style="width: 50%;  ">
+						<p>{{_("Expected Delivery Date:")}} <strong>{{doc.expected_end_date}}</strong></p>
+						<p>{{_("Shipper:")}}
+							<a href="{{ frappe.db.get_value('Shipping Company', doc.shipping_company, 'website') }}" target="_blank">
+								<strong data-toggle="tooltip" data-placement="top" title="Go to {{doc.shipping_company}} website">{{doc.shipping_company}}</strong>
+							</a>
+						</p>
+						<p>{{_("Tracking Number:") }}
+							<strong>
+								<a href="{{ frappe.db.get_value('Shipping Company', doc.shipping_company, 'tracking_website') }}" target="_blank">
+									<strong data-toggle="tooltip" data-placement="top" title="Track your package">{{doc.waybill}}</strong>
+								</a>
+							</strong>
+						</p>
+						{% set billing_country = frappe.db.get_value('Address', sales_orders[0]['customer_address'], 'country') %}
+						{% set shipping_country = frappe.db.get_value('Address', sales_orders[0]['shipping_address'], 'country') %}
+						{% if billing_country == 'United States' or shipping_country == 'United States' %}
+							<p>{{_("Tax ID")}}: <strong>{{ frappe.db.get_value('Customer', doc.customer, 'tax_id') }}</strong></p>
+						{% endif %}
+					</div>
+					<table class="table table-hover" style="width: 75%">
+						<thead>
+							<caption style="text-align: left;">{{_("Shipment Crates")}}</caption>
+							<tr>
+								<th scope="col">#</th>
+								<th scope="col">{{_("Length(in)")}}</th>
+								<th scope="col">{{_("Width(in)")}}</th>
+								<th scope="col">{{_("Height(in)")}}</th>
+								<th scope="col">{{_("Gross Weight(lbs)")}}</th>
+								<th scope="col">{{_("Net Weight(lbs)")}}</th>
+							</tr>
+						</thead>
+						<tbody>
+						{% for crate in doc.crates %}
+							<tr>
+								<th scope="row">{{ loop.index }}</th>
+								<td>{{ crate.crate_length }}</td>
+								<td>{{ crate.crate_width }}</td>
+								<td>{{ crate.crate_height }}</td>
+								<td>{{ crate.crate_gross_weight }}</td>
+								<td>{{ crate.crate_net_weight }}</td>
+							</tr>
+						{% endfor %}
+						</tbody>
+					</table>
+				{% endif %}
+			</div>
+		{% endif %}
+	</div>
+	<br> <br>
+	<hr />
+	
+	<div data-widget-host="habitat" id="wt_embed" style="width: 25%;" > 
+		<script type="text/props">
+		  {
+			"wtEmbedKey": "a0124faf-6f51-4fb2-979b-b48552843532",
+			"wtEmbedOutput": ".wt_embed_output"
+		  }
+		</script>
+	</div>
+	<script async src="https://prod-embed-cdn.wetransfer.net/v1/latest.js"></script>
+	<input type="text" name="wt_embed_output" id="wt_embed_output" class="wt_embed_output" hidden/>
+	  
+	
+	<div class='padding'></div>
+	<p>{{_("Problem with the link above?")}}</p>
+	<a href="https://wetransfer.com/?to={{doc.project_manager}}&msg={{doc.name}}" target="_blank">
+		<span class="glyphicon glyphicon-upload" aria-hidden="true"></span>
+		<strong data-toggle="tooltip" data-placement="top" title="Transfert your file with WeTransfer">{{_("Click here to transfert your file")}}</strong>
+	</a>
+	
+	{% if doc.attachments %}
+		<div class='padding'></div>
+		<h4>{{ _("Attachments") }}</h4>
+		<div class="project-attachments">
+			{% for attachment in doc.attachments %}
+				<div class="attachment">
+					<a class="no-decoration attachment-link" href="{{ attachment.file_url }}" target="blank">
+						<div class="row">
+							<div class="col-xs-9">
+								<span class="indicator red file-name"> {{ attachment.file_name }}</span>
+							</div>
+						</div>
+					</a>
+				</div>
+			{% endfor %}
+		</div>
+	{% endif %}
+	
+	
+	
+	
+	
+	
+	
+	<!-- Modal to modify shipping address -->
+	<div class="modal fade" id="modalLoginForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header text-center" style="background: {{sh_color}};">
+					<h4 class="modal-title w-100 font-weight-bold">{{_("Change Shipping Address")}}</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body mx-3">
+					<p style="font-style: italic;">
+							<strong>Note: </strong>{{ _("The request to change shipping address will be sent to your project manager.  
+							This change may incur additional shipping charges; if this is the case,
+								your project manager will contact you for your approval.")}}
+					</p>
+					<h2>{{_("Contact")}}</h2>
+					<!--Contact Section-->
+					{% set contact_list = frappe.get_list("Dynamic Link", filters={"parenttype": "Contact", "link_doctype": "Customer", "link_name": doc.customer}, fields=["parent"]) %}
+					<div class="container" id="contact_container">
+						<div id="contact_accordion">
+							{% for c in contact_list %}
+								{% set contact = frappe.get_list("Contact", fields=["name", "first_name", "last_name", "email_id", "phone", "mobile_no", "department", "designation"], filters={"name": c['parent']})[0] %}
+								{% if contact is defined%}
+									{% set contact_id = contact.name|replace(" ", "_")|replace("(", "")|replace(")", "")|replace("&", "") %}
+									<div class="card">
+										<div class="card-header">
+											<label>
+												{% if sales_orders[0].contact_person == contact.name %}
+													<input type="radio" class="custom-control-input" name="contact" value="{{contact.first_name}} {{contact.last_name or ''}}" checked> 
+												{% else %}
+													<input type="radio" class="custom-control-input" name="contact" value="{{contact.first_name}} {{contact.last_name or ''}}"> 
+												{% endif %}
+												<a class="card-link" data-toggle="collapse" href="#{{contact_id}}">
+													{{contact.first_name}} {{contact.last_name or ''}}
+												</a>
+											</label>
+										</div>
+										<div id="{{contact_id}}" class="collapse " data-parent="#contact_accordion">
+											<div class="card-body">
+												<div class="container">
+													{{_("Email")}}: {{contact.email_id or ''}}, <br> 
+													{{_("Phone")}}: {{contact.phone or ''}}, {{_("Mobile No")}}: {{contact.mobile_no}} <br> 
+													{{_("Department")}}: {{contact.department or ''}}/{{_("Designation")}}: {{contact.designation or ''}}
+												</div>
+											</div>
+										</div>
+									</div>
+								{% endif %}
+							{% endfor %}
+							<input type="radio" class="custom-control-input" name="contact" value="Other"><label style="font-size: 15px;">{{_("Other")}}</label>
+							<br>													
+							<label id="modal_error_message_contact" style="color: red; font-style: italic;"></label>
+						</div>
+					</div>
+					<div id="other_contact" style="display: none;">   			
+						<div class="md-form mb-4">
+							<label data-error="wrong" data-success="right" for="contact_first_name">* {{_("First Name")}}</label>
+							<input type="text" id="contact_first_name" class="form-control validate" placeholder="Samuel">
+						</div>
+	
+						<div class="md-form mb-3">
+							<label data-error="wrong" data-success="right" for="contact_last_name">* {{_("Last Name")}}</label>
+							<input type="text" id="contact_last_name" class="form-control validate" placeholder="Wallot">
+						</div>
+	
+						<div class="md-form mb-3">
+							<label data-error="wrong" data-success="right" for="contact_email">* {{_("Email")}}</label>
+							<input type="email" id="contact_email" class="form-control validate" placeholder="some@email.com">
+						</div>
+						
+						<div class="md-form mb-3">
+							<label data-error="wrong" data-success="right" for="contact_phone">* {{_("Phone")}}</label>
+							<input type="text" id="contact_phone" class="form-control validate" placeholder="111-222-3456 ext:103">
+						</div>
+
+						<div class="md-form mb-3">
+							<label data-error="wrong" data-success="right" for="contact_mobile">{{_("Mobile No")}}</label>
+							<input type="text" id="contact_mobile" class="form-control validate" placeholder="444-555-6789">
+						</div>
+
+						<div class="md-form mb-3">
+							<label data-error="wrong" data-success="right" for="contact_department">{{_("Department")}}</label>
+							<input type="text" id="contact_department" class="form-control validate" placeholder="IT">
+						</div>
+
+						<div class="md-form mb-3">
+							<label data-error="wrong" data-success="right" for="contact_title">{{_("Title")}}</label>
+							<input type="text" id="contact_title" class="form-control validate" placeholder="Team Lead">
+						</div>
+					</div>
+
+
+
+					<!--Address Section-->
+					<h2>{{_("Shipping Address")}}</h2>
+					{% set address_list = frappe.get_list("Dynamic Link", filters={"parenttype": "Address", "link_doctype": "Customer", "link_name": doc.customer}, fields=["parent"]) %}
+					<div class="container" id="address_container">
+						<div id="accordion">
+							{% for a in address_list %}
+								{% set address = frappe.get_list("Address", fields=["name", "phone", "country", "pincode", "state", "city", "address_line1", ], filters={"name": a['parent']})[0] %}
+								{% if address is defined%}
+									{% set address_id = address.name|replace(" ", "_")|replace("(", "")|replace(")", "")|replace("&", "")%}
+									<div class="card">
+										<div class="card-header">
+											<label>
+												{% if sales_orders[0].shipping_address_name == address.name %}
+													<input type="radio" class="custom-control-input" name="address" value="{{address.name}}" checked> 
+												{% else %}
+													<input type="radio" class="custom-control-input" name="address" value="{{address.name}}"> 
+												{% endif %}
+												<a class="card-link" data-toggle="collapse" href="#{{address_id}}">
+													{{address.name}}
+												</a>
+											</label>
+										</div>
+										<div id="{{address_id}}" class="collapse " data-parent="#accordion">
+											<div class="card-body">
+												<div class="container">
+													{{address.address_line1}}, {{address.city or ''}}, {{address.state or ''}}, <br> 
+													{{address.pincode or ''}}, {{address.country}} <br> 
+													{{address.phone or ''}}
+												</div>
+											</div>
+										</div>
+									</div>
+								{% endif %}
+							{% endfor %}
+							<input type="radio" class="custom-control-input" name="address" value="Other"><label style="font-size: 15px;">{{_("Other")}}</label>
+							<br>
+							<label id="modal_error_message_address" style="color: red; font-style: italic;"></label>
+						</div>
+					</div>
+					<div id="other_address" style="display: none;">   			
+						<div class="md-form mb-4">
+							<label data-error="wrong" data-success="right" for="address_title">* {{_("Address Title")}}</label>
+							<input type="text" id="address_title" class="form-control validate" placeholder="Dorion Shipping">
+						</div>
+	
+						<div class="md-form mb-3">
+							<label data-error="wrong" data-success="right" for="address_line_1">* {{_("Address Line 1")}}</label>
+							<input type="text" id="address_line_1" class="form-control validate" placeholder="123 ave St-Charles">
+						</div>
+	
+						<div class="md-form mb-3">
+							<label data-error="wrong" data-success="right" for="address_city">* {{_("City/Town")}}</label>
+							<input type="text" id="address_city" class="form-control validate" placeholder="Dorion">
+						</div>
+						
+						<div class="md-form mb-2">
+							<label data-error="wrong" data-success="right" for="address_country">* {{_("Country")}}</label>
+							<br>
+							
+							{% set countries = frappe.get_list('Country', 'name') %}
+							<select name="country" class="btn btn-secondary dropdown-toggle">
+								{% for country in countries %}
+									<option id="address_country" value="{{country.name}}">{{country.name}}</option>
+								{% endfor %}
+							</select>
+						</div>
+					</div>
+					
+				</div>
+				<div class="modal-footer d-flex justify-content-center">
+					<button class="btn btn-default" onclick="update_shipping_address()" style="background: {{sh_color}}">{{_("Save and change the shipping address")}}</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+
+
+<script>
+	//open another section for address when 'Other' is selected in the modal
+	var address_rad = document.getElementsByName('address');
+	var prev_address = null;
+	for (var i = 0; i < address_rad.length; i++) {
+		//if ( "{{task_stage}}" == 'Shipping'){
+		//	address_rad[i].disabled = true;
+		//}
+		//else{
+			address_rad[i].addEventListener('change', function() {
+				//(prev_address) ? console.log(prev_address.value + "first"): null;
+				
+				if (this !== prev_address) {
+					prev_address = this;
+				}
+				//console.log(this.value + "last")
+				if (this.value == 'Other'){
+					document.getElementById("other_address").style.display = "block";
+				}
+				else{
+					document.getElementById("other_address").style.display = "none";
+				}
+				//this.style.opacity = "1";
+				//rad[i].setAttribute("style", "opacity: 1;");
+			});
+		//}
+	}
+
+	//open another section for contact when 'Other' is selected in the modal
+	var contact_rad = document.getElementsByName('contact');
+	var prev_contact = null;
+	for (var i = 0; i < contact_rad.length; i++) {
+		contact_rad[i].addEventListener('change', function() {
+			if (this !== prev_contact) {
+				prev_contact = this;
+			}
+			if (this.value == 'Other'){
+				document.getElementById("other_contact").style.display = "block";
+			}
+			else{
+				document.getElementById("other_contact").style.display = "none";
+			}
+		});
+	}
+
+
+	function update_shipping_address() {
+		add_contact();
+		add_shipping();
+	}
+
+	function add_shipping(){
+		document.getElementById("modal_error_message_address").innerHTML = "";
+
+		address_line_1 = document.getElementById('address_line_1').value;
+		address_city = document.getElementById('address_city').value;
+		address_country = document.getElementById('address_country').value;
+		address_title = document.getElementById('address_title').value;
+
+		if ((address_line_1.trim() != "" || address_city.trim() != "" || address_title.trim() != "") 
+			&& (address_line_1.trim() == "" || address_city.trim() == ""  || address_title.trim() == ""))
+		{
+			document.getElementById("modal_error_message_address").innerHTML = "{{_('Please fill all mandatory fields')}}";
+		}
+		else if
+			(address_line_1.trim() == "" || address_city.trim() == ""  || address_title.trim() == "")
+		{
+			document.getElementById("modal_error_message_address").innerHTML = "";
+		}
+		else{
+			document.getElementById("modal_error_message_address").innerHTML = "";
+			frappe.call({
+				method: "shei.templates.pages.projects.update_shipping_address",
+				args: {
+					'doc_name': "{{ doc.name }}",
+					'customer': "{{ doc.customer }}",
+					'address_line_1': address_line_1,
+					'address_city': address_city,
+					'address_country': address_country,
+					'address_title': address_title,
+				},
+				callback: function(content) {
+				}
+			});
+		}
+	}
+
+	function add_contact(){
+		document.getElementById("modal_error_message_contact").innerHTML = "";
+		contact_first_name = document.getElementById('contact_first_name').value;
+		contact_last_name = document.getElementById('contact_last_name').value;
+		contact_email = document.getElementById('contact_email').value;
+		contact_phone = document.getElementById('contact_phone').value;
+		contact_mobile = document.getElementById('contact_mobile').value;
+		contact_department = document.getElementById('contact_department').value;
+		contact_title = document.getElementById('contact_title').value;
+		
+		if ((contact_first_name.trim() != "" 
+			  || contact_last_name.trim() != "" 
+			  || contact_phone.trim() != ""
+			  || contact_email.trim() != "") 
+			&& (contact_first_name.trim() == "" 
+			  || contact_last_name.trim() == "" 
+			  || contact_phone.trim() == ""
+			  || contact_email.trim() == ""))
+		{
+			document.getElementById("modal_error_message_contact").innerHTML = "{{_('Please fill all mandatory fields')}}";
+		}
+		else if
+			(contact_first_name.trim() == "" || contact_last_name.trim() == ""  || contact_phone.trim() == ""|| contact_email.trim() == "")
+		{
+			document.getElementById("modal_error_message_contact").innerHTML = "";
+		}
+		else{
+			document.getElementById("modal_error_message_contact").innerHTML = "";
+			frappe.call({
+				method: "shei.templates.pages.projects.update_contact",
+				args: {
+					'doc_name': "{{ doc.name }}",
+					'customer': "{{ doc.customer }}",
+					'contact_first_name': contact_first_name,
+					'contact_last_name': contact_last_name,
+					'contact_email': contact_email,
+					'contact_phone': contact_phone,
+					'contact_mobile': contact_mobile,
+					'contact_department': contact_department,
+					'contact_title': contact_title,
+				},
+				callback: function(content) {
+				}
+			});
+		}
+	}
+
+	function get_wetransfer_link() {
+		//the only way to get the wetransfer link is to loop until the user use the wetransfer button
+		if(document.getElementsByClassName('wt_embed__message')[0].getElementsByClassName('main')[0].textContent != 'Upload completed!'){
+			setTimeout(get_wetransfer_link, 500);
+		}
+		else{
+			var wt_output = document.getElementById("wt_embed_output").value;
+			frappe.call({
+				method: "shei.templates.pages.projects.upload_wetransfer_link",
+				args: {
+					'doc_name': "{{ doc.name }}",
+					'link': wt_output,
+				},
+				callback: function(content) {
+				}
+			});
+		}
+	}
+	window.addEventListener("load", get_wetransfer_link);
+</script>
+<script>
+
+	{% include "frappe/public/js/frappe/provide.js" %}
+	{% include "frappe/public/js/frappe/form/formatters.js" %}
+</script>
+
+{% endblock %}
