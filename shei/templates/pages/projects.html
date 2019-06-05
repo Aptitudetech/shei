@@ -160,7 +160,7 @@
 				{{project_stage_description}}
 			</p>
 		</div>
-		{% set sales_orders = frappe.get_list('Sales Order', filters={'project': doc.name, 'status': ['IN', ['Completed', 'To Bill', 'To Deliver and Bill']]}, fields=['shipping_address', 'customer_address', 'shipping_address_name', 'contact_person', 'contact_display']) %}
+		{% set sales_orders = frappe.get_list('Sales Order', filters={'project': doc.name, 'status': ['IN', ['Completed', 'To Bill', 'To Deliver and Bill']]}, fields=['shipping_address', 'customer_address', 'shipping_address_name', 'contact_person', 'contact_display', 'name']) %}
 		{% if sales_orders[0] %}
 			<div class="col-sm-6" style="width: 75%;  ">
 				<div class="col-sm-6" style="width: 50%;  ">
@@ -516,33 +516,27 @@
 		return dock_options[dock_selected_index].text;
 	}
 
-	function add_shipping(){
-		document.getElementById("modal_error_message_address").innerHTML = "";
-
-		var address_rad = document.getElementsByName('address');
-		var prev_address = null;
-		for (var i = 0; i < address_rad.length; i++) {
-			address_rad[i]
-			if (this.value == 'Other'){
-				document.getElementById("other_contact").style.display = "block";
-			}
-			else{
-				document.getElementById("other_contact").style.display = "none";
+	function get_checked_radio_button(radio_name){
+		var radio = document.getElementsByName(radio_name);
+		for (var i = 0; i < radio.length; i++) {
+			if (radio[i].checked == true){
+				return radio[i].value;
 			}
 		}
-		//sales_orders[0].shipping_address_name == address.name
+	}
 
-
+	function add_shipping(){
+		document.getElementById("modal_error_message_address").innerHTML = "";
+		var checked_address_value = get_checked_radio_button("address");
 		var address_line_1 = document.getElementById('address_line_1').value;
 		var address_city = document.getElementById('address_city').value;
 		var address_title = document.getElementById('address_title').value;
 		var address_country = get_dropdown_value("address_country");
-
 		var shipping_address_list = {{shipping_address_list|tojson}};
 		var address_info_list = [];
 		shipping_address_list.forEach(function(element) {
-			var dock_id = "have_dock_" + element
-			var residential_id = "is_residential_" + element
+			var dock_id = "have_dock_" + element;
+			var residential_id = "is_residential_" + element;
 			var dock = document.getElementById(dock_id).value;
 			var residential = document.getElementById(residential_id).value;
 			var address_info = {};
@@ -551,16 +545,9 @@
 			address_info['is_residential'] = residential;
 			address_info_list.push(address_info);
 		});
-
-		if ((address_line_1.trim() != "" || address_city.trim() != "" || address_title.trim() != "") 
-			&& (address_line_1.trim() == "" || address_city.trim() == ""  || address_title.trim() == ""))
+		if ((checked_address_value == 'Other') && (address_line_1.trim() == "" || address_city.trim() == ""  || address_title.trim() == ""))
 		{
 			document.getElementById("modal_error_message_address").innerHTML = "{{_('Please fill all mandatory fields')}}";
-		}
-		else if
-			(address_line_1.trim() == "" || address_city.trim() == ""  || address_title.trim() == "")
-		{
-			document.getElementById("modal_error_message_address").innerHTML = "";
 		}
 		else{
 			document.getElementById("modal_error_message_address").innerHTML = "";
@@ -568,11 +555,14 @@
 				method: "shei.templates.pages.projects.update_shipping_address",
 				args: {
 					'doc_name': "{{ doc.name }}",
+					'sales_order_name' : "{{sales_orders[0].name}}",
 					'customer': "{{ doc.customer }}",
 					'address_line_1': address_line_1,
 					'address_city': address_city,
 					'address_country': address_country,
 					'address_title': address_title,
+					'checked_address_value': checked_address_value,
+					'address_info_list': address_info_list,
 				},
 				callback: function(content) {
 				}
@@ -582,29 +572,21 @@
 
 	function add_contact(){
 		document.getElementById("modal_error_message_contact").innerHTML = "";
-		contact_first_name = document.getElementById('contact_first_name').value;
-		contact_last_name = document.getElementById('contact_last_name').value;
-		contact_email = document.getElementById('contact_email').value;
-		contact_phone = document.getElementById('contact_phone').value;
-		contact_mobile = document.getElementById('contact_mobile').value;
-		contact_department = document.getElementById('contact_department').value;
-		contact_title = document.getElementById('contact_title').value;
-		
-		if ((contact_first_name.trim() != "" 
-			  || contact_last_name.trim() != "" 
-			  || contact_phone.trim() != ""
-			  || contact_email.trim() != "") 
-			&& (contact_first_name.trim() == "" 
+		var checked_contact_value = get_checked_radio_button("contact");
+		var contact_first_name = document.getElementById('contact_first_name').value;
+		var contact_last_name = document.getElementById('contact_last_name').value;
+		var contact_email = document.getElementById('contact_email').value;
+		var contact_phone = document.getElementById('contact_phone').value;
+		var contact_mobile = document.getElementById('contact_mobile').value;
+		var contact_department = document.getElementById('contact_department').value;
+		var contact_title = document.getElementById('contact_title').value;
+		if ((checked_address_value == 'Other') 
+			  && (contact_first_name.trim() == "" 
 			  || contact_last_name.trim() == "" 
 			  || contact_phone.trim() == ""
 			  || contact_email.trim() == ""))
 		{
 			document.getElementById("modal_error_message_contact").innerHTML = "{{_('Please fill all mandatory fields')}}";
-		}
-		else if
-			(contact_first_name.trim() == "" || contact_last_name.trim() == ""  || contact_phone.trim() == ""|| contact_email.trim() == "")
-		{
-			document.getElementById("modal_error_message_contact").innerHTML = "";
 		}
 		else{
 			document.getElementById("modal_error_message_contact").innerHTML = "";
