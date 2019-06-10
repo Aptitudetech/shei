@@ -5,13 +5,13 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe import utils
 from frappe.model.document import Document
 import datetime
 from datetime import datetime
 from shei.shei.report.accounts_receivable_shei.accounts_receivable_shei import ReceivablePayableReport
 from shei.shei.report.accounts_receivable_us_shei.accounts_receivable_us_shei import ReceivablePayableReport as ReceivablePayableReportUS
-import json 
-#from shei.shei.report.accounts_receivable_shei.accounts_receivable_shei import __init__
+import json
 
 class CompanyStats(Document):
 
@@ -24,13 +24,14 @@ class CompanyStats(Document):
         self.set_receivable_report()
         self.set_payable_report()
         self.set_quote_report()
+        self.set_sales_invoice_report()
         self.set_deposit_report()
 
     def clear_tables(self):
         self.set("sales_order_today_table", [])
         self.set("sales_order_curr_month", [])
-        self.set("oo_table_today", [])
-        self.set("oo_table_curr_month", [])
+        self.set("si_table_today", [])
+        self.set("si_table_month", [])
         self.set("quote_table_today", [])
         self.set("quote_table_month", [])
         self.set("quote_table_one_year_old", [])
@@ -40,77 +41,108 @@ class CompanyStats(Document):
         sales_orders = self.get_all_sales_order_for_today()
         for so in sales_orders:
             so_sales_person = frappe.db.get_all('Sales Team', {'parenttype': 'Sales Order', 'parent': so.name}, {'allocated_amount', 'sales_person'})[0]            
-            self.append("sales_order_today_table", {'doctype_type': 'Sales Order', 'doctype_id': so.name, 'sales_person': so_sales_person.sales_person, 'amount': so_sales_person.allocated_amount})
+            self.append("sales_order_today_table", {'doctype_type': 'Sales Order', 'doctype_id': so.name, 'sales_person': so_sales_person.sales_person, 'amount': so_sales_person.allocated_amount, 'customer_type': 'Customer', 'customer': so.customer})
         sales_orders = self.get_all_sales_order_for_curr_month()
         for so in sales_orders:
             so_sales_person = frappe.db.get_all('Sales Team', {'parenttype': 'Sales Order', 'parent': so.name}, {'allocated_amount', 'sales_person'})[0]            
-            self.append("sales_order_curr_month", {'doctype_type': 'Sales Order', 'doctype_id': so.name, 'sales_person': so_sales_person.sales_person, 'amount': so_sales_person.allocated_amount})
-        sales_orders = self.get_all_open_sales_order_for_today()
-        for so in sales_orders:
-            so_sales_person = frappe.db.get_all('Sales Team', {'parenttype': 'Sales Order', 'parent': so.name}, {'allocated_amount', 'sales_person'})[0]            
-            self.append("oo_table_today", {'doctype_type': 'Sales Order', 'doctype_id': so.name, 'sales_person': so_sales_person.sales_person, 'amount': so_sales_person.allocated_amount})
-        sales_orders = self.get_all_open_sales_order_for_curr_month()
-        for so in sales_orders:
-            so_sales_person = frappe.db.get_all('Sales Team', {'parenttype': 'Sales Order', 'parent': so.name}, {'allocated_amount', 'sales_person'})[0]            
-            self.append("oo_table_curr_month", {'doctype_type': 'Sales Order', 'doctype_id': so.name, 'sales_person': so_sales_person.sales_person, 'amount': so_sales_person.allocated_amount})
+            self.append("sales_order_curr_month", {'doctype_type': 'Sales Order', 'doctype_id': so.name, 'sales_person': so_sales_person.sales_person, 'amount': so_sales_person.allocated_amount, 'customer_type': 'Customer', 'customer': so.customer})
+        sales_invoices = self.get_all_sales_invoice_for_today()
+        for si in sales_invoices:
+            si_sales_person = frappe.db.get_all('Sales Team', {'parenttype': 'Sales Invoice', 'parent': si.name}, {'allocated_amount', 'sales_person'})[0]            
+            self.append("si_table_today", {'doctype_type': 'Sales Invoice', 'doctype_id': si.name, 'sales_person': si_sales_person.sales_person, 'amount': si_sales_person.allocated_amount, 'customer_type': 'Customer', 'customer': si.customer})
+        sales_invoices = self.get_all_sales_invoice_for_curr_month()
+        for si in sales_invoices:
+            si_sales_person = frappe.db.get_all('Sales Team', {'parenttype': 'Sales Invoice', 'parent': si.name}, {'allocated_amount', 'sales_person'})[0]            
+            self.append("si_table_month", {'doctype_type': 'Sales Invoice', 'doctype_id': si.name, 'sales_person': si_sales_person.sales_person, 'amount': si_sales_person.allocated_amount, 'customer_type': 'Customer', 'customer': si.customer})
         quotations = self.get_all_quote_for_today()
         for quote in quotations:
-            self.append("quote_table_today", {'doctype_type': 'Sales Order', 'doctype_id': quote.name, 'sales_person': quote.sales_person, 'amount': quote.base_grand_total})
+            self.append("quote_table_today", {'doctype_type': 'Quotation', 'doctype_id': quote.name, 'customer_type': quote.quotation_to, 'customer': quote.customer or quote.lead, 'sales_person': quote.sales_person, 'amount': quote.base_total})
         quotations = self.get_all_quote_for_curr_month()
         for quote in quotations:
-            self.append("quote_table_month", {'doctype_type': 'Sales Order', 'doctype_id': quote.name, 'sales_person': quote.sales_person, 'amount': quote.base_grand_total})
+            self.append("quote_table_month", {'doctype_type': 'Quotation', 'doctype_id': quote.name, 'customer_type': quote.quotation_to, 'customer': quote.customer or quote.lead, 'sales_person': quote.sales_person, 'amount': quote.base_total})
         quotations = self.get_all_quote_open_since_past_year()
         for quote in quotations:
-            self.append("quote_table_one_year_old", {'doctype_type': 'Sales Order', 'doctype_id': quote.name, 'sales_person': quote.sales_person, 'amount': quote.base_grand_total})
+            self.append("quote_table_one_year_old", {'doctype_type': 'Quotation', 'doctype_id': quote.name, 'customer_type': quote.quotation_to, 'customer': quote.customer or quote.lead, 'sales_person': quote.sales_person, 'amount': quote.base_total})
 
     def get_curr_day(self):
-        return datetime.now()
+        return datetime.strptime(utils.today(), '%Y-%m-%d')
 
     def get_all_sales_team_as_dict(self):
         sales_team_dict = {}
         sales_team_list = frappe.db.get_all('Sales Person', fields={'name'})
         for st in sales_team_list:
             sales_team_dict[st.name] = 0
-        sales_team_dict['Other'] = 0 #Some Sales Order don't have a sales Person
         return sales_team_dict
 
     def get_all_sales_order_for_today(self):
         now = self.get_curr_day()
-        return frappe.db.get_all('Sales Order', filters={'transaction_date': now}, fields={'base_grand_total', 'name'})
+        return frappe.db.get_all('Sales Order', filters={'transaction_date': now, 'status': ('IN', "To Deliver and Bill, To Bill, To Deliver, Completed, Closed")}, fields={'base_total', 'name', 'customer'})
 
     def get_all_sales_order_for_curr_month(self):
         now = self.get_curr_day()
         mtd = now.replace(day=1)
-        return frappe.db.get_all('Sales Order', filters={'transaction_date': ('<=', now) and ('>=', mtd)}, fields={'base_grand_total', 'name'})
+        return frappe.db.get_all('Sales Order', filters={'transaction_date': ('<=', now) and ('>=', mtd), 'status': ('IN', "To Deliver and Bill, To Bill, To Deliver, Completed, Closed")}, fields={'base_total', 'name', 'customer'})
 
     def get_all_sales_order_for_curr_year(self):
         now = self.get_curr_day()
         ytd = now.replace(year = now.year-1, month=11, day=1)
-        return frappe.db.get_all('Sales Order', filters={'transaction_date': ('<=', now) and ('>=', ytd)}, fields={'base_grand_total', 'name'})
-
-    def get_all_open_sales_order_for_today(self):
-        now = self.get_curr_day()
-        return frappe.db.get_all('Sales Order', filters={'transaction_date': now, 'status': ('IN', 'To Bill, To Deliver and Bill')}, fields={'base_grand_total', 'name'})
-
-    def get_all_open_sales_order_for_curr_month(self):
-        now = self.get_curr_day()
-        mtd = now.replace(day=1)
-        return frappe.db.get_all('Sales Order', filters={'transaction_date': ('<=', now) and ('>=', mtd), 'status': ('IN', 'To Bill, To Deliver and Bill')}, fields={'base_grand_total', 'name'})
+        return frappe.db.get_all('Sales Order', filters={'transaction_date': ('<=', now) and ('>=', ytd), 'status': ('IN', "To Deliver and Bill, To Bill, To Deliver, Completed, Closed")}, fields={'base_total', 'name', 'customer'})
 
     def get_all_open_sales_order_for_curr_year(self):
-        now = self.get_curr_day()
-        ytd = now.replace(year = now.year-1, month=11, day=1)
-        return frappe.db.get_all('Sales Order', filters={'transaction_date': ('<=', now) and ('>=', ytd), 'status': ('IN', 'To Bill, To Deliver and Bill')}, fields={'base_grand_total', 'name'})
+        return frappe.db.get_all('Sales Order', filters={'status': ('IN', 'To Bill, To Deliver and Bill')}, fields={'base_total', 'name', 'customer'})
 
     def group_so_by_sales_person(self, sales_orders=[]):
         sales_team_dict = self.get_all_sales_team_as_dict()
         for so in sales_orders:
             so_sales_person = frappe.db.get_all('Sales Team', {'parenttype': 'Sales Order', 'parent': so.name}, {'allocated_amount', 'sales_person'})
             for sp in so_sales_person:
-                sales_team_dict[sp.sales_person] = sales_team_dict[sp.sales_person] + so.base_grand_total
-            if not so_sales_person:
-                sales_team_dict['Other'] = sales_team_dict['Other'] + so.base_grand_total
+                sales_team_dict[sp.sales_person] = sales_team_dict[sp.sales_person] + so.base_total
         return sales_team_dict        
+        
+    def get_all_sales_invoice_for_today(self):
+        now = self.get_curr_day()
+        return frappe.db.get_all('Sales Invoice', filters={'posting_date': now, 'status': ('IN', "Return, Credit Note Issued, Submitted, Paid, Unpaid, Overdue")}, fields={'base_total', 'name', 'customer'})
+
+    def get_all_sales_invoice_for_curr_month(self):
+        now = self.get_curr_day()
+        mtd = now.replace(day=1)
+        return frappe.db.get_all('Sales Invoice', filters={'posting_date': ('<=', now) and ('>=', mtd), 'status': ('IN', "Return, Credit Note Issued, Submitted, Paid, Unpaid, Overdue")}, fields={'base_total', 'name', 'customer'})
+
+    def get_all_sales_invoice_for_curr_year(self):
+        now = self.get_curr_day()
+        ytd = now.replace(year = now.year-1, month=11, day=1)
+        return frappe.db.get_all('Sales Invoice', filters={'posting_date': ('<=', now) and ('>=', ytd), 'status': ('IN', "Return, Credit Note Issued, Submitted, Paid, Unpaid, Overdue")}, fields={'base_total', 'name', 'customer'})
+
+
+    def group_si_by_sales_person(self, sales_invoices=[]):
+        sales_team_dict = self.get_all_sales_team_as_dict()
+        for si in sales_invoices:
+            si_sales_person = frappe.db.get_all('Sales Team', {'parenttype': 'Sales Invoice', 'parent': si.name}, {'allocated_amount', 'sales_person'})
+            for sp in si_sales_person:
+                sales_team_dict[sp.sales_person] = sales_team_dict[sp.sales_person] + si.base_total
+        return sales_team_dict        
+
+    def set_sales_invoice_report(self):
+        #get/group all sales invoice made today
+        sales_invoices = self.get_all_sales_invoice_for_today()
+        sales_team_dict = self.group_si_by_sales_person(sales_invoices)
+        self.si_today = sum(sales_team_dict.values())
+        for key,value in sales_team_dict.iteritems():
+            self.append("si_table_today", {'sales_person': key, 'amount': value})
+
+        #get/group all sales invoice made this month
+        sales_invoices = self.get_all_sales_invoice_for_curr_month()
+        sales_team_dict = self.group_si_by_sales_person(sales_invoices)
+        self.si_curr_month = sum(sales_team_dict.values())
+        for key,value in sales_team_dict.iteritems():
+            self.append("si_table_month", {'sales_person': key, 'amount': value})
+
+        #get/group all sales invoice made this year
+        sales_invoices = self.get_all_sales_invoice_for_curr_year()
+        sales_team_dict = self.group_si_by_sales_person(sales_invoices)
+        self.si_curr_year = sum(sales_team_dict.values())
+        for key,value in sales_team_dict.iteritems():
+            self.append("si_table_year", {'sales_person': key, 'amount': value})
 
     def set_sales_order_report(self):
         #get/group all sales order made today
@@ -131,53 +163,47 @@ class CompanyStats(Document):
         sales_orders = self.get_all_sales_order_for_curr_year()
         sales_team_dict = self.group_so_by_sales_person(sales_orders)
         self.so_curr_year = sum(sales_team_dict.values())
-
-        #get/group all open order made this today
-        sales_orders = self.get_all_open_sales_order_for_today()
-        sales_team_dict = self.group_so_by_sales_person(sales_orders)
-        self.oo_today = sum(sales_team_dict.values())
         for key,value in sales_team_dict.iteritems():
-            self.append("oo_table_today", {'sales_person': key, 'amount': value})
+            self.append("sales_order_curr_year", {'sales_person': key, 'amount': value})
 
-        #get/group all sales order made this month
-        sales_orders = self.get_all_open_sales_order_for_curr_month()
-        sales_team_dict = self.group_so_by_sales_person(sales_orders)
-        self.oo_curr_month = sum(sales_team_dict.values())
-        for key,value in sales_team_dict.iteritems():
-            self.append("oo_table_curr_month", {'sales_person': key, 'amount': value})
 
-        #get/group all sales order made this year
+        #get/group all open order
         sales_orders = self.get_all_open_sales_order_for_curr_year()
         sales_team_dict = self.group_so_by_sales_person(sales_orders)
-        self.oo_curr_year = sum(sales_team_dict.values())
-
+        self.oo_curr_open = sum(sales_team_dict.values())
+        for key,value in sales_team_dict.iteritems():
+            self.append("oo_table_curr_open_order", {'sales_person': key, 'amount': value})
     
     def get_all_quote_for_today(self):
         now = self.get_curr_day()
-        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': now, 'status': 'Submitted',}, fields={'base_grand_total', 'name', 'sales_person'})
+        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': now, 'status': ('IN', 'Submitted, Ordered, Lost, Open, Replied')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'}) #if quote is from lead, there's no customer, just a customer_namr
 
     def get_all_quote_for_curr_month(self):
         now = self.get_curr_day()
         mtd = now.replace(day=1)
-        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('<=', now) and ('>=', mtd), 'status': 'Submitted'}, fields={'base_grand_total', 'name', 'sales_person'})
+        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('<=', now) and ('>=', mtd), 'status': ('IN', 'Submitted, Ordered, Lost, Open, Replied')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
 
     def get_all_quote_for_curr_year(self):
         now = self.get_curr_day()
         ytd = now.replace(year = now.year-1, month=11, day=1)
-        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('<=', now) and ('>=', ytd), 'status': 'Submitted'}, fields={'base_grand_total', 'name', 'sales_person'})
+        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('<=', now) and ('>=', ytd), 'status': ('IN', 'Submitted, Ordered, Lost, Open, Replied')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
 
     def get_all_quote_open_since_past_year(self):
         now = self.get_curr_day()
         ytd = now.replace(year = now.year-1)
-        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('<=', ytd), 'status': 'Draft'}, fields={'base_grand_total', 'name', 'sales_person'})
+        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('<=', ytd), 'status': ('IN', 'Submitted, Open, Replied')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
 
     def group_quote_by_sales_person(self, quotes=[]):
         sales_team_dict = self.get_all_sales_team_as_dict()
+        have_other = False
         for quote in quotes:
             if quote.sales_person:
-    			sales_team_dict[quote.sales_person] = sales_team_dict[quote.sales_person] + quote.base_grand_total
+    			sales_team_dict[quote.sales_person] = sales_team_dict[quote.sales_person] + quote.base_total
+            elif not have_other: #if no sales person for the quote, we want to create a new category 'Other'
+                sales_team_dict["Other"] = quote.base_total
+                have_other = True
             else:
-                sales_team_dict['Other'] = sales_team_dict['Other'] + quote.base_grand_total
+                sales_team_dict["Other"] = sales_team_dict["Other"] + quote.base_total
         return sales_team_dict
 
     def set_quote_report(self):
@@ -196,7 +222,7 @@ class CompanyStats(Document):
             self.append("quote_table_month", {'sales_person': key, 'amount': value})
 
         #get/group all Quotes made this year
-        quotes = self.get_all_quote_for_curr_year()
+        quotes = self.get_all_quote_for_curr_year()        
         sales_team_dict = self.group_quote_by_sales_person(quotes)
         self.quote_curr_year = sum(sales_team_dict.values())
 
@@ -318,6 +344,3 @@ class CompanyStats(Document):
 
         self.cd_today = self.get_all_customer_deposit_for_today()
         self.cd_curr_month = self.get_all_customer_deposit_for_curr_month()
-
-        self.deposit_today = self.cd_today + self.pe_today
-        self.deposit_curr_month = self.cd_curr_month + self.pe_curr_month

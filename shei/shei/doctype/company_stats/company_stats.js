@@ -28,6 +28,8 @@ frappe.ui.form.on('Company Stats', {
 				refresh_field("quote_table_today");
 				refresh_field("quote_table_month");
 				refresh_field("quote_table_one_year_old");
+				refresh_field("si_table_today");
+				refresh_field("si_table_month");
 			}
 		});
 	},
@@ -47,6 +49,8 @@ frappe.ui.form.on('Company Stats', {
 				refresh_field("quote_table_today");
 				refresh_field("quote_table_month");
 				refresh_field("quote_table_one_year_old");
+				refresh_field("si_table_today");
+				refresh_field("si_table_month");
 			}
 		});
 	},
