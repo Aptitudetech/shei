@@ -33,7 +33,8 @@ frappe.query_reports["Accounts Receivable US SHEI"] = {
 			"fieldname":"advance_payment",
 				"label": __("Advance Payment"),
 				"fieldtype": "Select",
-				"options": "\nRemove CD-\nOnly CD-"
+				"options": "\nRemove CD-\nOnly CD-",
+				"default": "Remove CD-"
 		},
 		{
 			"fieldtype": "Break",

@@ -67,6 +67,11 @@ class CompanyStats(Document):
     def get_curr_day(self):
         return datetime.strptime(utils.today(), '%Y-%m-%d')
 
+    def get_start_of_year(self):
+        from erpnext.accounts.utils import get_fiscal_year
+        start_year = get_fiscal_year(date=self.get_curr_day(), company=frappe.db.get_default("company"), as_dict=True)
+        return start_year['year_start_date']
+
     def get_all_sales_team_as_dict(self):
         sales_team_dict = {}
         sales_team_list = frappe.db.get_all('Sales Person', fields={'name'})
@@ -81,12 +86,12 @@ class CompanyStats(Document):
     def get_all_sales_order_for_curr_month(self):
         now = self.get_curr_day()
         mtd = now.replace(day=1)
-        return frappe.db.get_all('Sales Order', filters={'transaction_date': ('<=', now) and ('>=', mtd), 'status': ('IN', "To Deliver and Bill, To Bill, To Deliver, Completed, Closed")}, fields={'base_total', 'name', 'customer'})
+        return frappe.db.get_all('Sales Order', filters={'transaction_date': ('between', (mtd, now)), 'status': ('IN', "To Deliver and Bill, To Bill, To Deliver, Completed, Closed")}, fields={'base_total', 'name', 'customer'})
 
     def get_all_sales_order_for_curr_year(self):
         now = self.get_curr_day()
-        ytd = now.replace(year = now.year-1, month=11, day=1)
-        return frappe.db.get_all('Sales Order', filters={'transaction_date': ('<=', now) and ('>=', ytd), 'status': ('IN', "To Deliver and Bill, To Bill, To Deliver, Completed, Closed")}, fields={'base_total', 'name', 'customer'})
+        ytd = self.get_start_of_year()
+        return frappe.db.get_all('Sales Order', filters={'transaction_date': ('between', (ytd, now)), 'status': ('IN', "To Deliver and Bill, To Bill, To Deliver, Completed, Closed")}, fields={'base_total', 'name', 'customer'})
 
     def get_all_open_sales_order_for_curr_year(self):
         return frappe.db.get_all('Sales Order', filters={'status': ('IN', 'To Bill, To Deliver and Bill')}, fields={'base_total', 'name', 'customer'})
@@ -106,12 +111,14 @@ class CompanyStats(Document):
     def get_all_sales_invoice_for_curr_month(self):
         now = self.get_curr_day()
         mtd = now.replace(day=1)
-        return frappe.db.get_all('Sales Invoice', filters={'posting_date': ('<=', now) and ('>=', mtd), 'status': ('IN', "Return, Credit Note Issued, Submitted, Paid, Unpaid, Overdue")}, fields={'base_total', 'name', 'customer'})
+        now = datetime.date(now)
+        mtd = datetime.date(mtd)
+        return frappe.db.get_all('Sales Invoice', filters={'posting_date': ('between', (mtd, now)), 'status': ('IN', "Return, Credit Note Issued, Submitted, Paid, Unpaid, Overdue")}, fields={'base_total', 'name', 'customer'})
 
     def get_all_sales_invoice_for_curr_year(self):
         now = self.get_curr_day()
-        ytd = now.replace(year = now.year-1, month=11, day=1)
-        return frappe.db.get_all('Sales Invoice', filters={'posting_date': ('<=', now) and ('>=', ytd), 'status': ('IN', "Return, Credit Note Issued, Submitted, Paid, Unpaid, Overdue")}, fields={'base_total', 'name', 'customer'})
+        ytd = self.get_start_of_year()
+        return frappe.db.get_all('Sales Invoice', filters={'posting_date': ('between', (ytd, now)), 'status': ('IN', "Return, Credit Note Issued, Submitted, Paid, Unpaid, Overdue")}, fields={'base_total', 'name', 'customer'})
 
 
     def group_si_by_sales_person(self, sales_invoices=[]):
@@ -181,12 +188,12 @@ class CompanyStats(Document):
     def get_all_quote_for_curr_month(self):
         now = self.get_curr_day()
         mtd = now.replace(day=1)
-        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('<=', now) and ('>=', mtd), 'status': ('IN', 'Submitted, Ordered, Lost, Open, Replied')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
+        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('between', (mtd, now)), 'status': ('IN', 'Submitted, Ordered, Lost, Open, Replied')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
 
     def get_all_quote_for_curr_year(self):
         now = self.get_curr_day()
-        ytd = now.replace(year = now.year-1, month=11, day=1)
-        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('<=', now) and ('>=', ytd), 'status': ('IN', 'Submitted, Ordered, Lost, Open, Replied')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
+        ytd = self.get_start_of_year()
+        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('between', (ytd, now)), 'status': ('IN', 'Submitted, Ordered, Lost, Open, Replied')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
 
     def get_all_quote_open_since_past_year(self):
         now = self.get_curr_day()
@@ -233,7 +240,6 @@ class CompanyStats(Document):
         for key,value in sales_team_dict.iteritems():
             self.append("quote_table_one_year_old", {'sales_person': key, 'amount': value})
 
-
     def set_receivable_report(self):
         args = {   
             "party_type": "Customer",
@@ -247,6 +253,12 @@ class CompanyStats(Document):
         data = map(dict, [zip(columns, json.loads(frappe.as_json(row))) for row in data if "'Total'" not in row])
         outstanding = sum([row['outstanding_amount'] for row in data])
         self.receivable_cad = outstanding
+        first_range = sum([row['0_30'] for row in data])
+        self.ageing_thirty_cad = first_range
+        second_range = sum([row['31_60'] for row in data])
+        self.ageing_sixty_cad = second_range
+        third_range = sum([row['61_90'] for row in data])
+        self.ageing_ninety_cad = third_range
 
         #get receivable account CAD Without Customer Deposit
         filters = {'advance_payment': 'Remove CD-', 'currency': 'CAD', 'company': frappe.defaults.get_user_default("Company"), 'report_date': datetime.now(), 'ageing_based_on': 'Posting Date', 'range1': '30', 'range2': '60', 'range3': '90'}
@@ -257,6 +269,12 @@ class CompanyStats(Document):
         data = map(dict, [zip(columns, json.loads(frappe.as_json(row))) for row in data if "'Total'" not in row])
         outstanding = sum([row['outstanding_amount'] for row in data])
         self.receivable_cad_without_cd = outstanding
+        first_range = sum([row['0_30'] for row in data])
+        self.ageing_thirty_cad_without_cd = first_range
+        second_range = sum([row['31_60'] for row in data])
+        self.ageing_sixty_cad_without_cd = second_range
+        third_range = sum([row['61_90'] for row in data])
+        self.ageing_ninety_cad_without_cd = third_range
         
         #get receivable account USD With Customer Deposit
         filters = {'advance_payment': 'Only CD-', 'company': frappe.defaults.get_user_default("Company"), 'report_date': datetime.now(), 'ageing_based_on': 'Posting Date', 'range1': '30', 'range2': '60', 'range3': '90'}
@@ -267,6 +285,12 @@ class CompanyStats(Document):
         data = map(dict, [zip(columns, json.loads(frappe.as_json(row))) for row in data if "'Total'" not in row])
         outstanding = sum([row['outstanding_amount'] for row in data])
         self.receivable_usd = outstanding
+        first_range = sum([row['0_30'] for row in data])
+        self.ageing_thirty_usd = first_range
+        second_range = sum([row['31_60'] for row in data])
+        self.ageing_sixty_usd = second_range
+        third_range = sum([row['61_90'] for row in data])
+        self.ageing_ninety_usd = third_range
 
         #get receivable account USD Without Customer Deposit
         filters = {'advance_payment': 'Remove CD-', 'company': frappe.defaults.get_user_default("Company"), 'report_date': datetime.now(), 'ageing_based_on': 'Posting Date', 'range1': '30', 'range2': '60', 'range3': '90'}
@@ -279,6 +303,12 @@ class CompanyStats(Document):
 
         outstanding = sum([row['outstanding_amount'] for row in data])
         self.receivable_usd_without_cd = outstanding
+        first_range = sum([row['0_30'] for row in data])
+        self.ageing_thirty_usd_without_cd = first_range
+        second_range = sum([row['31_60'] for row in data])
+        self.ageing_sixty_usd_without_cd = second_range
+        third_range = sum([row['61_90'] for row in data])
+        self.ageing_ninety_usd_without_cd = third_range
 
     def set_payable_report(self):
         args = {
@@ -312,7 +342,7 @@ class CompanyStats(Document):
     def get_all_payment_entry_for_curr_month(self):
         now = self.get_curr_day()
         mtd = now.replace(day=1)
-        return frappe.db.get_all('Payment Entry', filters={'payment_type': 'Receive', 'posting_date': ('<=', now) and ('>=', mtd)}, fields={'base_paid_amount', 'name'})
+        return frappe.db.get_all('Payment Entry', filters={'payment_type': 'Receive', 'posting_date': ('between', (mtd, now))}, fields={'base_paid_amount', 'name'})
 
     def get_all_customer_deposit_for_today(self):
         now = self.get_curr_day()
@@ -326,7 +356,7 @@ class CompanyStats(Document):
     def get_all_customer_deposit_for_curr_month(self):
         now = self.get_curr_day()
         mtd = now.replace(day=1)
-        customer_deposits = frappe.db.get_all('Customer Deposit', filters={'posting_date': ('<=', now) and ('>=', mtd)}, fields={'name'})
+        customer_deposits = frappe.db.get_all('Customer Deposit', filters={'posting_date': ('between', (mtd, now))}, fields={'name'})
         amount = 0
         for cd in customer_deposits:
             deposits = frappe.db.get_all('Customer Deposit Quotation', filters={'parenttype': 'Customer Deposit', 'parent': cd.name}, fields={'grand_total'})
