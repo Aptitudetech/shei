@@ -16,6 +16,7 @@ import json
 class CompanyStats(Document):
 
     def onload(self):
+        self.exchange_rate = self.get_rate_exchange_us_cad()
         self.btn_load_resume_button()        
 
     def btn_load_resume_button(self):
@@ -240,7 +241,12 @@ class CompanyStats(Document):
         for key,value in sales_team_dict.iteritems():
             self.append("quote_table_one_year_old", {'sales_person': key, 'amount': value})
 
+    def get_rate_exchange_us_cad(self):
+        rate = frappe.db.get_values('Currency Exchange', {'from_currency':'USD', 'to_currency':'CAD'}, ['exchange_rate'], order_by='creation', as_dict=True)[-1]['exchange_rate']
+        return rate
+
     def set_receivable_report(self):
+        
         args = {   
             "party_type": "Customer",
             "naming_by": ["Selling Settings", "cust_master_name"],
@@ -284,13 +290,13 @@ class CompanyStats(Document):
         columns = map(frappe.scrub, [(r["fieldname"] if isinstance(r, dict) else r.split(':')[0]) for r in columns])
         data = map(dict, [zip(columns, json.loads(frappe.as_json(row))) for row in data if "'Total'" not in row])
         outstanding = sum([row['outstanding_amount'] for row in data])
-        self.receivable_usd = outstanding
+        self.receivable_usd = outstanding * self.exchange_rate
         first_range = sum([row['0_30'] for row in data])
-        self.ageing_thirty_usd = first_range
+        self.ageing_thirty_usd = first_range * self.exchange_rate
         second_range = sum([row['31_60'] for row in data])
-        self.ageing_sixty_usd = second_range
+        self.ageing_sixty_usd = second_range * self.exchange_rate
         third_range = sum([row['61_90'] for row in data])
-        self.ageing_ninety_usd = third_range
+        self.ageing_ninety_usd = third_range * self.exchange_rate
 
         #get receivable account USD Without Customer Deposit
         filters = {'advance_payment': 'Remove CD-', 'company': frappe.defaults.get_user_default("Company"), 'report_date': datetime.now(), 'ageing_based_on': 'Posting Date', 'range1': '30', 'range2': '60', 'range3': '90'}
@@ -302,13 +308,13 @@ class CompanyStats(Document):
         #frappe.msgprint(_("data: {0}").format(data))
 
         outstanding = sum([row['outstanding_amount'] for row in data])
-        self.receivable_usd_without_cd = outstanding
+        self.receivable_usd_without_cd = outstanding * self.exchange_rate
         first_range = sum([row['0_30'] for row in data])
-        self.ageing_thirty_usd_without_cd = first_range
+        self.ageing_thirty_usd_without_cd = first_range * self.exchange_rate
         second_range = sum([row['31_60'] for row in data])
-        self.ageing_sixty_usd_without_cd = second_range
+        self.ageing_sixty_usd_without_cd = second_range * self.exchange_rate
         third_range = sum([row['61_90'] for row in data])
-        self.ageing_ninety_usd_without_cd = third_range
+        self.ageing_ninety_usd_without_cd = third_range * self.exchange_rate
 
     def set_payable_report(self):
         args = {
