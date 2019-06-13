@@ -24,18 +24,18 @@ class FirstOpenTaskbyOpenProject(object):
 	def get_columns(self, args):
         	user_roles = frappe.get_roles(frappe.session.user)
         	columns = [_("Project") + ":Link/Project:250"]
-        	columns += [_("Project Name") + ":text:250"]
-        	columns += [_("Amount") + ":Currency:90"]
-        	columns += [_("SubType") + ":text:105"]
-        	columns += [_("Subject") + ":text:250"]
-        	columns += [_("Task") + ":Link/Task:100"]
+        	columns += [_("Project Name") + ":text:200"]
+        	columns += [_("Subject") + ":text:225"]
         	columns += [_("Status") + ":text:105"]
         	columns += [_("Exp. End Date") + ":date:90"]
         	if ('Projects Manager' in user_roles):
-            		columns += [_("Absolute End Date") + ":date:90"]
+            		columns += [_("Abs. End Date") + ":date:90"]
+        	columns += [_("Amount") + ":Currency:90"]
+        	columns += [_("SubType") + ":text:105"]
         	columns += [_("Project Manager") + ":Link/User:150"]
        		columns += [_("Type") + ":text:105"]
         	columns += [_("Assigned To") + ":Link/User:150"]
+        	columns += [_("Task") + ":Link/Task:100"]
         	return columns
 
 	def get_data(self, args):
@@ -47,16 +47,16 @@ class FirstOpenTaskbyOpenProject(object):
             		data = frappe.db.sql("""SELECT
                 		tabProject.name,
                 		tabProject.shei_project_name,
-                		tabProject.project_amount_from_so,
-                		tabProject.sub_type,
                 		tabTask.subject,
-                		tabTask.name,
                 		tabTask.status,
                 		tabProject.expected_end_date,
                 		tabProject.absolute_end_date,
+                		tabProject.project_amount_from_so,
+                		tabProject.sub_type,
                 		tabProject.project_manager,
                 		tabProject.type,
-                		tabTask.assigned_to
+                		tabTask.assigned_to,
+                		tabTask.name
                 		FROM tabProject
                 		LEFT OUTER JOIN tabTask
                 		    ON tabProject.name = tabTask.project
@@ -68,15 +68,15 @@ class FirstOpenTaskbyOpenProject(object):
         	    data = frappe.db.sql("""SELECT
                 	tabProject.name,
                 	tabProject.shei_project_name,
-                	tabProject.project_amount_from_so,
-                	tabProject.sub_type,
                 	tabTask.subject,
-               	 	tabTask.name,
                 	tabTask.status,
                 	tabProject.expected_end_date,
+                	tabProject.project_amount_from_so,
+                	tabProject.sub_type,
                 	tabProject.project_manager,
                 	tabProject.type,
-                	tabTask.assigned_to
+                	tabTask.assigned_to,
+               	 	tabTask.name
                 	FROM tabProject
                 	LEFT OUTER JOIN tabTask
                 	    ON tabProject.name = tabTask.project
