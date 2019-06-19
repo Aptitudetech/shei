@@ -98,7 +98,9 @@ class CompanyStats(Document):
         return frappe.db.get_all('Sales Order', filters={'transaction_date': ('between', (ytd, now)), 'status': ('IN', "To Deliver and Bill, To Bill, To Deliver, Completed, Closed")}, fields={'base_total', 'name', 'customer'})
 
     def get_all_open_sales_order_for_curr_year(self):
-        return frappe.db.get_all('Sales Order', filters={'status': ('IN', 'To Bill, To Deliver and Bill')}, fields={'base_total', 'name', 'customer'})
+        now = self.get_curr_day()
+        ytd = self.get_start_of_year()
+        return frappe.db.get_all('Sales Order', filters={'status': ('NOT IN', 'Draft, Cancelled, Closed'), 'transaction_date': ('between', (ytd, now))}, fields={'base_total', 'name', 'customer'})
 
     def group_so_by_sales_person(self, sales_orders=[]):
         '''Returns a dict of sales person and the total amount of sales order they make'''
@@ -111,19 +113,19 @@ class CompanyStats(Document):
         
     def get_all_sales_invoice_for_today(self):
         now = self.get_curr_day()
-        return frappe.db.get_all('Sales Invoice', filters={'posting_date': now, 'status': ('IN', "Return, Credit Note Issued, Submitted, Paid, Unpaid, Overdue")}, fields={'base_total', 'name', 'customer'})
+        return frappe.db.get_all('Sales Invoice', filters={'posting_date': now, 'status': ('NOT IN', "Draft, Cancelled")}, fields={'base_total', 'name', 'customer'})
 
     def get_all_sales_invoice_for_curr_month(self):
         now = self.get_curr_day()
         mtd = now.replace(day=1)
         now = datetime.date(now)
         mtd = datetime.date(mtd)
-        return frappe.db.get_all('Sales Invoice', filters={'posting_date': ('between', (mtd, now)), 'status': ('IN', "Return, Credit Note Issued, Submitted, Paid, Unpaid, Overdue")}, fields={'base_total', 'name', 'customer'})
+        return frappe.db.get_all('Sales Invoice', filters={'posting_date': ('between', (mtd, now)), 'status': ('NOT IN', "Draft, Cancelled")}, fields={'base_total', 'name', 'customer'})
 
     def get_all_sales_invoice_for_curr_year(self):
         now = self.get_curr_day()
         ytd = self.get_start_of_year()
-        return frappe.db.get_all('Sales Invoice', filters={'posting_date': ('between', (ytd, now)), 'status': ('IN', "Return, Credit Note Issued, Submitted, Paid, Unpaid, Overdue")}, fields={'base_total', 'name', 'customer'})
+        return frappe.db.get_all('Sales Invoice', filters={'posting_date': ('between', (ytd, now)), 'status': ('NOT IN', "Draft, Cancelled")}, fields={'base_total', 'name', 'customer'})
 
     def group_si_by_sales_person(self, sales_invoices=[]):
         '''Returns a dict of sales person and the total amount of sales invoice they make'''
@@ -196,22 +198,20 @@ class CompanyStats(Document):
         
     def get_all_quote_for_today(self):
         now = self.get_curr_day()
-        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': now, 'status': ('IN', 'Submitted, Ordered, Lost, Open, Replied')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'}) #if quote is from lead, there's no customer, just a customer_namr
+        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': now, 'status': ('NOT IN', 'Draft, Ordered, Lost, Cancelled'), 'other_version_existing_quote_sh_':False}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'}) #if quote is from lead, there's no customer, just a customer_namr
 
     def get_all_quote_for_curr_month(self):
         now = self.get_curr_day()
         mtd = now.replace(day=1)
-        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('between', (mtd, now)), 'status': ('IN', 'Submitted, Ordered, Lost, Open, Replied')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
+        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('between', (mtd, now)), 'status': ('NOT IN', 'Draft, Ordered, Lost, Cancelled'), 'other_version_existing_quote_sh_':False}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
 
     def get_all_quote_for_curr_year(self):
         now = self.get_curr_day()
         ytd = self.get_start_of_year()
-        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('between', (ytd, now)), 'status': ('IN', 'Submitted, Ordered, Lost, Open, Replied')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
+        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('between', (ytd, now)), 'status': ('NOT IN', 'Draft, Ordered, Lost, Cancelled'), 'other_version_existing_quote_sh_':False}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
 
     def get_all_quote_open_since_past_year(self):
-        now = self.get_curr_day()
-        ytd = now.replace(year = now.year-1)
-        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'transaction_date': ('<=', ytd), 'status': ('IN', 'Submitted, Open, Replied')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
+        return frappe.db.get_all('Quotation', filters={'name': ('like', '%QTN%'), 'status': ('NOT IN', 'Draft, Ordered, Lost, Cancelled')}, fields={'base_total', 'name', 'sales_person', 'quotation_to', 'customer', 'lead'})
 
     def group_quote_by_sales_person(self, quotes=[]):
         sales_team_dict = self.get_all_sales_team_as_dict()
