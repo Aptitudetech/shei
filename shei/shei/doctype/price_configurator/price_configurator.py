@@ -7,9 +7,183 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
-import easypost
+#import easypost
 
 class PriceConfigurator(Document):
+
+	#Entry Point : Calculate Final Price button
+	def calculate_final_price(self):
+        	panels = frappe.db.get_all('Price Configurator Item', fields=['*'], filters={'parenttype': 'Price Configurator', 'parent': self.name})
+        	self.set_panel_data(panels)
+        	self.get_total(panels)
+
+	def set_panel_data(self):
+        	self.set("price_configurator_items", [])
+        	for panel in panels:
+        		panel.sqft_per_panel = self.convert_measurement_to_foot(panel.height) * self.convert_measurement_to_foot(panel.width)
+            		panel.back_price = self.get_back_price()
+            		panel.aluminium_price = self.get_alto_alum_price()
+            		panel.discount_dollar_customer_currency = panel.aluminium_price * panel.discount_pourcent
+            		panel.discounted_price_customer_currency = panel.aluminium_price - panel.discount_dollar_customer_currency
+            		panel.thickness_price = self.get_thickness_price()
+            		panel.cut_price = self.get_cut_price(panel.outsource_amount)
+            		panel.zclip_price = self.calculate_zclip_price(panel.zclip_qty ,panel.width, panel.height)
+            		panel.wallmount_kit_price = self.calculate_wallmount_kit_price(panel.wallmount_kit, panel.width, panel.height)
+            		panel.lbracket_price = self.calculate_lbracket_price(panel.lbracket_qty, panel.width, panel.height)
+            		panel.line_price_cad = panel.aluminium_price + panel.back_price + panel.thickness_price + panel.cut_price + zclip_price + wallmount_kit_price + lbracket_price
+            		panel.line_price_customer_currency = self.convert_panel_price_to_customer_currency(panel)
+            		self.append("price_configurator_items", panel)
+        	return panels
+
+	def convert_panel_price_to_customer_currency(self, panel):
+	        if self.preferred_currency == 'CAD':
+        		panel.line_price_customer_currency = panel.line_price_cad #the prices are already in CAD, no changes required
+            	return
+        	rate = frappe.db.get_values('Currency Exchange', {'from_currency':self.preferred_currency, 'to_currency':'CAD', 'for_selling':True}, ['exchange_rate'], order_by='creation', as_dict=True)[-1]['exchange_rate'] #takes the last created currency excahnge for the given currency
+        	rate = self.get_exchange_rate()
+        	panel.back_price = panel.back_price * rate
+        	panel.aluminium_price = panel.aluminium_price * rate
+        	panel.thickness_price = panel.thickness_price * rate
+        	panel.cut_price = panel.cut_price * rate
+        	panel.zclip_price = panel.zclip_price * rate
+        	panel.wallmount_kit_price = panel.wallmount_kit_price * rate
+        	panel.lbracket_price = panel.lbracket_price * rate
+        	panel.line_price_customer_currency = panel.line_price_cad * rate
+        	panel.discounted_price_customer_currency = panel.discounted_price_customer_currency * rate
+
+	def get_exchange_rate(self):
+        	return frappe.db.get_values('Currency Exchange', {'from_currency':self.preferred_currency, 'to_currency':'CAD', 'for_selling':True}, ['exchange_rate'], order_by='creation', as_dict=True)[-1]['exchange_rate'] #takes the last created currency excahnge for the given currency
+
+    	def get_alto_alum_price(self):
+        	if panel.have_aluminium = True:
+            		aluminium_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':'ALUM PROVIDED'}, 'price_list_rate')
+        	else:
+        		aluminium_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"ALTO PANELS"}, 'price_list_rate')
+        	return aluminium_price * panel.sqft_per_panel
+
+	def get_back_price(self):
+	        back_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':panel.back}, 'price_list_rate')
+        	if panel.back = "2S" or panel.back = "Sintra":
+        		back_price = back_price * panel.sqft_per_panel
+        	else:
+            		back_price = back_price * panel.qty
+        	return back_price
+
+	def get_thickness_price(self):
+        	thickness = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':panel.thickness}, 'price_list_rate')
+        	return thickness * panel.sqft_per_panel
+
+	def get_cut_price(self, amount): #if not cut_price -> ie is outsource
+        	if is_outsource:
+            		cut_price = (amount * 0.3) + amount
+        	else:
+            		cut_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':panel.cut}, 'price_list_rate') * panel.qty
+        	return cut_price
+
+    	def get_additional_preflight_price(self, nb_file, preflight_price):
+        #The first file cost a certain amount, but any additionnal price willl be at a different price
+        	if self.number_of_files > 1:
+            		additional_file_qty = self.number_of_files - 1
+            		additional_preflight_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"ADDITIONAL PREFLIGHT"}, 'price_list_rate')
+            		preflight_price = preflight_price + (additional_preflight_price * additional_file_qty)
+        	return preflight_price or 0
+
+	def get_total_graphic_price(self):
+        #self.preflight_price = self.get_preflight_price(nb_file)
+	        if self.need_colour_match:
+            		colour_match_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"COLOUR MATCH"}, 'price_list_rate')
+            		colour_match_price = colour_match_price * self.nb_colour_to_match
+        	if self.have_matching_mural: #'matching for murals
+            		matching_mural_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"MATCHING"}, 'price_list_rate')
+        	if self.graphic_design:
+            		graphic_design_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"INFOGRAPHIE"}, 'price_list_rate')
+            		graphic_design_price = graphic_design_price * self.graphic_design_nb_hours
+        	if self.sample_with_order > 0:
+            		sample_with_order_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"SAMPLES WITH ORDER"}, 'price_list_rate')
+            		sample_with_order_price = sample_with_order_price * self.sample_with_order
+        	if self.sample_without_order > 0:
+            		sample_without_order_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"SAMPLES WITHOUT ORDER"}, 'price_list_rate')
+            		sample_without_order_price = sample_without_order_price * self.sample_without_order
+        	self.colour_match_price = colour_match_price or 0
+        	self.preflight_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"PREFLIGHT"}, 'price_list_rate') #even when there's no preflight, we charge it
+        	self.additional_preflight_price = self.get_additional_preflight_price(nb_file)
+        	studs_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"ALTO STUDS P"}, 'price_list_rate')
+        	self.total_studs_price = self.studs_qty * studs_price
+        	av_nuts_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"NUTS"}, 'price_list_rate')
+        	self.total_av_nuts_price = self.nuts_qty * av_nuts_price
+        	tools = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"TOOLS"}, 'price_list_rate')
+        	self.total_tools_price = self.total_tools * tools
+        	folds_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"ALTO FOLDS"}, 'price_list_rate')
+        	self.total_folds_price = folds_price * self.folds_qty
+        	holes_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"HOLES"}, 'price_list_rate')
+        	self.total_holes_price = holes_price * self.holes_qty
+        	technical_drawing_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"TECHNICAL DRAWINGS"}, 'price_list_rate')
+        	self.technical_drawing_price = technical_drawing_price * self.technical_drawing_hours
+        	return self.colour_match_price + self.preflight_price + self.additional_preflight_price + self.total_studs_price + self.total_av_nuts_price + self.total_tools_price + self.total_folds_price + self.total_holes_price + self.technical_drawing_price
+
+	def get_other_price(self):
+	        self.total_panel_quantity = sum(p.qty for p in panels)
+        	self.total_zclip_price = sum(p.zclip_price for p in panels)
+        	self.total_wallmount_kit_price = sum(p.wallmount_kit_price for p in panels)
+        	self.total_wallmount_kit_qty = sum(p.wallmount_kit_qty for p in panels)
+        	self.total_wallmount_lbracket_price = sum(p.wallmount_lbracket_price for p in panels)
+        	self.wallmount_lbracket_qty = sum(p.wallmount_lbracket_qty for p in panels)
+        	return self.total_panel_quantity + self.total_zclip_price + self.total_wallmount_kit_price + self.total_wallmount_kit_qty + self.total_wallmount_lbracket_price + self.wallmount_lbracket_qty
+
+    	def get_total(self, panels = []):
+        	graphic_price = self.get_total_graphic_price()
+        	other_price = self.get_other_price()
+        	self.total_line_price_cad = sum(p.line_price_cad for p in panels) + graphic_price + other_price
+        	self.total_line_price_customer_currency = sum(p.line_price_customer_currency for p in panels) + (graphic_price + other_price) * self.get_exchange_rate()
+        	self.discount_dollar = sum(p.discount_dollar for p in panels)
+        	self.total_discounted_price_customer_currency = sum(p.discount_price for p in panels)
+        	frappe.msgprint(_("Your quote is now complete"))
+
+	def convert_measurement_to_foot(self, nb):
+	        measurement = self.measurement
+        	if measurement == "MM":
+        		nb = nb / 25.4
+        	if measurement == "CM":
+            		nb = nb / 2.54
+        	if measurement == "FEET":
+            		nb = nb * 12
+        	return nb
+
+	def calculate_lbracket_price(self, bracket_qty, panel_width, panel_height):
+	        if bracket_qty = 0:
+        		return
+        	nb_bracket = 2
+        	lbracket_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"LBRACKET"}, 'price_list_rate'), 
+        	panel_height = self.convert_measurement_to_foot(panel_height)
+        	panel_width = self.convert_measurement_to_foot(panel_width)
+        	if panel_width >= 24:
+            		nb_bracket = 4 #we need an extra zclip (*3)
+        	return (intHeight * lbracket_price * nb_bracket) * bracket_qty #price for all panels
+
+    	def calculate_wallmount_kit_price(self, panel_qty, panel_width, panel_height):
+        	if panel.wallmount_kit = 0:
+            		return
+        	wallmount_kit_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"WALLMOUNT KIT"}, 'price_list_rate')
+        	panel_perimeter = 2 * (panel_width + panel_height)
+        	panel_perimeter_foot = convert_measurement_to_foot(panel_perimeter)
+        	wall_kit_price = wallmount_kit_price * panel_perimeter_foot
+        	wall_kit_price = wall_kit_price * panel_qty
+        	return wall_kit_price
+
+	def calculate_zclip_price(self, panel_qty, panel_width, panel_height):
+	        if panel.zclip_qty = 0:
+            		return
+        	zclip_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"ZCLIPS"}, 'price_list_rate')
+        	nb_zclip = 2
+        	panel_max_height = 72
+        	panel_height = self.convert_measurement_to_foot(panel_height)
+        	panel_width = self.convert_measurement_to_foot(panel_width)
+        	if panel_height >= panel_max_height:
+            		nb_zclip = 3 #we need an extra zclip (*3)
+        	zclip_price = (panel_width * zclip_price * nb_zclip) * panel_qty #price for all panel
+        	return zclip_price
+
+
 
 	def test_api(self):
 		import httplib
@@ -128,204 +302,6 @@ class PriceConfigurator(Document):
 			frappe.msgprint(_("currency RATE:  {0}").format(currency))
 			frappe.msgprint(_("RATEs:  {0}").format(rate_price))
 
-	def convert_measurement_to_mm(self, measurement, measure):
-		if measurement == 'mm':
-			measure = measure
-		if measurement == 'inches':
-			measure = measure * 25.4
-		if measurement == 'foot':
-			measure = measure * 304.8
-		return measure
-
-	def convert_mm_to_foot(self, measure):
-		return measure / 304.8
-
-	def get_sqft(self, height, width):
-		sqft = (height * width) #/ 144
-		#if sqft < 1:
-	#		frappe.throw(_("Sorry, the dimensions are too small : {0}  -  {1}").format( height, width  ))
-		return sqft
-
-	def get_discount_pourcent(self, total_discount_pourcent, panel_w_back):
-		if total_discount_pourcent > 0:
-			return (total_discount_pourcent / 100 ) * panel_w_back
-		else:
-			return 0
-
-	def convert_cad_to_usd(self, amount):
-		return amount / float(frappe.db.get_value('Price Configurator Setting', None, 'exchange_rate_usd'))
-
-	def calculate_prices_for_items(self, price_configurator_items, pc_total_discount_pourcent, pc_preferred_currency):
-		"""Calculate the price for each panel and update the table accordingly"""
-		self.set("price_configurator_items", [])
-		for item in price_configurator_items:
-			item.item_height_mm = self.convert_measurement_to_mm(self.pc_measurement, item.item_height)
-			item.item_width_mm = self.convert_measurement_to_mm(self.pc_measurement, item.item_width)
-			height_ft = self.convert_mm_to_foot(item.item_height_mm)
-			width_ft = self.convert_mm_to_foot(item.item_width_mm)
-			item.item_sqft_per_panel = self.get_sqft(height_ft, width_ft)
-			if item.is_zclip:
-				item.zclip_qty = self.get_zclip_quantity(item.item_height_mm)
-			else:
-				item.zclip_qty = 0
-			item.zclip_price = self.get_zclip_price(item.zclip_qty, item.item_width_mm, item.item_quantity)
-			item.item_panel_price_w_back = self.get_sqft_per_panel_price(item.item_sqft_per_panel, item.item_product, item.item_quantity)
-			item.item_discount_pourcent = pc_total_discount_pourcent
-			item.item_discount_dollar = self.get_discount_pourcent(pc_total_discount_pourcent, item.item_panel_price_w_back)
-			if item.item_discount_dollar > 0:
-				item.item_discount_price = item.item_panel_price_w_back - item.item_discount_dollar
-				item.item_line_price_cad = (item.item_discount_price * item.item_quantity) + item.zclip_price
-
-			else:
-				item.item_discount_price = 0
-				item.item_line_price_cad = item.item_panel_price_w_back
-
-			#item.item_line_price_cad = (item.item_discount_price * item.item_quantity) + item.zclip_price
-
-
-			item.item_line_price_usd = self.convert_cad_to_usd(item.item_line_price_cad)
-			item.item_unit_price_cad = item.item_discount_price + (item.zclip_price / item.item_quantity) #get the price for 1 panel
-			item.item_unit_price_usd = self.convert_cad_to_usd(item.item_unit_price_cad)
-			item.item_total_sqft = item.item_sqft_per_panel * item.item_quantity
-			item.price_line = self.get_preferred_currency(pc_preferred_currency, item.item_line_price_cad, item.item_line_price_usd)
-			self.append("price_configurator_items", item)
-
-	#Entry Point : Calculate Final Price button
-	def calculate_final_price(self):
-		"""Will calculate the final price based on price_configurator_item rows"""
-		price_configurator_items = frappe.db.get_all('Price Configurator Item', fields=['*'], filters={'parenttype': 'Price Configurator', 'parent': self.name})
-		self.pc_total_panel_quantity = sum(t.item_quantity for t in price_configurator_items)
-		self.pc_total_discount_pourcent = self.get_panel_qte_discount(self.pc_total_panel_quantity)		
-		self.calculate_prices_for_items(price_configurator_items, self.pc_total_discount_pourcent, self.pc_preferred_currency)
-		self.calculate_total_prices(price_configurator_items)
-		self.save()
-		frappe.msgprint("The price have been updated")
-
-	def calculate_total_prices(self, price_configurator_items):
-		'''Calculate the total final prices'''
-		self.pc_total_line_price_cad = sum(t.item_line_price_cad for t in price_configurator_items)
-		self.pc_total_zclip_price = sum(t.zclip_price for t in price_configurator_items)
-		self.pc_line_total_unit_price_cad = sum(t.item_unit_price_cad for t in price_configurator_items)
-		self.pc_total_unit_price_usd = sum(t.item_unit_price_usd for t in price_configurator_items)
-		self.pc_total_sqft = sum(t.item_total_sqft for t in price_configurator_items)
-		self.pc_total_sqft_per_panel = self.pc_total_sqft / self.pc_total_panel_quantity
-		self.pc_total_base_panel_price = sum(t.item_panel_price_w_back for t in price_configurator_items)
-		if self.pc_total_discount_pourcent > 0:
-			self.pc_discount_dollar = (self.pc_total_discount_pourcent / 100) * self.pc_total_base_panel_price
-		else:
-			self.pc_discount_dollar = 0
-		self.pc_total_discount_price = self.pc_total_base_panel_price - self.pc_discount_dollar
-		self.pc_total_studs_price = self.pc_total_studs * float(frappe.db.get_value('Misc Price', { 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'misc_part':'Studs'}, ['misc_price']))
-
-		self.pc_total_av_nuts_price = self.get_av_nuts_price(self.pc_total_av_nuts)
-		self.pc_unit_price_cad = self.pc_total_studs_price + self.pc_total_av_nuts_price
-		self.pc_unit_price_usd = self.convert_cad_to_usd(self.pc_unit_price_cad)
-
-	def get_zclip_price(self, qty, width, item_quantity):
-		width_inches = width / 25.4
-		zclip_width = int(width_inches - 4) #Need to remove 4 inches for the border of the panel + round upper
-		zclip_price = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'zclip_price')
-		return zclip_width * int(zclip_price) * qty * item_quantity
-
-	def get_preferred_currency(self, currency, line_price_cad, line_price_usd):
-		"""Returns the right amount, based on the selected currency"""
-		if currency == 'CAD':
-			return line_price_cad
-		else:
-			return line_price_usd
-
-	def get_panel_qte_discount(self, quantity):
-		"""Get the right discount based on the number of panel"""
-		discount = 0
-		panel_discount_list = frappe.get_all('Discount Range Price', fields=['discount_percent', 'discount_range'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': None })
-		panel_discount_list.sort(key=self.sort_list_by_discount_range, reverse=False) #need to order them to be able to get the right discount
-		for p in panel_discount_list:
-			if quantity == p.discount_range:
-				discount = p.discount_percent
-				break
-			if quantity > p.discount_range:
-				discount = p.discount_percent
-		return discount
-
-	def get_misc_price(self, misc):
-		misc_price = frappe.get_value('Misc Price', {'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting', 'misc_part':misc}, 'misc_price')
-		if not misc_price:
-			frappe.throw("Sorry, the select misc have not been set yet. Please contact your administrator.") #Change the message eventually
-		return misc_price
-
-
-	def get_sqft_per_panel_price(self, sqft_per_panel, item, qty):
-		"""Get sqft price based on the given sqft"""
-		factor = 1
-		sqft_per_panel = sqft_per_panel #round the number down
-		price_per_sqft = float(frappe.db.get_value('Item', item, 'price_per_sqft'))
-		sqft_per_panel_list = frappe.db.get_all('Panel Factor', fields=['panel_range', 'panel_factor'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
-
-		sqft_per_panel_list.sort(key=self.sort_list_by_panel_range, reverse=False) #Need to order to be able to get the right prices
-		for p in sqft_per_panel_list:
-			if qty == p.panel_range:
-				factor = p['panel_factor']
-				break
-			if qty > p.panel_range:
-				factor = p['panel_factor']
-		frappe.msgprint(_(" <strong>item: {0} </strong> --  sqft_per_panel: {1}  --  factor: {2}  --  qty: {3}").format(item, sqft_per_panel, factor, qty))
-		
-		return (price_per_sqft * qty * factor * sqft_per_panel)
-
-	def get_av_nuts_price(self, qty):
-		"""Get AV Nuts price based on qty"""
-		price = 0
-		av_nuts_price_list = frappe.get_all('AV Nuts Price Range', fields=['av_nuts_range', 'av_nuts_price'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
-
-		av_nuts_price_list.sort(key=self.sort_list_by_av_nuts_range, reverse=False) #Need to order to be able to get the right prices
-		for av in av_nuts_price_list:
-			if qty == av.av_nuts_range:
-				price = av['av_nuts_price']
-				break
-			if qty > av.av_nuts_range:
-				price = av['av_nuts_price']
-		return (qty * price) 
-
-	def get_zclip_quantity(self, height):
-		"""get zclkip quantity based on panel height"""
-		qty = 0
-		zclip_price_list = frappe.get_all('ZClip Range', fields=['zclip_range', 'zclip_qty'], filters={ 'parenttype': 'Price Configurator Setting', 'parent': 'Price Configurator Setting' })
-		zclip_price_list.sort(key=self.sort_list_by_zclip_range, reverse=False) #Need to order to be able to get the right prices
-		for zc in zclip_price_list:
-			if height == zc.zclip_range:
-				qty = zc['zclip_qty']
-				break
-			if height > zc.zclip_range:
-				qty = zc['zclip_qty']
-		return qty
-
-	def sort_list_by_zclip_range(self, json_obj):
-		"""Sort given json by zclip range"""
-		try:
-			return int(json_obj['zclip_range'])
-		except KeyError:
-			return 0
-
-	def sort_list_by_av_nuts_range(self, json_obj):
-		"""Sort given json by av nuts range"""
-		try:
-			return int(json_obj['av_nuts_range'])
-		except KeyError:
-			return 0
-
-	def sort_list_by_discount_range(self, json_obj):
-		"""Sort given json by discount_range"""
-		try:
-			return int(json_obj['discount_range'])
-		except KeyError:
-			return 0
-
-	def sort_list_by_panel_range(self, json_obj):
-		"""Sort given json by panel_range"""
-		try:
-			return int(json_obj['panel_range'])
-		except KeyError:
-			return 0
 
 
 @frappe.whitelist()

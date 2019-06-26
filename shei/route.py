@@ -5,6 +5,9 @@
 from __future__ import unicode_literals
 import frappe
 
+#@frappe.whitelist()
+#def shei.route.assign_to(args=None):
+
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
     from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
