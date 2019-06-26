@@ -55,7 +55,7 @@ class PriceConfigurator(Document):
         	return frappe.db.get_values('Currency Exchange', {'from_currency':self.preferred_currency, 'to_currency':'CAD', 'for_selling':True}, ['exchange_rate'], order_by='creation', as_dict=True)[-1]['exchange_rate'] #takes the last created currency excahnge for the given currency
 
     	def get_alto_alum_price(self):
-        	if panel.have_aluminium = True:
+        	if panel.have_aluminium == True:
             		aluminium_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':'ALUM PROVIDED'}, 'price_list_rate')
         	else:
         		aluminium_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"ALTO PANELS"}, 'price_list_rate')
@@ -63,7 +63,7 @@ class PriceConfigurator(Document):
 
 	def get_back_price(self):
 	        back_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':panel.back}, 'price_list_rate')
-        	if panel.back = "2S" or panel.back = "Sintra":
+        	if panel.back == "2S" or panel.back == "Sintra":
         		back_price = back_price * panel.sqft_per_panel
         	else:
             		back_price = back_price * panel.qty
@@ -150,7 +150,7 @@ class PriceConfigurator(Document):
         	return nb
 
 	def calculate_lbracket_price(self, bracket_qty, panel_width, panel_height):
-	        if bracket_qty = 0:
+	        if bracket_qty == 0:
         		return
         	nb_bracket = 2
         	lbracket_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"LBRACKET"}, 'price_list_rate'), 
@@ -161,7 +161,7 @@ class PriceConfigurator(Document):
         	return (intHeight * lbracket_price * nb_bracket) * bracket_qty #price for all panels
 
     	def calculate_wallmount_kit_price(self, panel_qty, panel_width, panel_height):
-        	if panel.wallmount_kit = 0:
+        	if panel.wallmount_kit == 0:
             		return
         	wallmount_kit_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"WALLMOUNT KIT"}, 'price_list_rate')
         	panel_perimeter = 2 * (panel_width + panel_height)
@@ -171,7 +171,7 @@ class PriceConfigurator(Document):
         	return wall_kit_price
 
 	def calculate_zclip_price(self, panel_qty, panel_width, panel_height):
-	        if panel.zclip_qty = 0:
+	        if panel.zclip_qty == 0:
             		return
         	zclip_price = frappe.db.get_value('Item Price', {'price_list':'Standard Selling', 'item_code':"ZCLIPS"}, 'price_list_rate')
         	nb_zclip = 2

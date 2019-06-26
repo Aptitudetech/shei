@@ -147,14 +147,14 @@ doc_events = {
 # Overriding Whitelisted Methods
 # ------------------------------
 #
-#override_whitelisted_methods = {
-#	"frappe.desk.form.assign_to":"shei.route.assign_to",
+override_whitelisted_methods = {
+	"frappe.desk.form.assign_to.add":"shei.route.assign_to_notify",
 #    "frappe.core.doctype.communication.email.make": "shei.events.make",
 #    #"frappe.desk.doctype.event.event.get_events": "shei.event.get_events",
 #    "erpnext.selling.doctype.sales_order.sales_order.make_sales_invoice": "shei.route.make_sales_invoice",
 # 	"frappe.model.mapper.make_mapped_doc": "shei.route.make_mapped_doc",
 #    "frappe.model.mapper.map_docs": "shei.route.map_docs"
-#}
+}
 
 
 fixtures = [

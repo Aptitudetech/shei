@@ -4,9 +4,18 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
+import json
 
-#@frappe.whitelist()
-#def shei.route.assign_to(args=None):
+@frappe.whitelist()
+def assign_to_notify(args=None):
+	from frappe.desk.form.assign_to import add
+	if not args:
+		args = frappe.local.form_dict
+	args['notify'] = 1
+	add(args=args)
+#	frappe.msgprint(_("a: {0}").format(args.get('notify')))
+#	frappe.msgprint(_("args: 0").format(args))
 
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
