@@ -1,2 +1,3 @@
 shei.patches.apply_customer_codes
 shei.patches.deprecate_contact_title
+shei.patches.fix_party_fields_in_quotation_for_user_reports
