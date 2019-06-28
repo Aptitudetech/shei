@@ -11,6 +11,14 @@ from frappe.website.website_generator import WebsiteGenerator
 
 class PriceConfigurator(Document):
 
+	def convert_to_quote_btn(self):
+		quote = frappe.get_doc('Quotation', {'price_configurator': self.name})
+		frappe.msgprint(_("111 quote: {0}").format(quote.name))
+		
+
+		frappe.msgprint("OK")
+
+
 	#Entry Point : Calculate Final Price button
 	def calculate_final_price(self):
         	panels = frappe.db.get_all('Price Configurator Item', fields=['*'], filters={'parenttype': 'Price Configurator', 'parent': self.name})
@@ -224,7 +232,7 @@ class PriceConfigurator(Document):
 
 
 		return content
-	
+
 	def test(self):
 		import requests
 		import xml.etree.ElementTree as ET
@@ -358,5 +366,21 @@ def create_price_configurator(quote_name = None):
 	frappe.msgprint(_("The Price Configurator have been added to the quote"))
 
 
-
+#@frappe.whitelist()
+#def make_quotation(source_name, target_doc=None):
+#	doclist = get_mapped_doc("Price Configurator", source_name, {
+#		"Supplier Quotation": {
+#			"doctype": "Quotation",
+#			"field_map": {
+#				"name": "supplier_quotation",
+#			}
+#		},
+#		"Supplier Quotation Item": {
+#			"doctype": "Quotation Item",
+#			"condition": lambda doc: frappe.db.get_value("Item", doc.item_code, "is_sales_item")==1,
+#			"add_if_empty": True
+#		}
+#	}, target_doc)
+#
+#	return doclist
 

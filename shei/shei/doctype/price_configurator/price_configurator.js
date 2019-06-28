@@ -22,6 +22,16 @@ frappe.ui.form.on('Price Configurator', {
 			}
 		});
 	},
+	convert_to_quote_btn: function(frm) {
+                frappe.call({
+                                method: "convert_to_quote_btn",
+                                doc: frm.doc,
+                                args: {
+                                },
+                callback: function(content){
+                        }
+                });
+        },
 	calculate_final_price: function(frm) {
 			if (frm.doc.__unsaved){
 				frappe.throw(__("Please save the document before proceeding"));
