@@ -22,9 +22,9 @@ frappe.ui.form.on('Price Configurator', {
 			}
 		});
 	},
-	convert_to_quote_btn: function(frm) {
+	validate: function(frm) {
                 frappe.call({
-                                method: "convert_to_quote_btn",
+                                method: "validate",
                                 doc: frm.doc,
                                 args: {
                                 },
@@ -48,20 +48,5 @@ frappe.ui.form.on('Price Configurator', {
 					frm.reload_doc();
 				}
 			});
-	},
-	pc_add_items: function(frm) {
-		frappe.call({
-				method: "pc_add_items",
-				doc: frm.doc,
-				args: {
-					'default_items': cur_frm.doc.pc_default_items,
-				},
-				freeze: true,
-				freeze_message: "This operation may takes few minutes, please wait...",
-				callback: function() {
-					refresh_field("price_configurator_items");
-					refresh_field("pc_default_items");
-				}
-		});
 	},
 });
