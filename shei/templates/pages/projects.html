@@ -75,6 +75,7 @@
 
 <!--Get the first unfinished open task for the project-->
 {% set curr_project = frappe.get_doc("Project", doc.name) %}
+{% set delivery_note_list = frappe.get_list('Delivery Note', {'project':doc.name}, ['transporter', 'lr_no']) %}
 {% set tasks = [] %}
 {% for t in curr_project.tasks %}
 	{% if t.status != "Closed" %}
@@ -82,6 +83,7 @@
 	{% endif %}
 {% endfor %}
 {% set first_open_task = (tasks|sort|first) %}
+{{delivery_note_list|length}}
 
 <div class="container">
 		<div class="row"><br />
@@ -105,7 +107,7 @@
 						{% set progress_pourcentage = 50 %}
 						{% set progress_color = '#EF476E' %}
 						{% set project_stage_description = _("Once your file is print ready, we send you a pdf file to approve. The lead time for your project will begin once you have approved the PDF file <br><br><br> 1-3 days") %}
-					{% elif task_number >= 12 %}
+					{% elif delivery_note_list|length > 0 and delivery_note_list[0].lr_no %}
 						{% set task_stage = _('Shipping') %}
 						{% set progress_pourcentage = 100 %}
 						{% set progress_color = '#3f94fc' %}
@@ -166,21 +168,22 @@
 				</div>
 
 				<!-- Only display those shipping informations when the package is at Shipping-->
-				{% if task_number >= 12 %}
+				{% if delivery_note_list|length > 0 and delivery_note_list[0].lr_no %}
 					<div class="col-sm-6" style="width: 50%;  ">
 						<p>{{_("Expected Delivery Date:")}} <strong>{{doc.expected_end_date}}</strong></p>
-						<p>{{_("Shipper:")}}
-							<a href="{{ frappe.db.get_value('Shipping Company', doc.shipping_company, 'website') }}" target="_blank">
-								<strong data-toggle="tooltip" data-placement="top" title="Go to {{doc.shipping_company}} website">{{doc.shipping_company}}</strong>
-							</a>
-						</p>
-						<p>{{_("Tracking Number:") }}
-							<strong>
-								<a href="{{ frappe.db.get_value('Shipping Company', doc.shipping_company, 'tracking_website') }}" target="_blank">
-									<strong data-toggle="tooltip" data-placement="top" title="Track your package">{{doc.waybill}}</strong>
-								</a>
-							</strong>
-						</p>
+
+						{% for dn in delivery_note_list %}
+							<p>{{_("Shipper:")}}
+                                                        <a href="{{ frappe.db.get_value('Supplier', dn.transporter, 'website') }}" target="_blank">
+                                                                <strong data-toggle="tooltip" data-placement="top" title="Go to {{doc.shipping_company}} website">{{dn.transporter}}</strong>
+                                                        </a>
+	                                                </p>
+        	                                        <p>{{_("Tracking Number:") }}
+                	                                        <strong>
+                               	                                        <strong data-toggle="tooltip" data-placement="top" title="Track your package">{{dn.lr_no}}</strong>
+                                                	        </strong>
+                                                	</p>
+						{% endfor %}
 						{% set billing_country = frappe.db.get_value('Address', sales_orders[0]['customer_address'], 'country') %}
 						{% set shipping_country = frappe.db.get_value('Address', sales_orders[0]['shipping_address'], 'country') %}
 						{% if billing_country == 'United States' or shipping_country == 'United States' %}
@@ -214,9 +217,9 @@
 					</table>
 					<!--If the tasks are at preflight or below, we want to display the graphic file preparation options-->
 				{% elif task_number <= 2 %}
-					<a href="https://www.altoaluminum.com/fileprint" target="_blank" data-toggle="tooltip" data-placement="top" title="Go to graphic preparation file">
-						<img style="width:500px;height:600px;" src="https://www.istockphoto.com/sg/photo/rubber-duck-gm657125714-119716347" alt="Go to Graphic Preparation File">
-					</a> 
+					<a href="https://www.altoaluminum.com/fileprint" target="_blank">
+						<img src="https://en-dev.shei.sh/files/prepare_file_img.png" style="width:250px; height:250px" title="Go to graphic preparation file" alt="Link to see graphic preparation file">
+					</a>
 				{% endif %}
 			</div>
 		{% endif %}
