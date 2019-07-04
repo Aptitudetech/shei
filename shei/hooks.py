@@ -165,15 +165,11 @@ fixtures = [
         "dt": "Custom Field",
 	    "filters": {
         	"name": ["in", [
-                "Project-have_dock",
-                "Project-is_residential_address",
+                "Address-have_dock",
+                "Address-is_residential_address",
                 "Project-absolute_end_date",
-                "Project-shipping_company",
                 "Project-restricted_to_role",
                 "Project-shipping_informations",
-                "Project-third_party",
-                "Project-waybill",
-                "Project-shipper",
                 "Project-crates",
                 "Item-hts_name",
                 "Project-kanban_task_status",
@@ -184,8 +180,8 @@ fixtures = [
                 "Workstation Working Hour-tuesday",
                 "Workstation Working Hour-monday",
                 "Workstation Working Hour-sunday",
-			    "Employee-workstation",
-			    "Sales Order-work_order",
+		"Employee-workstation",
+		"Sales Order-work_order",
                 "Item-price_per_sqft",
                 "Issue-kanban_status",
                 "Lead-others",
@@ -326,11 +322,12 @@ fixtures = [
          	]]
     	}
     },
-    { 
-        "dt": "Custom Script", 
-        "filters": { 
-            "name": ["in", [ 
-                "Sales Order-Client", 
+    {
+        "dt": "Custom Script",
+        "filters": {
+            "name": ["in", [
+		"Delivery Note-Client",
+                "Sales Order-Client",
                 "Quotation-Client",
                 "Bank Account-Client",
                 "Supplier-Client",
@@ -341,7 +338,7 @@ fixtures = [
                 "Stock Entry-Client",
                 "Purchase Invoice-Client",
                 "Payment Entry-Client",
-            ]] 
+            ]]
         }
     },
 ]
