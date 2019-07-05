@@ -259,7 +259,7 @@ class CompanyStats(Document):
 	    self.set_quote_older_than_a_year()
 
     def get_rate_exchange_us_cad(self):
-        rate = frappe.db.get_values('Currency Exchange', {'from_currency':'USD', 'to_currency':'CAD'}, ['exchange_rate'], order_by='creation', as_dict=True)[-1]['exchange_rate']
+        rate = frappe.db.get_values('Currency Exchange', {'from_currency':'USD', 'to_currency':'CAD'}, ['exchange_rate'], order_by='date', as_dict=True)[-1]['exchange_rate']
         return rate
 
     def set_receivable_cd_cad(self, args={}):

@@ -32,7 +32,7 @@
 			left:60%;
 		}
 		.five{
-			left:80%;
+			left:82%;
 		}
 		#project_stage_box {
 			border-radius: 10px;
@@ -88,7 +88,7 @@
 <div class="container">
 		<div class="row"><br />
 			<div class="col-md-12">
-				<div class="progress"  style="width: 84%;">
+				<div class="progress"  style="width: 86%;">
 				<!--display the progress bar based on the project stage-->
 					{% set task_number = (first_open_task.split('-')[1]|int) %}
 					{% set task_product = first_open_task.split('-')[0] %}
@@ -100,7 +100,7 @@
 					{% elif task_number <= 2 %}
 						{% set task_stage = _('Preflight') %}
 						{% set progress_pourcentage = 25 %}
-						{% set progress_color = '#0094a5' %}
+						{% set progress_color = '#047583' %}
 						{% set project_stage_description = _("We examine your files and make sure they are print ready. Please make sure your files are done according to our graphic preparation guide to avoid delays <br><br><br> 1-3 days") %}
 					{% elif (task_number <= 7 and  task_product == 'Folia') or (task_number <= 9 and task_product == 'Alto') %}
 						{% set task_stage = _('PDF Approval') %}
@@ -123,7 +123,7 @@
 					<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon glyphicon-usd" aria-hidden="true"></span>
 				</div>
 				<!--Preflight dot-->
-				<div data-toggle="tooltip" data-placement="top" title={{_("Preflight")}} class="two" style="background-color: #0094a5;">
+				<div data-toggle="tooltip" data-placement="top" title={{_("Preflight")}} class="two" style="background-color: #047583;">
 					<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon glyphicon-copy" aria-hidden="true"></span>
 				</div>
 				<!--PDF Approval dot-->
@@ -228,7 +228,7 @@
 					<!--If the tasks are at preflight or below, we want to display the graphic file preparation options-->
 				{% elif task_number <= 2 %}
 					<a href="https://www.altoaluminum.com/fileprint" target="_blank">
-						<img src="https://en-dev.shei.sh/files/prepare_file_img.png" style="width:30%; height:30%; padding-top: 4%" title="Go to graphic preparation file" alt="Link to see graphic preparation file">
+						<img src="https://en-dev.shei.sh/files/prepare_file_img.png" style="width:30%; height:30%; padding-top: -5%; position:auto;" title="Go to graphic preparation file" alt="Link to see graphic preparation file">
 					</a>
 				{% endif %}
 			</div>
