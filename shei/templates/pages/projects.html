@@ -158,7 +158,17 @@
 		{% if sales_orders[0] %}
 			<div class="col-sm-6" style="width: 75%;  ">
 				<div class="col-sm-6" style="width: 50%;  ">
-					<p>{{_("Shipping Address:")}} <br> <strong>{{sales_orders[0]['shipping_address']}}</strong></p>
+					<p>{{_("Shipping Address:")}} <br>
+						<strong> 
+							{% set shipping_address = frappe.get_doc('Address', sales_orders[0]['shipping_address_name']) %}
+							{{shipping_address['address_line1']}}
+							{{shipping_address['city'] or ''}}, {{shipping_address['state'] or ''}}, {{shipping_address['pincode'] or ''}} <br>
+							{{shipping_address['country'] or ''}} <br>
+							{% if shipping_address['phone'] %}
+								{{_("Phone")}}: {{shipping_address['phone']}}
+							{% endif %}
+						</strong>
+					</p>
 					<p>{{_("Shipping address have a dock?")}} <strong>{{_(frappe.db.get_value('Address', sales_orders[0]['shipping_address_name'], 'have_dock')) or _("Unknown")}}</strong></p>
 					<p>{{_("Shipping address is a residential address?")}} <strong>{{_(frappe.db.get_value('Address', sales_orders[0]['shipping_address_name'], 'is_residential_address')) or _("Unknown") }}</strong></p>
 					<p>{{_("Contact Person")}}: <strong>{{sales_orders[0]['contact_display'] or _("Unknown")}}</strong></p>
@@ -218,7 +228,7 @@
 					<!--If the tasks are at preflight or below, we want to display the graphic file preparation options-->
 				{% elif task_number <= 2 %}
 					<a href="https://www.altoaluminum.com/fileprint" target="_blank">
-						<img src="https://en-dev.shei.sh/files/prepare_file_img.png" style="width:250px; height:250px" title="Go to graphic preparation file" alt="Link to see graphic preparation file">
+						<img src="https://en-dev.shei.sh/files/prepare_file_img.png" style="width:30%; height:30%; padding-top: 4%" title="Go to graphic preparation file" alt="Link to see graphic preparation file">
 					</a>
 				{% endif %}
 			</div>
