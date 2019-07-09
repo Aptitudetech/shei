@@ -300,15 +300,6 @@ def get_dashboard_info(party_type, party):
 def on_party_onload(doc, handler):
     doc.set_onload("dashboard_info", get_dashboard_info(doc.doctype, doc.name))
 
-def on_quotation_validate(doc, handler):
-    if doc.is_new() and not doc.tc_name:
-        if doc.language == 'en':
-            tc_name = "E-Graphics-50 Order - 50 Ship"
-        else:
-            tc_name = "F-Graphics-50 Order - 50 Ship"
-        doc.tc_name = tc_name
-        doc.terms = frappe.db.get_value('Terms and Conditions', doc.tc_name, 'terms')
-
 def on_customer_validate(doc, handler=None):
 #    if doc.is_new() and not doc.lead_name:
 #        frappe.throw('Sorry, you need to create a Lead first')
