@@ -84,6 +84,7 @@ class FirstOpenTaskbyOpenProject(object):
                 	AND tabProject.status = 'Open'
                 	OR tabProject.status = 'Project Without Orders'
                 	GROUP BY tabProject.name""")
+		frappe.msgprint(_("data: {0}").format(data))
 		return data
 
 	def get_chart_data(self, columns, data):

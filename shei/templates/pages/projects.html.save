@@ -526,13 +526,12 @@
 
 	//When the shipping or contact information is updated throught the modal
 	function update_shipping_address() {
-		add_contact();
-		add_shipping();
-		console.log('OK');
-		var x = document.getElementById("modalLoginForm");
-		$('#modalLoginForm').modal('hide');
-		//x.hide(); 
-
+		var success_contact = add_contact();
+		var success_address = add_shipping();
+		if(success_contact && success_address){
+			
+			$('#modalLoginForm').modal('hide');
+		}
 	}
 
 	//get the value of any dropdown with ID
