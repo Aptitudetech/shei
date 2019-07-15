@@ -110,7 +110,7 @@ class GraphicProjectAnalysis(object):
 
 	def get_preflight_closed_time(self, tasks=[]):
 		for task in tasks:
-                        if task.title.split('-')[1] == '02' and task.title.split('-')[2] == 'B':
+                        if task.title.split('-')[1] == '02' and task.title.split('-')[2][0] == 'B':
                                 return task.end_date
 
 	def get_pdf_approval_date(self, tasks=[]):
@@ -132,18 +132,6 @@ class GraphicProjectAnalysis(object):
 		for task in tasks:
                         if task.title.split('-')[1] == '12':
                                 return task.end_date
-
-
-	def order_task_by_name(json_obj):
-		"""Sort given json by task title"""
-    		try:
-        		if json_obj['title'].split('-')[1] == '02' and json_obj['title'].split('-')[2] == 'B PREFLIGHT': #for Alto + Folia, there's 2 tasks with '02', but one have 'A' and the other 'B'
-            			return 2.5 #returning 2.5 specify the task comes after the task '02' and before the '03' task
-        		return int(json_obj['title'].split('-')[1]) #get the number inside the task title
-    		except KeyError:
-        		return 0
-
-
 
         def get_chart_data(self, columns, data):
                 return {
