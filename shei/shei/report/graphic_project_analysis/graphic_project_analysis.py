@@ -115,11 +115,13 @@ class GraphicProjectAnalysis(object):
 
 	def get_pdf_approval_date(self, tasks=[]):
 		for task in tasks:
-			product_name = task.title.split('-')[0] #the pdf approval is different for the products Alto and Folia
-			if product_name == 'FOLIA' and task.title.split('-')[1] == '07':
+			if task.title.split('-')[1] == '07':
 				return task.end_date
-                        if product_name == 'ALTO' and task.title.split('-')[1] == '09':
-                                return task.end_date
+#			product_name = task.title.split('-')[0] #the pdf approval is different for the products Alto and Folia
+#			if product_name == 'FOLIA' and task.title.split('-')[1] == '07':
+#				return task.end_date
+ #                       if product_name == 'ALTO' and task.title.split('-')[1] == '09':
+  #                              return task.end_date
 
 	def get_printing_date(self, tasks=[]):
 		for task in tasks:

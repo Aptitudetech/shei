@@ -7,7 +7,9 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
-#import easypost
+import requests
+import xml.etree.ElementTree as ET
+import easypost
 
 class PriceConfigurator(Document):
 
@@ -318,8 +320,11 @@ class PriceConfigurator(Document):
         	return zclip_price
 
 	def test_api(self):
-		import httplib
-		import urllib
+#		import httplib
+#		import urllib
+
+		self.test()
+		return
 
 		conn = httplib.HTTPConnection(host='www.packit4me.com', port=80)
 		frappe.msgprint(_("conn: {0}").format(conn))
@@ -349,68 +354,82 @@ class PriceConfigurator(Document):
 
 		return content
 
-	def test(self):
-		import requests
-		import xml.etree.ElementTree as ET
 
-		content = self.test_api()
-		return content
-
-
-		if self.is_default_shipper_address:
-			shipper_city = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_city')
-			shipper_state = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_state')
-			shipper_zipcode = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_zipcode')
-			shipper_country = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_country')
-		else:
-			shipper_city = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_city')
-			shipper_state = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_state')
-			shipper_zipcode = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_zipcode')
-			shipper_country = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'shipper_country')
-		consignee_city = 'TULSA'
-		consignee_state = 'OK'
-		consignee_zipcode = 74104
-		consignee_country = 'US'
-		total_weight = 50
-		shipment_class = 50.0
-		shipper_aff = 'Y' #true if we are the shipper
-		ship_month = 2
-		ship_day = 10
-		ship_year = 2019
-		#US Only: https://www.zipcodeapi.com/rest/rw3tf9DjeiMpy77gvjfg6qO5cU87GjMYp1PynQUijIPHZ6QFMXUdnLbT4iUv5mzf/info.json/85001/degrees  where 85001 = zipcode
-		r = requests.get("https://www.abfs.com/xml/aquotexml.asp?DL=2&ID=K4K155D4&ShipCity={shipper_city}&ShipState={shipper_state}&ShipZip={shipper_zipcode}&ShipCountry={shipper_country}&ConsCity={consignee_city}&ConsState={consignee_state}&ConsZip={consignee_zipcode}&ConsCountry={consignee_country}&Wgt1={total_weight}&Class1={shipment_class}&ShipAff={shipper_aff}&ShipMonth={ship_month}&ShipDay={ship_day}&ShipYear={ship_year}".format(shipper_city = shipper_city, shipper_state=shipper_state, shipper_zipcode=shipper_zipcode, shipper_country=shipper_country, consignee_city=consignee_city, consignee_state=consignee_state, consignee_zipcode=consignee_zipcode, consignee_country=consignee_country, total_weight=total_weight, shipment_class=shipment_class, shipper_aff=shipper_aff, ship_month=ship_month, ship_day=ship_day, ship_year=ship_year))
+	def get_abf_shipping_rate(self, shipper={}, consignee={}, shipment_info={}):
+		r = requests.get("https://www.abfs.com/xml/aquotexml.asp?DL=2&ID=K4K155D4&ShipCity={shipper_city}&ShipState={shipper_state}&ShipZip={shipper_zipcode}&ShipCountry={shipper_country}&ConsCity={consignee_city}&ConsState={consignee_state}&ConsZip={consignee_zipcode}&ConsCountry={consignee_country}&Wgt1={total_weight}&Class1={shipment_class}&ShipAff={shipper_aff}&ShipMonth={ship_month}&ShipDay={ship_day}&ShipYear={ship_year}".format(shipper_city = shipper['city'], shipper_state=shipper['state'], shipper_zipcode=shipper['zipcode'], shipper_country=shipper['country'], consignee_city=consignee['city'], consignee_state=consignee['state'], consignee_zipcode=consignee['zipcode'], consignee_country=consignee['country'], total_weight=shipment_info['total_weight'], shipment_class=shipment_info['shipment_class'], shipper_aff=shipment_info['shipper_aff'], ship_month=shipment_info['ship_month'], ship_day=shipment_info['ship_day'], ship_year=shipment_info['ship_year']))
 		root = ET.fromstring(r.text)
 		try:
-			abf_dicount = float(root.find("DISCOUNTPERCENTAGE").text[:-1])
+			abf_discount = float(root.find("DISCOUNTPERCENTAGE").text[:-1])
 			abf_charge = float(root.find("CHARGE").text)
-			amount_before_discount = round(((abf_charge / (100 - abf_dicount)) * 100), 2)
-			frappe.throw("abf_charge: {0} <br> abf_dicount: {1} <br> amount_before_discount: {2}".format(abf_charge, abf_dicount, amount_before_discount))
+			amount_after_discount = round((abf_charge - (abf_charge * (abf_discount / 100))), 2)
+			frappe.msgprint("abf_charge: {0}$ USD --- abf_discount: {1} --- amount_after_discount: {2}$ USD".format(abf_charge, abf_discount, amount_after_discount))
    		except AttributeError:
 			frappe.msgprint(_("Rate Quote Error: <br>"))
    	    		for child in root.iter('ERRORMESSAGE'):
 				frappe.msgprint(_("<li> {0} </li>").format(child.text))
 			frappe.throw('Please fix those issues before proceeding')
+
+
+	def format_pincode(self, country, pincode):
+		if country == 'United States':
+			try:
+				formatted_pincode = int(pincode.replace(" ", ""))
+			except ValueError:
+				frappe.throw(_("The Postal Code for the consignee is invalid : {0}").format(pincode))
+		if country == 'Canada':
+			formatted_pincode = pincode.replace(" ", "").upper()
+		return formatted_pincode
+
+	def get_consignee_address(self):
+		shipping_address_name = frappe.db.get_value('Quotation', {'price_configurator': self.name}, ['shipping_address_name', 'party_name'], as_dict=True)
+		company = shipping_address_name.party_name
+		shipping_address = frappe.db.get_value('Address', shipping_address_name.shipping_address_name, ['city', 'state', 'pincode', 'country', 'address_line1', 'address_line2', 'phone'], as_dict=True)
+		country_code = frappe.db.get_value('Country', shipping_address.country, 'code')
+		formatted_pincode = self.format_pincode(shipping_address.country, shipping_address.pincode)
+		consignee = {
+			"city": shipping_address.city,
+			"state": shipping_address.state or "",
+			"zipcode": formatted_pincode or "",
+			"country": country_code,
+			"street1": shipping_address.address_line1,
+			"street2": shipping_address.address_line2 or "",
+			"company": company,
+			"phone": shipping_address.phone or "",
+		}
+		return consignee
+
+	def get_shipper_address(self):
+		country_code = frappe.db.get_value('Country', self.shipper_country, 'code')
+		shipper = {
+			"city": self.shipper_city,
+			"state": self.shipper_state,
+			"zipcode": self.format_pincode(self.shipper_country, self.shipper_zipcode),
+			"country": country_code,
+			"street1": self.shipper_street,
+			"company": frappe.db.get_default("company"),
+			"phone": self.shipper_phone
+		}
+
+	def get_shipment_info(self):
+		frappe.msgprint(_("dt: {0}").format(self.shipment_date))
+		frappe.msgprint(_("j: {0}, m: {1}, a: {2}").format(self.shipment_date.day, self.shipment_date.month, self.shipment_date.year))
+		shipment_info = {
+                        "total_weight": 50,
+                        "shipment_class": 50.0,
+                        "shipper_aff": 'Y', #true if we are the shipper
+                        "ship_month": self.shipment_date.month,
+                        "ship_day": self.shipment_date.day,
+                        "ship_year": self.shipment_date.year
+                }
+		return shipment_info
+
+
+	def test(self):
+		consignee = self.get_consignee_address()
+		shipper = self.get_shipper_address()
+		shipment_info = self.get_shipment_info()
+		self.get_abf_shipping_rate(shipper, consignee, shipment_info)
 		easypost.api_key = "EZTK2501b8a0157045088d3431005830d179E0Y0HFNP0lW0s6B43gxZHw" #DEV
-		# create address
-		to_address = easypost.Address.create(
-			street1="417 Montgomery Street",
-			street2="FLOOR 5",
-			city="San Francisco",
-			state="CA",
-			zip="94104",
-			country="US",
-			company="EasyPost",
-			phone="415-456-7890"
-		)
-		from_address = easypost.Address.create(
-			street1="UNDELIEVRABLE ST",
-			city="San Francisco",
-			state="CA",
-			zip="94104",
-			country="US",
-			company="EasyPost2",
-			phone="222-222-7890"
-		)
 		parcel = easypost.Parcel.create(
 			length=20.2,
 			width=10.9,
@@ -418,21 +437,13 @@ class PriceConfigurator(Document):
 			weight=65.9
 		)
 		shipment = easypost.Shipment.create(
-			to_address=to_address,
-			from_address=from_address,
+			to_address=consignee,
+			from_address=shipper,
 			parcel=parcel
 		)
-		ship_id = shipment.id
-		shipment = easypost.Shipment.retrieve(ship_id)
+		shipment = easypost.Shipment.retrieve(shipment.id)
 		for rate in shipment.get_rates().rates:
-			carrier = rate.carrier,
-
-			currency = rate.currency,
-			rate_price = rate.rate
-
-			frappe.msgprint(_("carrier RATE:  {0}").format(carrier))
-			frappe.msgprint(_("currency RATE:  {0}").format(currency))
-			frappe.msgprint(_("RATEs:  {0}").format(rate_price))
+			frappe.msgprint(_("carrier RATE:  {0}   ---   currency RATE:  {1}   ---   RATEs:  {2}").format(rate.carrier, rate.currency, rate.rate))
 
 
 
@@ -458,6 +469,7 @@ def create_price_configurator(quote_name = None):
 	#Set default measurement and country
 	country = quote_shipping_address['country']
 	measurement = 'MM'
+	shipping_address = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', ['shipper_city', 'shipper_state', 'shipper_zipcode', 'shipper_country', 'shipper_street', 'shipper_phone'], as_dict=True)
 	if quote_shipping_address:
 		pc.update({
 			'doctype_name': pc_name,
@@ -467,12 +479,24 @@ def create_price_configurator(quote_name = None):
 			'consignee_state': quote_shipping_address.state,
 			'consignee_zipcode': quote_shipping_address.pincode,
 			'consignee_country': country,
+			'shipper_city': shipping_address.shipper_city,
+			'shipper_state': shipping_address.shipper_state,
+			'shipper_zipcode': shipping_address.shipper_zipcode,
+			'shipper_country': shipping_address.shipper_country,
+			'shipper_street': shipping_address.shipper_street,
+			'shipper_phone': shipping_address.shipper_phone
 		})
 	else:
 		pc.update({
 			'doctype_name': pc_name,
 			'measurement': measurement,
 			'preferred_currency': quote.currency,
+			'shipper_city': shipping_address.shipper_city,
+			'shipper_state': shipping_address.shipper_state,
+			'shipper_zipcode': shipping_address.shipper_zipcode,
+			'shipper_country': shipping_address.shipper_country,
+			'shipper_street': shipping_address.shipper_street,
+			'shipper_phone': shipping_address.shipper_phone
 		})
 	pc.flags.ignore_permissions = True
 	pc.save()
