@@ -7,9 +7,9 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
-import requests
-import xml.etree.ElementTree as ET
+from datetime import datetime
 import easypost
+
 
 class PriceConfigurator(Document):
 
@@ -356,6 +356,9 @@ class PriceConfigurator(Document):
 
 
 	def get_abf_shipping_rate(self, shipper={}, consignee={}, shipment_info={}):
+		import requests
+		import xml.etree.ElementTree as ET
+
 		r = requests.get("https://www.abfs.com/xml/aquotexml.asp?DL=2&ID=K4K155D4&ShipCity={shipper_city}&ShipState={shipper_state}&ShipZip={shipper_zipcode}&ShipCountry={shipper_country}&ConsCity={consignee_city}&ConsState={consignee_state}&ConsZip={consignee_zipcode}&ConsCountry={consignee_country}&Wgt1={total_weight}&Class1={shipment_class}&ShipAff={shipper_aff}&ShipMonth={ship_month}&ShipDay={ship_day}&ShipYear={ship_year}".format(shipper_city = shipper['city'], shipper_state=shipper['state'], shipper_zipcode=shipper['zipcode'], shipper_country=shipper['country'], consignee_city=consignee['city'], consignee_state=consignee['state'], consignee_zipcode=consignee['zipcode'], consignee_country=consignee['country'], total_weight=shipment_info['total_weight'], shipment_class=shipment_info['shipment_class'], shipper_aff=shipment_info['shipper_aff'], ship_month=shipment_info['ship_month'], ship_day=shipment_info['ship_day'], ship_year=shipment_info['ship_year']))
 		root = ET.fromstring(r.text)
 		try:
@@ -409,27 +412,43 @@ class PriceConfigurator(Document):
 			"company": frappe.db.get_default("company"),
 			"phone": self.shipper_phone
 		}
+		return shipper
+
+	def get_formatted_date(self, date_str):
+		system_date_format = frappe.defaults.get_user_default("date_format")
+		#the system will always use 'yyyy', 'mm' and 'dd'. the only thing that will change is the order in which they appear
+		system_date_format = system_date_format.replace("yyyy", "%Y").replace("mm", "%m").replace("dd","%d") 
+		shipment_formatted_date = datetime.strptime(date_str, system_date_format)
+		return shipment_formatted_date
 
 	def get_shipment_info(self):
-		frappe.msgprint(_("dt: {0}").format(self.shipment_date))
-		frappe.msgprint(_("j: {0}, m: {1}, a: {2}").format(self.shipment_date.day, self.shipment_date.month, self.shipment_date.year))
+		shipment_date = self.get_formatted_date(self.shipment_date)
 		shipment_info = {
                         "total_weight": 50,
                         "shipment_class": 50.0,
                         "shipper_aff": 'Y', #true if we are the shipper
-                        "ship_month": self.shipment_date.month,
-                        "ship_day": self.shipment_date.day,
-                        "ship_year": self.shipment_date.year
+                        "ship_month": shipment_date.month,
+                        "ship_day": shipment_date.day,
+                        "ship_year": shipment_date.year
                 }
 		return shipment_info
+
+	def get_easypost_api_key(self):
+		from frappe.utils import get_site_name
+		site_name = get_site_name(frappe.local.request.host)
+		if 'en-dev.' in site_name or 'en-staging' in site_name:
+			return "EZTK2501b8a0157045088d3431005830d179E0Y0HFNP0lW0s6B43gxZHw"
+		if 'en.shei.sh' in site_name:
+			frappe.msgprint("PROD")
 
 
 	def test(self):
 		consignee = self.get_consignee_address()
 		shipper = self.get_shipper_address()
 		shipment_info = self.get_shipment_info()
-		self.get_abf_shipping_rate(shipper, consignee, shipment_info)
-		easypost.api_key = "EZTK2501b8a0157045088d3431005830d179E0Y0HFNP0lW0s6B43gxZHw" #DEV
+		abf_rate = self.get_abf_shipping_rate(shipper, consignee, shipment_info)
+		easypost.api_key = self.get_easypost_api_key()
+
 		parcel = easypost.Parcel.create(
 			length=20.2,
 			width=10.9,
