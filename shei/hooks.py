@@ -162,6 +162,17 @@ fixtures = [
     {'dt': 'Website Settings'},
     {'dt': 'Portal Settings'},
     {
+        "dt": "Property Setter",
+        "filters": {
+            "name": ["in", [
+                "Project Task-title-options",
+                "Task-subject-options",
+                "Task-subject-fieldtype",
+                "Project Task-title-fieldtype",
+            ]]
+        }
+    },
+    {
         "dt": "Custom Field",
 	    "filters": {
         	"name": ["in", [
