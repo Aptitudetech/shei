@@ -17,6 +17,23 @@ from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
+
+def on_project_onload(doc, handler=None):
+	doc.set("tasks", [])
+        for task in frappe.get_all('Task', {'project': doc.name}, '*', order_by='task_order asc'):
+                task = {
+                        'title': task.subject,
+                        'status': task.status,
+                        'start_date': task.exp_start_date,
+                        'end_date': task.exp_end_date,
+                        'assigned_to': task.assigned_to,
+                        'task_weight': task.task_weight,
+                        'description': task.description,
+                        'task_id': task.name,
+                        'idx': task.task_order
+                }
+                doc.append("tasks", task)
+
 #doc.is_new()
 def update_project_status(task_title):
     if task_title == 'FOLIA-00-DEPOSIT' or task_title == 'ALTO-00-DEPOSIT':
@@ -43,7 +60,7 @@ def get_last_open_project(kanban_task_status, project_tasks=[]):
         if task.status == 'Open':
             return update_project_status(task.title) #the next open task is the task after this one
 
-def on_project_before_save(doc,  handler=None):
+def test(self): #on_project_before_save
     if doc.is_new() or doc.sub_type not in ['Alto', 'Folia']:
         return
     curr_date = datetime.today().strftime('%m-%d-%Y')

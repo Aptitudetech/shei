@@ -86,11 +86,14 @@ doc_events = {
   #          'shei.events.on_quotation_validate'
    #     ]
     #},
-#    'Project': {
+    'Project': {
+	'onload': [
+		'shei.events.on_project_onload'
+	],
 #        'before_save': [
 #            'shei.events.on_project_before_save'
 #        ],
-#    },
+    },
     'Sales Invoice': {
         #'validate':[
         #    'shei.events.on_sales_invoice_validate'

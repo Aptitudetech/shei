@@ -22,3 +22,21 @@ frappe.ui.form.on('Task Subject', {
                 });
         },
 });
+frappe.ui.form.on("Task Subject", "sub_type", function(frm, cdt, cdn) {
+		frappe.call({
+			'method': 'frappe.client.get_list',
+			'args': {
+				'doctype': 'Task Subject',
+				'fields': ['task_order'],
+				'filters': {'disabled': 0, 'sub_type':frm.doc.sub_type},
+				'order_by': 'task_order desc',
+				'limit_page_length': 1
+			},
+			'callback': function(res){
+				var frm = cur_frm;
+				if (res && res.message){
+					frappe.model.set_value(cdt, cdn, "task_order", parseInt(res.message[0]['task_order'])+1 );
+				}
+		}
+	});
+});

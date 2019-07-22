@@ -3,11 +3,11 @@
 # For license information, please see license.txt
 
 import frappe
+import json
 from frappe.utils import add_days, formatdate
 
 @frappe.whitelist()
 def update_terms():
-
         count = 0
         for i in frappe.get_list("Customer", fields="name"):
                 cust = frappe.get_doc("Customer", i)
@@ -22,32 +22,41 @@ def update_terms():
 
 @frappe.whitelist()
 def get_due_date(supplier, bill_date):
-
         due_date = formatdate(add_days(bill_date, frappe.db.get_value("Supplier", supplier, "credit_days")))
-
         return due_date
 
 @frappe.whitelist()
-def get_tasks_from_template(project_name):
+def update_task_order(grid_tasks=[]):
+	json_list = json.loads(grid_tasks)
+	#pj = frappe.get_doc("Project", project_name)
+	for t in json_list:
+                task = frappe.get_doc("Task", t['name'])
+                task.update({'task_order': t['idx']})
+                task.save()
 
+@frappe.whitelist()
+def get_tasks_from_template(project_name):
         pj = frappe.get_doc("Project", project_name)
-        for i in frappe.get_list("Project", fields="name", filters={"status": "Template", "sub_type": pj.sub_type}):
-                pj_template = frappe.get_doc("Project", i.name)
-                for i in frappe.get_list("Task", fields="name", filters={"project": pj_template.name}, order_by="subject"):
-                        task_template = frappe.get_doc("Task", i.name)
-                        json_update = {
-                                "subject": task_template.subject,
-                                "status": task_template.status,
-                                "assigned_to": task_template.assigned_to,
-                                "project": pj.name
-                        }
-                        task = frappe.new_doc("Task")
-                        task.update (json_update)
-                        task.save()
+	task_subjects = frappe.db.get_all('Task Subject', {'disabled': False, 'sub_type': pj.sub_type}, '*')
+	nb_rows = frappe.db.get_value('Task', {'project':pj.name}, 'task_order', order_by='task_order desc')
+	for t in task_subjects:
+		if nb_rows:
+			task_order = t.task_order + int(nb_rows)
+		else:
+			task_order = t.task_order
+        	json_update = {
+                	"subject": t.name,
+                        "status": 'Open',
+                        "assigned_to": t.assigned_to,
+                        "project": pj.name,
+			"task_order": task_order,
+		}
+                task = frappe.new_doc("Task")
+                task.update(json_update)
+                task.save()
 
 @frappe.whitelist()
 def update_template_project():
-
         for i in frappe.get_list("Project", fields="name", filters={"status": "Open"}):
                 pj = frappe.get_doc("Project", i.name)
                 to_remove = []
@@ -185,6 +194,29 @@ def get_project_so(project_name):
         for so in frappe.get_list("Sales Order", fields=["name", "net_total"], filters={"project": project_name, "docstatus": 1}):
                 project_amount = project_amount + so.net_total
         return str(project_amount)
+
+#@frappe.whitelist()
+#def order_task_in_project(project_name):#
+#	project = frappe.get_doc('Project', project_name)
+#	for task in frappe.get_all('Task', {'project': project.name}, '*', order_by='task_order asc'):
+#		task = {
+#			'title': task.subject,
+#			'status': task.status,
+#			'start_date': task.exp_start_date,
+#			'end_date': task.exp_end_date,
+#			'assigned_to': task.assigned_to,
+#			'task_weight': task.task_weight,
+#			'description': task.description,
+#			'task_id': task.name,
+#			'idx': task.task_order
+#		}
+#		project.append("tasks", task)
+#		project.save()
+
+@frappe.whitelist()
+def on_project_onload(project_name):
+	get_project_so(project_name)
+#	order_task_in_project(project_name)
 
 @frappe.whitelist()
 def set_project_so():
