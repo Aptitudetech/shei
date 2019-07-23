@@ -90,9 +90,12 @@ doc_events = {
 	'onload': [
 		'shei.events.on_project_onload'
 	],
+	'after_save': [
+		'shei.events.on_project_after_save'
+	],
 #        'before_save': [
-#            'shei.events.on_project_before_save'
-#        ],
+ #           'shei.events.on_project_before_save'
+  #      ],
     },
     'Sales Invoice': {
         #'validate':[

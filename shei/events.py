@@ -18,6 +18,20 @@ from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
 
+def on_project_after_save(doc, handler=None):
+	for t in doc.tasks:
+               frappe.msgprint(_("aaa doc.tasks: {0}").format(frappe.as_json(t)))
+
+#def on_project_before_save(doc, handler=None):
+#	for t in doc.tasks:
+#		frappe.msgprint(_("doc.tasks: {0}").format(frappe.as_json(t)))
+		#task = frappe.get_doc('Task', t.name)
+#		t.task_order = t.idx
+		#task.update({'task_order': t.idx})
+#	for t in doc.tasks:
+#		frappe.msgprint(_("doc.tasks: {0}").format(frappe.as_json(t)))
+
+
 def on_project_onload(doc, handler=None):
 	doc.set("tasks", [])
         for task in frappe.get_all('Task', {'project': doc.name}, '*', order_by='task_order asc'):

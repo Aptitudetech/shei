@@ -28,11 +28,23 @@ def get_due_date(supplier, bill_date):
 @frappe.whitelist()
 def update_task_order(grid_tasks=[]):
 	json_list = json.loads(grid_tasks)
-	#pj = frappe.get_doc("Project", project_name)
 	for t in json_list:
-                task = frappe.get_doc("Task", t['name'])
-                task.update({'task_order': t['idx']})
-                task.save()
+		frappe.msgprint("t: {0}".format(t))
+#		if frappe.db.exists('Task', t['task_id']):
+		try:
+	                task = frappe.get_doc("Task", t['task_id'])
+#		else:
+#			task = frappe.new_doc('Task')
+#		task.flags.ignore_permission = True
+#		try:
+#		        task.update({'subject': t['title'], 'assigned_to': t['assigned_to']})
+#		except KeyError:
+#		        task.update({'subject': t['title']})
+		        task.update({'task_order': t['idx'], 'task_id': t['task_id']})
+        	        task.save()
+		except KeyError:
+			pass
+#	frappe.db.commit()
 
 @frappe.whitelist()
 def get_tasks_from_template(project_name):
@@ -54,6 +66,7 @@ def get_tasks_from_template(project_name):
                 task = frappe.new_doc("Task")
                 task.update(json_update)
                 task.save()
+
 
 @frappe.whitelist()
 def update_template_project():
@@ -195,28 +208,9 @@ def get_project_so(project_name):
                 project_amount = project_amount + so.net_total
         return str(project_amount)
 
-#@frappe.whitelist()
-#def order_task_in_project(project_name):#
-#	project = frappe.get_doc('Project', project_name)
-#	for task in frappe.get_all('Task', {'project': project.name}, '*', order_by='task_order asc'):
-#		task = {
-#			'title': task.subject,
-#			'status': task.status,
-#			'start_date': task.exp_start_date,
-#			'end_date': task.exp_end_date,
-#			'assigned_to': task.assigned_to,
-#			'task_weight': task.task_weight,
-#			'description': task.description,
-#			'task_id': task.name,
-#			'idx': task.task_order
-#		}
-#		project.append("tasks", task)
-#		project.save()
-
 @frappe.whitelist()
 def on_project_onload(project_name):
-	get_project_so(project_name)
-#	order_task_in_project(project_name)
+	return get_project_so(project_name)
 
 @frappe.whitelist()
 def set_project_so():

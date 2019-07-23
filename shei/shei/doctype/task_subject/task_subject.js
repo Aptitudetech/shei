@@ -22,6 +22,8 @@ frappe.ui.form.on('Task Subject', {
                 });
         },
 });
+
+//will fetch the last task_order from the curr sub_type and add 1
 frappe.ui.form.on("Task Subject", "sub_type", function(frm, cdt, cdn) {
 		frappe.call({
 			'method': 'frappe.client.get_list',
@@ -35,7 +37,7 @@ frappe.ui.form.on("Task Subject", "sub_type", function(frm, cdt, cdn) {
 			'callback': function(res){
 				var frm = cur_frm;
 				if (res && res.message){
-					frappe.model.set_value(cdt, cdn, "task_order", parseInt(res.message[0]['task_order'])+1 );
+					frappe.model.set_value(cdt, cdn, "task_order", parseInt(res.message[0]['task_order']) + 1);
 				}
 		}
 	});

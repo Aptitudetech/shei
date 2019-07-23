@@ -20,31 +20,45 @@ class TaskSubject(Document):
 			frappe.throw(_("Please write all mandatory information"))
 
 	def get_old_data(self, name):
-		old_task_desc = frappe.db.get_value('Task Subject', name, 'task_desc')
-                old_task_subtype = frappe.db.get_value('Task Subject', name, 'sub_type')
-                old_task_order = frappe.db.get_value('Task Subject', name, 'task_order')
-                old_name = frappe.db.get_value('Task Subject', name, 'name')
-		return old_task_desc, old_task_subtype, old_task_order, old_name
+		old_value = dict()
+		old_value['exist'] = False
+		if frappe.db.exists('Task Subject', name):
+			old_value['exist'] = True
+		old_value['old_task_desc'] = frappe.db.get_value('Task Subject', name, 'task_desc') or ''
+                old_value['old_task_subtype'] = frappe.db.get_value('Task Subject', name, 'sub_type') or ''
+       	        old_value['old_task_order'] = frappe.db.get_value('Task Subject', name, 'task_order') or ''
+               	old_value['old_name'] = frappe.db.get_value('Task Subject', name, 'name') or ''
+		return old_value
+#		return old_task_desc, old_task_subtype, old_task_order, old_name
+
 
 	def update_data(self, name, disabled, task_desc, sub_type, task_order):
-		frappe.db.set_value('Task Subject', name, 'disabled', disabled)
-                frappe.db.set_value('Task Subject', name, 'task_desc', task_desc)
-                frappe.db.set_value('Task Subject', name, 'sub_type', sub_type)
-                frappe.db.set_value('Task Subject', name, 'task_order', task_order)
+		if not frappe.db.exists('Task Subject', name):
+			task = frappe.new_doc('Task Subject')
+		else:
+			task = frappe.get_doc('Task Subject', name)
+		task.flags.ignore_permissions = True
+		task.update({'disabled': disabled, 'task_desc': task_desc, 'sub_type': sub_type, 'task_order': task_order}).save()
 
 	def update_task_information(self):
 		from frappe.model.rename_doc import rename_doc
 		self.check_mandatory_value()
-		old_task_desc, old_task_subtype, old_task_order, old_name = self.get_old_data(self.name)
-		new_name = self.generate_doc_name(self.sub_type, self.task_desc)
+
+
+		old_value = self.get_old_data(self.name)
+#		old_task_desc, old_task_subtype, old_task_order, old_name = self.get_old_data(self.name)
 		self.update_data(self.name, self.disabled, self.task_desc, self.sub_type, self.task_order)
-		if old_task_desc.upper() != self.task_desc.upper() or old_task_subtype != self.sub_type: #need to rename doc
-			new_name = self.generate_doc_name(self.sub_type, self.task_desc)
-			frappe.rename_doc(doctype=self.doctype, old=self.name, new=new_name, ignore_permissions=True)
-			self.update_projects_tasks(old_name, new_name)
-			self.update_tasks(old_name, new_name)
-		if old_task_order != self.task_order:
-			self.update_other_tasks(self.sub_type, self.task_order, self.name)
+
+
+		new_name = self.generate_doc_name(self.sub_type, self.task_desc)
+		if old_value['exist']:
+			if old_value['task_desc'].upper() != self.task_desc.upper() or old_value['task_subtype'] != self.sub_type: #need to rename doc
+				new_name = self.generate_doc_name(self.sub_type, self.task_desc)
+				frappe.rename_doc(doctype=self.doctype, old=self.name, new=new_name, ignore_permissions=True)
+				self.update_projects_tasks(old_name, new_name)
+				self.update_tasks(old_name, new_name)
+			if old_task_order != self.task_order:
+				self.update_other_tasks(self.sub_type, self.task_order, self.name)
 		frappe.msgprint(_("All tasks have been updated"))
 
 	def update_other_tasks(self, sub_type, task_order, task_name):
