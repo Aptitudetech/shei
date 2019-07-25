@@ -24,10 +24,10 @@ class TaskSubject(Document):
 		old_value['exist'] = False
 		if frappe.db.exists('Task Subject', name):
 			old_value['exist'] = True
-		old_value['old_task_desc'] = frappe.db.get_value('Task Subject', name, 'task_desc') or ''
-                old_value['old_task_subtype'] = frappe.db.get_value('Task Subject', name, 'sub_type') or ''
-       	        old_value['old_task_order'] = frappe.db.get_value('Task Subject', name, 'task_order') or ''
-               	old_value['old_name'] = frappe.db.get_value('Task Subject', name, 'name') or ''
+		old_value['task_desc'] = frappe.db.get_value('Task Subject', name, 'task_desc') or ''
+                old_value['task_subtype'] = frappe.db.get_value('Task Subject', name, 'sub_type') or ''
+       	        old_value['task_order'] = frappe.db.get_value('Task Subject', name, 'task_order') or ''
+               	old_value['name'] = frappe.db.get_value('Task Subject', name, 'name') or ''
 		return old_value
 #		return old_task_desc, old_task_subtype, old_task_order, old_name
 
@@ -57,7 +57,7 @@ class TaskSubject(Document):
 				frappe.rename_doc(doctype=self.doctype, old=self.name, new=new_name, ignore_permissions=True)
 				self.update_projects_tasks(old_name, new_name)
 				self.update_tasks(old_name, new_name)
-			if old_task_order != self.task_order:
+			if old_value['task_order'] != self.task_order:
 				self.update_other_tasks(self.sub_type, self.task_order, self.name)
 		frappe.msgprint(_("All tasks have been updated"))
 

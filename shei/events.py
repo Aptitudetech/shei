@@ -18,36 +18,36 @@ from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
 
-def on_project_after_save(doc, handler=None):
-	for t in doc.tasks:
-               frappe.msgprint(_("aaa doc.tasks: {0}").format(frappe.as_json(t)))
-
-#def on_project_before_save(doc, handler=None):
-#	for t in doc.tasks:
-#		frappe.msgprint(_("doc.tasks: {0}").format(frappe.as_json(t)))
-		#task = frappe.get_doc('Task', t.name)
-#		t.task_order = t.idx
-		#task.update({'task_order': t.idx})
-#	for t in doc.tasks:
-#		frappe.msgprint(_("doc.tasks: {0}").format(frappe.as_json(t)))
-
-
 def on_project_onload(doc, handler=None):
 	doc.set("tasks", [])
-        for task in frappe.get_all('Task', {'project': doc.name}, '*', order_by='task_order asc'):
-                task = {
-                        'title': task.subject,
-                        'status': task.status,
-                        'start_date': task.exp_start_date,
-                        'end_date': task.exp_end_date,
-                        'assigned_to': task.assigned_to,
-                        'task_weight': task.task_weight,
-                        'description': task.description,
-                        'task_id': task.name,
-                        'idx': task.task_order
-                }
-                doc.append("tasks", task)
+	i = 1
+	fields = ["title", "status", "start_date", "end_date", "description", "task_weight", "task_id"]
+	exclude_fieldtype = ["Button", "Column Break",
+		"Section Break", "Table", "Read Only", "Attach", "Attach Image", "Color", "Geolocation", "HTML", "Image"]
 
+	custom_fields = frappe.get_all("Custom Field", {"dt": "Project Task",
+		 "fieldtype": ("not in", exclude_fieldtype)}, "fieldname")
+
+	for d in custom_fields:
+		fields.append(d.fieldname)
+	if doc.get('name'):
+                doc.tasks = []
+                i = 1
+                for task in frappe.get_all('Task', '*', {'project': doc.name}, order_by='`task_order` asc'):
+                        task_map = {
+                                "title": task.subject,
+                                "status": task.status,
+                                "start_date": task.exp_start_date,
+                                "end_date": task.exp_end_date,
+                                "task_id": task.name,
+                                "description": task.descrition,
+                                "task_weight": task.task_weight,
+                                "idx": task.task_order or i
+                        }
+                        i += 1
+                        doc.map_custom_fields(task, task_map, custom_fields)
+
+                        doc.append("tasks", task_map)
 #doc.is_new()
 def update_project_status(task_title):
     if task_title == 'FOLIA-00-DEPOSIT' or task_title == 'ALTO-00-DEPOSIT':

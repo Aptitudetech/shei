@@ -26,27 +26,6 @@ def get_due_date(supplier, bill_date):
         return due_date
 
 @frappe.whitelist()
-def update_task_order(grid_tasks=[]):
-	json_list = json.loads(grid_tasks)
-	for t in json_list:
-		frappe.msgprint("t: {0}".format(t))
-#		if frappe.db.exists('Task', t['task_id']):
-		try:
-	                task = frappe.get_doc("Task", t['task_id'])
-#		else:
-#			task = frappe.new_doc('Task')
-#		task.flags.ignore_permission = True
-#		try:
-#		        task.update({'subject': t['title'], 'assigned_to': t['assigned_to']})
-#		except KeyError:
-#		        task.update({'subject': t['title']})
-		        task.update({'task_order': t['idx'], 'task_id': t['task_id']})
-        	        task.save()
-		except KeyError:
-			pass
-#	frappe.db.commit()
-
-@frappe.whitelist()
 def get_tasks_from_template(project_name):
         pj = frappe.get_doc("Project", project_name)
 	task_subjects = frappe.db.get_all('Task Subject', {'disabled': False, 'sub_type': pj.sub_type}, '*')
