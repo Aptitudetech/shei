@@ -36,6 +36,13 @@ class TaskSubject(Document):
                         self.update_tasks(old_values['name'], new_name)
 			self.reset_is_being_updated_field()
 
+	def validate_data(self, task_order, desc):
+		if task_order == 0: #the 0 might break something in the Project Task table (2 idx will be = 1)
+                        self.task_order = 1
+		if not self.is_new() and old_values['task_desc'].upper() != self.task_desc.upper():
+                	frappe.throw(_("To update the task description, please use the button 'Update Task Description'"))
+
+
 	def validate(self):
 		from frappe.model.rename_doc import rename_doc
 		if self.task_order == 0: #the 0 might break something in the Project Task table (2 idx will be = 1)
