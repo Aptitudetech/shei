@@ -58,12 +58,10 @@ class TaskSubject(Document):
 		new_doc_name = self.update_data(self.name, self.disabled, self.task_desc, self.sub_type, self.task_order)
 		self.update_other_tasks(self.sub_type, self.task_order, new_doc_name)
 		self.reorder_tasks_after_update()
+		frappe.msgprint(_("Tasks have been updated"))
 
 	def reorder_tasks_after_update(self):
 		tasks = frappe.db.get_all('Task Subject', {'sub_type': self.sub_type, 'disabled':False}, ['task_order', 'name'], order_by='task_order asc')
-		for t in tasks:
-			frappe.msgprint(_("t: {0}  --  tn: {1}").format(t.task_order, t.name))
-
 		task_order = 1
 		for task in tasks:
 			if task.task_order != task_order: #we don't want to update it if already alright
@@ -96,6 +94,5 @@ class TaskSubject(Document):
                 for task in tasks:
                         t = frappe.get_doc('Task', task['name'])
                         t.flags.ignore_permissions = True
-			frappe.msgprint(_("tn: {0}  --  tat: {1}  ---  tp: {2}").format(t.name, t.assigned_to, t.project))
                         t.update({'subject': new_name}).save()
 
