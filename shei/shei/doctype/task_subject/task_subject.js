@@ -13,8 +13,7 @@ frappe.ui.form.on('Task Subject', {
                                 },
                                 freeze: true,
                                 freeze_message: "This operation may takes few minutes, please wait...",
-                        callback: function(res) {
-					console.log(res);
+                        callback: function() {
 					var sub_type = frm.doc.sub_type;
 					var task_desc = frm.doc.task_desc;
 					var path = (sub_type + '-' + task_desc).toUpperCase();
