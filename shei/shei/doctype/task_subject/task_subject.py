@@ -25,12 +25,12 @@ class TaskSubject(Document):
                	old_values['disabled'] = frappe.db.get_value('Task Subject', name, 'disabled')
 		return old_values
 
-	def update_data(self, name, disabled, task_desc, sub_type, task_order):
+	def update_data(self, name, disabled, task_desc, sub_type, task_order, assigned_to):
 		new_name = self.name
 		if not frappe.db.exists('Task Subject', name):
 			task = frappe.new_doc('Task Subject')
 			task.flags.ignore_permissions = True
-			task.update({'disabled': disabled, 'task_desc': task_desc, 'sub_type': sub_type, 'task_order': task_order}).save()
+			task.update({'disabled': disabled, 'task_desc': task_desc, 'sub_type': sub_type, 'task_order': task_order, 'assigned_to': assigned_to}).save()
 		else:
 			need_renaming = False
 			old_values = self.get_old_data(self.name)
@@ -40,7 +40,7 @@ class TaskSubject(Document):
 				need_renaming = True
                         doc = frappe.get_doc('Task Subject', new_name)
                         doc.flags.ignore_permissions = True
-			doc.update({'disabled': disabled, 'task_desc': task_desc, 'task_order': task_order}).save()
+			doc.update({'disabled': disabled, 'task_desc': task_desc, 'task_order': task_order, 'assigned_to': assigned_to}).save()
 			if need_renaming:
                                 self.update_projects_tasks(old_values['name'], new_name)
                                 self.update_tasks(old_values['name'], new_name)
@@ -55,7 +55,7 @@ class TaskSubject(Document):
 		if not self.is_new():
                         old_values = self.get_old_data(self.name)
 		self.validate_task_order(self.task_order)
-		new_doc_name = self.update_data(self.name, self.disabled, self.task_desc, self.sub_type, self.task_order)
+		new_doc_name = self.update_data(self.name, self.disabled, self.task_desc, self.sub_type, self.task_order, self.assigned_to)
 		self.update_other_tasks(self.sub_type, self.task_order, new_doc_name)
 		self.reorder_tasks_after_update()
 		frappe.msgprint(_("Tasks have been updated"))

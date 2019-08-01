@@ -76,80 +76,57 @@
 <!--Get the first unfinished open task for the project-->
 {% set curr_project = frappe.get_doc("Project", doc.name) %}
 {% set delivery_note_list = frappe.get_list('Delivery Note', {'project':doc.name}, ['transporter', 'lr_no']) %}
-{% set tasks = [] %}
-{% for t in curr_project.tasks %}
-	{% if t.status != "Closed" %}
-		{{ tasks.append(t.title) or ''}}
-	{% endif %}
-{% endfor %}
-{% set first_open_task = (tasks|sort|first) %}
-{{delivery_note_list|length}}
+{% set first_open_task_order = frappe.db.get_value('Task', {'project':doc.name, 'status': ('!=', 'Closed')}, ['task_order'], order_by='task_order asc') %}
+{% set task_range_progress = frappe.get_list('Task Progression Range', {'sub_type': curr_project.sub_type}, '*', order_by="task_order asc") %}
+{% set progression_pourcentage = [0, 25, 50, 75, 100] %}
 
 <div class="container">
-		<div class="row"><br />
-			<div class="col-md-12">
-				<div class="progress"  style="width: 86%;">
-				<!--display the progress bar based on the project stage-->
-					{% set task_number = (first_open_task.split('-')[1]|int) %}
-					{% set task_product = first_open_task.split('-')[0] %}
-					{% if task_number == 0 %}
-						{% set task_stage = _('Deposit') %}
-						{% set progress_pourcentage = 0 %}
-						{% set progress_color = '#159952' %}
-						{% set project_stage_description = _("Your deposit is required in order to move forward with your project <br><br><br> 1-3 days") %}
-					{% elif task_number <= 2 %}
-						{% set task_stage = _('Preflight') %}
-						{% set progress_pourcentage = 25 %}
-						{% set progress_color = '#047583' %}
-						{% set project_stage_description = _("We examine your files and make sure they are print ready. Please make sure your files are done according to our graphic preparation guide to avoid delays <br><br><br> 1-3 days") %}
-					{% elif (task_number <= 7 and  task_product == 'Folia') or (task_number <= 9 and task_product == 'Alto') %}
-						{% set task_stage = _('PDF Approval') %}
-						{% set progress_pourcentage = 50 %}
-						{% set progress_color = '#EF476E' %}
-						{% set project_stage_description = _("Once your file is print ready, we send you a pdf file to approve. The lead time for your project will begin once you have approved the PDF file <br><br><br> 1-3 days") %}
-					{% elif delivery_note_list|length > 0 and delivery_note_list[0].lr_no %}
-						{% set task_stage = _('Shipping') %}
-						{% set progress_pourcentage = 100 %}
-						{% set progress_color = '#3f94fc' %}
-						{% set project_stage_description = _("We carefully inspect each panel to ensure that your panels conform to our strict quality standards. We then carefully pack you panels so they are shipping on a cloud. <br><br><br> 3-7 days") %}
-					{% else %}
-						{% set task_stage = _('Production') %}
-						{% set progress_pourcentage = 75 %}
-						{% set progress_color = '#ef8a2b' %}
-						{% set project_stage_description = _("Production begins! We will produce beautiful, quality panels for you. <br><br><br> 3-6 weeks") %}
-					{% endif %}
+	<div class="row"><br />
+		<div class="col-md-12">
+			<div class="progress"  style="width: 86%;">
+			<!--display the progress bar based on the project stage-->
+				{% set first_open_task = {} %}
+				{% for trp in task_range_progress %}
+                                        {% if trp['task_order'] <= first_open_task_order %}
+                                                {% set test = first_open_task.update({'progression_name' : trp['progression'] }) %}
+                                                {% set test = first_open_task.update({'message' : trp['message'] }) %}
+                                                {% set test = first_open_task.update({'color' : trp['color'] }) %}
+                                                {% set test = first_open_task.update({'glyphicon' : trp['glyphicon'] }) %}
+                                                {% set test = first_open_task.update({'progression_pourcentage': progression_pourcentage[loop.index - 1]}) %}
+                                        {% endif %}
+                                {%endfor %}
+				
 				<!--Deposit dot-->
-				<div data-toggle="tooltip" data-placement="top" title={{_("Deposit")}} class="one" style="background-color: #159952;">
-					<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon glyphicon-usd" aria-hidden="true"></span>
+				<div data-toggle="tooltip" data-placement="top" title={{_(task_range_progress[0]['progression'] )}} class="one" style="background-color: {{task_range_progress[0]['color']}};">
+					<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon {{task_range_progress[0]['glyphicon']}}" aria-hidden="true"></span>
 				</div>
 				<!--Preflight dot-->
-				<div data-toggle="tooltip" data-placement="top" title={{_("Preflight")}} class="two" style="background-color: #047583;">
-					<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon glyphicon-copy" aria-hidden="true"></span>
+				<div data-toggle="tooltip" data-placement="top" title={{_(task_range_progress[1]['progression'])}} class="two" style="background-color: {{task_range_progress[1]['color']}};">
+					<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon {{task_range_progress[1]['glyphicon']}}" aria-hidden="true"></span>
 				</div>
 				<!--PDF Approval dot-->
-				<div data-toggle="tooltip" data-placement="top" title={{_("PDF Approval")}} class="three" style="background-color: #EF476E;">
-					<span style="text-align: center; margin-top: 11px; margin-left: 14px" class="glyphicon glyphicon-check" aria-hidden="true"></span>
+				<div data-toggle="tooltip" data-placement="top" title={{_(task_range_progress[2]['progression'])}} class="three" style="background-color: {{task_range_progress[2]['color']}};">
+					<span style="text-align: center; margin-top: 11px; margin-left: 14px" class="glyphicon {{task_range_progress[2]['glyphicon']}}" aria-hidden="true"></span>
 				</div>
 				<!--Production dot-->
-				<div data-toggle="tooltip" data-placement="top" title={{_("Production")}} class="four" style="background-color: #ef8a2b;">
-					<span style="text-align: center; margin-top: 11px; margin-left: 13px" class="glyphicon glyphicon-th-large" aria-hidden="true"></span>
+				<div data-toggle="tooltip" data-placement="top" title={{_(task_range_progress[3]['progression'])}} class="four" style="background-color: {{task_range_progress[3]['color']}};">
+					<span style="text-align: center; margin-top: 11px; margin-left: 13px" class="glyphicon {{task_range_progress[3]['glyphicon']}}" aria-hidden="true"></span>
 				</div>
 				<!--Shipping dot-->
-				<div data-toggle="tooltip" data-placement="top" title={{_("Shipping")}} class="five" style="text-align: center; background-color: #3f94fc;">
-					<span style="text-align: center; margin-top: 11px;" class="glyphicon glyphicon-plane" aria-hidden="true"></span>
+				<div data-toggle="tooltip" data-placement="top" title={{_(task_range_progress[4]['progression'])}} class="five" style="text-align: center; background-color: {{task_range_progress[4]['color']}};">
+					<span style="text-align: center; margin-top: 11px;" class="glyphicon {{task_range_progress[4]['glyphicon']}}" aria-hidden="true"></span>
 				</div>
-				<div class="progress-bar progress-bar-striped active" style="background-color: {{sh_color}} !important; width: {{progress_pourcentage}}%"></div>
+				<div class="progress-bar progress-bar-striped active" style="background-color: {{sh_color}} !important; width: {{first_open_task['progression_pourcentage'] }}%"></div>
 				</div>
 			</div>
 		</div>
-	</div>
-	
+	</div>	
 	<div class="row">
 		<!--Display informative text for the task stage-->
 		<div class="col-sm-6" style="width: 25%;  ">
-			<div id="project_stage_box" style="background-color: {{progress_color}};"><p id="project_stage_label" >{{task_stage}}</p></div>
-			<p id="project_stage_description" style="color: {{progress_color}}; border: 2px solid {{progress_color}};">
-				{{project_stage_description}}
+			<div id="project_stage_box" style="background-color: {{first_open_task['color']}};"><p id="project_stage_label" >{{_(first_open_task['progression_name'])}}</p></div>
+			<p id="project_stage_description" style="color: {{first_open_task['color']}}; border: 2px solid {{first_open_task['color']}};">
+				{{first_open_task['message']}}
 			</p>
 		</div>
 		<!--Display Shipping informations based on the related sales order-->
@@ -226,7 +203,7 @@
 						</tbody>
 					</table>
 					<!--If the tasks are at preflight or below, we want to display the graphic file preparation options-->
-				{% elif task_number <= 2 %}
+				{% elif curr_project.sub_type == 'Alto' and progression_pourcentage == 0 %}
 					<a href="https://www.altoaluminum.com/fileprint" target="_blank">
 						<img src="https://en-dev.shei.sh/files/prepare_file_img.png" style="width:30%; height:30%; padding-top: -5%; position:auto;" title="Go to graphic preparation file" alt="Link to see graphic preparation file">
 					</a>
