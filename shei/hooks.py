@@ -81,6 +81,11 @@ doc_events = {
             'shei.events.on_customer_after_insert'
         ]
     },
+    'Issue': {
+	'before_save': [
+	    'shei.events.on_issue_before_save'
+	],
+    },
 #    'Quotation': {
  #       'validate': [
   #          'shei.events.on_quotation_validate'

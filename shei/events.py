@@ -17,6 +17,9 @@ from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
+def on_issue_before_save(doc, handler=None):
+	if doc.kanban_status == 'Completed' and frappe.db.get_value('Issue', doc.name, 'kanban_status') != 'Completed':
+		doc.release_date = frappe.utils.nowdate()
 
 def on_project_onload(doc, handler=None):
 	doc.set("tasks", [])
