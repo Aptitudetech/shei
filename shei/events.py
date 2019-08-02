@@ -446,33 +446,36 @@ def create_work_order(so_name = None, mfg_items = []):
     import json
     items = []
     if not mfg_items:
-        return None 
+    	return None 
     json_items = json.loads(mfg_items)
     for item in json_items:
-        if 'width_in_inches' in item:
-            new_item = {
-                "item_code": item["item_code"] ,
-                "item_description": item["description"] ,
-                "quantity": item["qty"] , 
-                "width": item['width_in_inches'],
-                "height": item['height_in_inches'],
-                "measurement": 'Inches',
-            }
-        elif 'width_in_mm' in item:
-            new_item = {
-                "item_code": item["item_code"] ,
-                "item_description": item["description"] ,
-                "quantity": item["qty"] , 
-                "width": item['width_in_mm'],
-                "height": item['height_in_mm'],
-                "measurement": 'MM',
-            }
-        else:
-            new_item = {
-                "item_code": item["item_code"] ,
+        #if 'width_in_inches' in item:
+        #    new_item = {
+        #        "item_code": item["item_code"] ,
+        #        "item_description": item["description"] ,
+        #        "quantity": item["qty"] , 
+        #        "width": item['width_in_inches'],
+        #        "height": item['height_in_inches'],
+        #        "measurement": 'Inches',
+        #    }
+        #elif 'width_in_mm' in item:
+        #    new_item = {
+        #        "item_code": item["item_code"] ,
+        #        "item_description": item["description"] ,
+        #        "quantity": item["qty"] , 
+        #        "width": item['width_in_mm'],
+        #        "height": item['height_in_mm'],
+        #        "measurement": 'MM',
+        #    }
+        #else:
+        new_item = {
+        	"item_code": item["item_code"] ,
                 "item_description": item["description"] ,
                 "quantity": item["qty"],
-            }
+		"width": item.get('width', 0),
+                "height": item.get('height', 0),
+                "measurement": item.get('measurement', "")
+	}
         items.append(new_item)
     
     so  = frappe.db.get_value('Sales Order', so_name, ['delivery_date', 'project'], as_dict=True)
