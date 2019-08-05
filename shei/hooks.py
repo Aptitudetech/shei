@@ -367,6 +367,7 @@ fixtures = [
                 "Stock Entry-Client",
                 "Purchase Invoice-Client",
                 "Payment Entry-Client",
+		"Address-Client",
             ]]
         }
     },
