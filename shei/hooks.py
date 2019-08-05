@@ -178,6 +178,19 @@ fixtures = [
         }
     },
     {
+        "dt": "Report",
+        "filters": {
+            "name": ["in", [
+                "Closed Task",
+		"Graphic Production",
+		"Contacts per Customer",
+		"First Open Task by Open Project - ngoyette",
+		"Suppliers with Invoices",
+		"Facture du 1er nov a maintenant",
+            ]]
+        }
+    },
+    {
         "dt": "Custom Field",
 	    "filters": {
         	"name": ["in", [

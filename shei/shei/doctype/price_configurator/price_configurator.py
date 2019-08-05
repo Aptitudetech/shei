@@ -8,7 +8,7 @@ from frappe.model.document import Document
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
 from datetime import datetime
-import easypost
+#import easypost
 
 
 class PriceConfigurator(Document):

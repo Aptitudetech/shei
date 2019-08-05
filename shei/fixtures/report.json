@@ -1,0 +1,368 @@
+[
+ {
+  "add_total_row": 0, 
+  "color": null, 
+  "disable_prepared_report": 0, 
+  "disabled": 0, 
+  "docstatus": 0, 
+  "doctype": "Report", 
+  "icon": null, 
+  "is_standard": "No", 
+  "javascript": null, 
+  "json": null, 
+  "letter_head": "Standard - header & footer", 
+  "modified": "2017-06-22 16:35:36.667022", 
+  "module": "Selling", 
+  "name": "Facture du 1er nov a maintenant", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "prepared_report": 0, 
+  "query": "SELECT si.posting_date, si.Customer, sii.base_net_amount, st.sales_person, sii.sales_order, sii.parent\nFROM `tabSales Invoice` si \nLEFT JOIN `tabSales Invoice Item` sii ON si.name=sii.parent\nLEFT JOIN `tabSales Team` st ON st.parent=si.name \nWHERE  sii.sales_order is null and si.docstatus=1\nORDER BY st.sales_person", 
+  "ref_doctype": "Sales Invoice", 
+  "reference_report": null, 
+  "report_name": "Facture du 1er nov a maintenant", 
+  "report_type": "Query Report", 
+  "roles": [
+   {
+    "parent": "Facture du 1er nov a maintenant", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Admin - Office"
+   }, 
+   {
+    "parent": "Facture du 1er nov a maintenant", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Customer"
+   }, 
+   {
+    "parent": "Facture du 1er nov a maintenant", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Accounts Manager"
+   }, 
+   {
+    "parent": "Facture du 1er nov a maintenant", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Accounts User"
+   }
+  ]
+ }, 
+ {
+  "add_total_row": 0, 
+  "color": null, 
+  "disable_prepared_report": 0, 
+  "disabled": 0, 
+  "docstatus": 0, 
+  "doctype": "Report", 
+  "icon": null, 
+  "is_standard": "No", 
+  "javascript": "frappe.query_reports[\"Suppliers with Invoices\"] = {\n filters: [\n   {\n      \"fieldname\": \"from_date\", \n      \"fieldtype\": \"Date\", \n      \"label\": __(\"From Date\"), \n      \"default\": frappe.datetime.add_months(frappe.datetime.get_today(), -3), \n      \"reqd\": 1\n   },\n   {\n      \"fieldname\": \"to_date\", \n      \"fieldtype\": \"Date\", \n      \"label\": __(\"To Date\"), \n      \"default\":get_today(), \n      \"reqd\": 1\n  }\n ]\n}", 
+  "json": null, 
+  "letter_head": "Standard - header & footer", 
+  "modified": "2017-11-22 21:44:42.786160", 
+  "module": "Buying", 
+  "name": "Suppliers with Invoices", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "prepared_report": 0, 
+  "query": "SELECT\n  tabSupplier.supplier_name as \"Supplier:Link/supplier:200\",\n  tabAddress.address_line1 as \"Address Line 1:text:250\",\n  tabAddress.address_line2 as \"Address Line 2:text:150\",\n  tabAddress.city as \"City:text:150\",\n  tabAddress.pincode as \"Postal Code:text:85\",\n  tabAddress.state as \"Province:text:85\",\n  tabAddress.country as \"Country:text:85\"\nFROM tabSupplier\n  INNER JOIN `tabPurchase Invoice`\n    ON `tabPurchase Invoice`.supplier = tabSupplier.name\n  LEFT OUTER JOIN `tabDynamic Link`\n    ON tabSupplier.name = `tabDynamic Link`.link_name\n  INNER JOIN tabAddress\n    ON `tabDynamic Link`.parent = tabAddress.name\nWHERE `tabPurchase Invoice`.`posting_date` BETWEEN %(from_date)s AND %(to_date)s\nGROUP BY tabSupplier.supplier_name", 
+  "ref_doctype": "Supplier", 
+  "reference_report": null, 
+  "report_name": "Suppliers with Invoices", 
+  "report_type": "Query Report", 
+  "roles": [
+   {
+    "parent": "Suppliers with Invoices", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Purchase User"
+   }, 
+   {
+    "parent": "Suppliers with Invoices", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Admin - Office"
+   }, 
+   {
+    "parent": "Suppliers with Invoices", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Stock Manager"
+   }, 
+   {
+    "parent": "Suppliers with Invoices", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Purchase Manager"
+   }, 
+   {
+    "parent": "Suppliers with Invoices", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Purchase Master Manager"
+   }, 
+   {
+    "parent": "Suppliers with Invoices", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Accounts Manager"
+   }, 
+   {
+    "parent": "Suppliers with Invoices", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Accounts User"
+   }, 
+   {
+    "parent": "Suppliers with Invoices", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Stock User"
+   }, 
+   {
+    "parent": "Suppliers with Invoices", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Office and Shop Manager"
+   }
+  ]
+ }, 
+ {
+  "add_total_row": 0, 
+  "color": null, 
+  "disable_prepared_report": 0, 
+  "disabled": 0, 
+  "docstatus": 0, 
+  "doctype": "Report", 
+  "icon": null, 
+  "is_standard": "No", 
+  "javascript": "", 
+  "json": null, 
+  "letter_head": "Standard - header & footer", 
+  "modified": "2019-03-01 11:34:35.361628", 
+  "module": "Projects", 
+  "name": "First Open Task by Open Project - ngoyette", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "prepared_report": 0, 
+  "query": "SELECT\n  tabProject.name as \"Project:Link/Project:250\",\n  tabProject.project_amount_from_so as \"Amount:Currency:90\",\n  tabProject.sub_type as \"SubType:text:105\",\n  tabTask.subject as \"Subject:text:250\",\n  tabTask.name as \"Task:Link/Task:100\",\n  tabTask.status as \"Status:text:105\",\n  tabProject.expected_end_date as \"Exp. End Date:date:90\",\n  tabProject.project_manager as \"Project Manager:Link/User:150\",\n  tabProject.type as \"Type:text:105\",\n  tabTask.assigned_to as \"Assigned To:Link/User:150\"\nFROM tabProject, tabTask\nWHERE tabTask.status <> 'Closed'\nAND tabProject.name = tabTask.project\nAND tabTask.status <> 'Cancelled'\nAND tabProject.type = 'Graphic'\nAND (tabProject.status = 'Open' OR tabProject.status = 'Project Without Orders')\nAND\n(\n\tSELECT tt.assigned_to\n    \tFROM tabTask tt\n\tWHERE tt.status <> 'Closed'\n\tAND tt.status <> 'Cancelled'\n\tAND tabProject.name = tt.project\n\tGROUP By tt.project\n\tORDER BY tt.subject\n\tLIMIT 1\n) IN (\"ngoyette@shei.sh\", \"nlaperriere@shei.sh\")\nGROUP BY tabProject.name\nORDER BY tabTask.subject\n", 
+  "ref_doctype": "Project", 
+  "reference_report": null, 
+  "report_name": "First Open Task by Open Project - ngoyette", 
+  "report_type": "Query Report", 
+  "roles": [
+   {
+    "parent": "First Open Task by Open Project - ngoyette", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Office and Shop Manager"
+   }, 
+   {
+    "parent": "First Open Task by Open Project - ngoyette", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Admin - Office"
+   }, 
+   {
+    "parent": "First Open Task by Open Project - ngoyette", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Projects User"
+   }, 
+   {
+    "parent": "First Open Task by Open Project - ngoyette", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "BOM User"
+   }
+  ]
+ }, 
+ {
+  "add_total_row": 0, 
+  "color": null, 
+  "disable_prepared_report": 0, 
+  "disabled": 0, 
+  "docstatus": 0, 
+  "doctype": "Report", 
+  "icon": null, 
+  "is_standard": "No", 
+  "javascript": "frappe.query_reports[\"Contacts per Customer\"] = {\n    filters: [\n        {\n            label: __(\"Customer\"),\n            fieldname: \"customer\",\n            fieldtype: \"Link\",\n            options: \"Customer\",\n            reqd: 1\n        }\n    ]\n}", 
+  "json": null, 
+  "letter_head": "Standard - header & footer", 
+  "modified": "2019-03-10 10:44:02.769602", 
+  "module": "Selling", 
+  "name": "Contacts per Customer", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "prepared_report": 0, 
+  "query": "SELECT\n  tabContact.name as \"Name:Link/Contact:250\",\n  tabContact.first_name as \"Fist Name:Data:250\",\n  tabContact.last_name as \"Last Name:Data:250\",\n  tabContact.email_id as \"Email:Data:250\",\n  tabContact.phone as \"Phone:Data:90\"\nFROM `tabDynamic Link`\nINNER JOIN tabContact\nON `tabDynamic Link`.parent = tabContact.name\nWHERE\n  `tabDynamic Link`.parenttype = \"Contact\"\n  AND `tabDynamic Link`.link_doctype = \"Customer\"\n  AND `tabDynamic Link`.link_name = (%(customer)s)", 
+  "ref_doctype": "Customer", 
+  "reference_report": null, 
+  "report_name": "Contacts per Customer", 
+  "report_type": "Query Report", 
+  "roles": [
+   {
+    "parent": "Contacts per Customer", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Sales Manager"
+   }, 
+   {
+    "parent": "Contacts per Customer", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Accounts User"
+   }, 
+   {
+    "parent": "Contacts per Customer", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Admin - Office"
+   }, 
+   {
+    "parent": "Contacts per Customer", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Office and Shop Manager"
+   }, 
+   {
+    "parent": "Contacts per Customer", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Stock User"
+   }, 
+   {
+    "parent": "Contacts per Customer", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Accounts Manager"
+   }, 
+   {
+    "parent": "Contacts per Customer", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Sales User"
+   }, 
+   {
+    "parent": "Contacts per Customer", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Sales Master Manager"
+   }, 
+   {
+    "parent": "Contacts per Customer", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Stock Manager"
+   }
+  ]
+ }, 
+ {
+  "add_total_row": 0, 
+  "color": null, 
+  "disable_prepared_report": 0, 
+  "disabled": 0, 
+  "docstatus": 0, 
+  "doctype": "Report", 
+  "icon": null, 
+  "is_standard": "No", 
+  "javascript": "", 
+  "json": null, 
+  "letter_head": "Standard - header & footer", 
+  "modified": "2019-03-11 13:58:07.508355", 
+  "module": "Projects", 
+  "name": "Graphic Production", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "prepared_report": 0, 
+  "query": "SELECT\n  tabProject.name as \"Project:Link/Project:250\",\n  tabProject.project_amount_from_so as \"Amount:Currency:90\",\n  tabProject.sub_type as \"SubType:text:105\",\n  tabTask.subject as \"Subject:text:250\",\n  tabTask.name as \"Task:Link/Task:100\",\n  tabTask.status as \"Status:text:105\",\n  tabProject.expected_end_date as \"Exp. End Date:date:90\",\n  tabProject.project_manager as \"Project Manager:Link/User:150\",\n  tabProject.type as \"Type:text:105\",\n  tabTask.assigned_to as \"Assigned To:Link/User:150\"\nFROM tabProject, tabTask\nWHERE tabTask.status <> 'Closed'\nAND tabProject.name = tabTask.project\nAND tabTask.status <> 'Cancelled'\nAND tabProject.sub_type IN ('Alto', 'Folia')\nAND (tabProject.status = 'Open' OR tabProject.status = 'Project Without Orders')\nAND\n(\n\tSELECT tt.subject\n    \tFROM tabTask tt\n\tWHERE tt.status <> 'Closed'\n\tAND tt.status <> 'Cancelled'\n\tAND tabProject.name = tt.project\n\tAND tt.assigned_to NOT IN ('emontreuil@shei.sh', 'mhaineault@shei.sh')\n\tGROUP By tt.project\n\tORDER BY tt.subject\n\tLIMIT 1\n) IN (\"FOLIA-07-MATERIAL ORDERING\",\n      \"FOLIA-08-ARBORITE ORDERING\",\n      \"FOLIA-09-ARBORITE INSPECTION-CUT-CNC\",\n      \"FOLIA-10-EDGES-INSERTS-MOUNTING-ETC\",\n      \"FOLIA-11-GATHER HARDWARE-Z-CLIP-POST-ETC\",\n      \"FOLIA-12-INSPECTION / PACKAGING\",\n      \"FOLIA-13-ENTER FINISHED PRODUCTION IN ERP\",\n      \"FOLIA-14-INVOICING\",\n      \"FOLIA-15-SHIPPING\",\n      \"ALTO-09-DEBURRING-CLEANING-PAINTING\",\n      \"ALTO-10-SUBLIMATION ALTO OVEN\",\n      \"ALTO-11-GATHER HARDWARE-Z-CLIP-POST-ETC\",\n      \"ALTO-12-INSPECTION / PACKAGING\",\n      \"ALTO-13-ENTER FINISHED PRODUCTION IN ERP\",\n      \"ALTO-14-INVOICING\",\n      \"ALTO-15-SHIPPING\")\nGROUP BY tabProject.name\nORDER BY tabTask.subject\n", 
+  "ref_doctype": "Project", 
+  "reference_report": null, 
+  "report_name": "Graphic Production", 
+  "report_type": "Query Report", 
+  "roles": [
+   {
+    "parent": "Graphic Production", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Office and Shop Manager"
+   }, 
+   {
+    "parent": "Graphic Production", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Admin - Office"
+   }, 
+   {
+    "parent": "Graphic Production", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Projects User"
+   }, 
+   {
+    "parent": "Graphic Production", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "BOM User"
+   }
+  ]
+ }, 
+ {
+  "add_total_row": 0, 
+  "color": null, 
+  "disable_prepared_report": 0, 
+  "disabled": 0, 
+  "docstatus": 0, 
+  "doctype": "Report", 
+  "icon": null, 
+  "is_standard": "No", 
+  "javascript": "frappe.query_reports[\"Closed Task\"] = {\n        \"filters\": [\n                {\n                        \"fieldname\": \"task_closed_from\",\n                        \"label\": __(\"Task Was Closed From Date\"),\n                        \"fieldtype\": \"Date\",\n                        \"default\": frappe.datetime.get_today(),\n                },\n                {\n                        \"fieldname\": \"task_closed_to\",\n                        \"label\": __(\"Task was closed To Date\"),\n                        \"fieldtype\": \"Date\",\n                        \"default\": frappe.datetime.get_today(),\n                },\n        ]\n}\n\n", 
+  "json": "{\"add_total_row\": 0}", 
+  "letter_head": "Standard - header & footer", 
+  "modified": "2019-08-02 14:54:44.058267", 
+  "module": "Projects", 
+  "name": "Closed Task", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "prepared_report": 0, 
+  "query": "SELECT\n  tabProject.name as \"Project:Link/Project:250\",\n  tabProject.type as \"Type:text:90\",\n  tabProject.sub_type as \"SubType:text:90\",\n  tabProject.percent_complete as \"Completion:text:50\",\n  tabTask.name as \"Task:Link/Task:100\",\n  tabTask.subject as \"Subject:text:250\",\n  tabTask.exp_end_date as \"Exp End Date:date:90\"\nFROM tabProject, tabTask\nWHERE tabProject.name = tabTask.project\nAND tabTask.status = 'Closed'\nAND tabTask.exp_end_date >= %(task_closed_from)s\nAND tabTask.exp_end_date <= %(task_closed_to)s\nORDER BY tabProject.Name\n", 
+  "ref_doctype": "Project", 
+  "reference_report": null, 
+  "report_name": "Closed Task", 
+  "report_type": "Query Report", 
+  "roles": [
+   {
+    "parent": "Closed Task", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Office and Shop Manager"
+   }, 
+   {
+    "parent": "Closed Task", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Admin - Office"
+   }, 
+   {
+    "parent": "Closed Task", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Projects User"
+   }, 
+   {
+    "parent": "Closed Task", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "BOM User"
+   }
+  ]
+ }
+]
