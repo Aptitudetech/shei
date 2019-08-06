@@ -147,12 +147,12 @@
   "docstatus": 0, 
   "doctype": "Custom Script", 
   "dt": "Address", 
-  "modified": "2019-07-15 14:24:18.739756", 
+  "modified": "2019-08-06 10:15:40.051751", 
   "name": "Address-Client", 
   "parent": null, 
   "parentfield": null, 
   "parenttype": null, 
-  "script": "frappe.ui.form.on(\"Address\", \"refresh\", function(frm, cdt, cdn) {\n\tsetTimeout(function(){\n\t\tfrappe.model.set_value(cdt, cdn, \"country\", \"\");\n\t}, 1500);\n});\n\n", 
+  "script": "frappe.ui.form.on(\"Address\", \"refresh\", function(frm, cdt, cdn) {\n\tif (frm.doc.__islocal){\n\t\tsetTimeout(function(){\n\t\tfrappe.model.set_value(cdt, cdn, \"country\", \"\");\n\t}, 1500);\n\t}\n});\n\n", 
   "script_type": "Client"
  }
 ]

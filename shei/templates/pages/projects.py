@@ -7,13 +7,14 @@ import json
 from frappe import _
 import datetime as dt
 import re
+from frappe.utils import get_site_name
 
 @frappe.whitelist()
 def upload_wetransfer_link(doc_name, link):
 	"""Send the WeTransfer link by emil to the project manager"""
 	recipient = frappe.get_value('Project', doc_name, 'project_manager')
 	recipient = 'melissaraymond48@gmail.com'
-	content = _('<p>Hi,</p><p>You received some files from <a href="https://en-dev.shei.sh/desk#Form/Project/{0}".format(doc_name) target="_blank">{0}</a></p><p>To see them, please click on this link: <a href="{1}".format(link) target="_blank">WeTransfer</a></p>').format(doc_name, link)
+	content = _('<p>Hi,</p><p>You received some files from <a href="https://{0}/desk#Form/Project/{1}" target="_blank">{1}</a></p><p>To see them, please click on this link: <a href="{2}" target="_blank">WeTransfer</a></p>').format(get_site_name(frappe.local.request.host), doc_name, link)
 	subject = "Files Received for project {0}".format(doc_name)
 	send_email(recipient, subject, content)
 
@@ -65,10 +66,13 @@ def update_shipping_address(doc_name, sales_order_name, customer, address_line_1
 		shipping_address = checked_address_value
 	if checked_address_value == frappe.db.get_value('Sales Order', sales_order_name, 'shipping_address_name'):
 		return
-	recipient = frappe.get_value('Project', doc_name, 'project_manager')
-	recipient = 'melissaraymond48@gmail.com'
-	content = _('<p>Hi,</p><p>{0} would like to change his shipping address for the Sales Order <a href="https://en-dev.shei.sh/desk#Form/Sales%20Order/{1}" target="_blank">{1}</a></p> \
-	<p>New Shipping Address: <a href="https://en-dev.shei.sh/desk#Form/Address/{2}" target="_blank">{2}</a></p>').format(customer, sales_order_name, shipping_address)
+	site = get_site_name(frappe.local.request.host)
+	if 'en-dev' in site or 'en-staging':
+		recipient = 'melissaraymond48@gmail.com'
+	else:
+		recipient = frappe.get_value('Project', doc_name, 'project_manager')
+	content = _('<p>Hi,</p><p>{1} would like to change his shipping address for the Sales Order <a href="https://{0}/desk#Form/Sales%20Order/{2}" target="_blank">{2}</a></p> \
+	<p>New Shipping Address: <a href="https://{0}/desk#Form/Address/{3}" target="_blank">{3}</a></p>').format(site, customer, sales_order_name, shipping_address)
 	subject = "Change Shipping Address for Project {0}".format(doc_name)
 	send_email(recipient, subject, content)
 	frappe.msgprint(_("Your request have been sent to your project manager."))
@@ -113,10 +117,14 @@ def update_contact(doc_name, customer, contact_first_name, contact_last_name,
 	else:
 		contact_name = "{0}-{1}".format(checked_contact_value, customer)
 		contact_full_name = checked_contact_value
-	recipient = frappe.get_value('Project', doc_name, 'project_manager')
-	recipient = 'melissaraymond48@gmail.com'
-	content = _('<p>Hi,</p><p>{0} would like to change his contact for the Sales Order <a href="https://en-dev.shei.sh/desk#Form/Sales%20Order/{1}" target="_blank">{1}</a></p> \
-	<p>New Contact: <a href="https://en-dev.shei.sh/desk#Form/Contact/{2}" target="_blank">{2}</a></p>').format(customer, so_name, contact_name)
+	site = get_site_name(frappe.local.request.host)
+	if 'en-dev' in site or 'en-staging' in site:
+		recipient = 'melissaraymond48@gmail.com'
+	else:
+		recipient = frappe.get_value('Project', doc_name, 'project_manager')
+
+	content = _('<p>Hi,</p><p>{1} would like to change his contact for the Sales Order <a href="https://{0}/desk#Form/Sales%20Order/{2}" target="_blank">{2}</a></p> \
+	<p>New Contact: <a href="https://{0}/desk#Form/Contact/{3}" target="_blank">{3}</a></p>').format(site, customer, so_name, contact_name)
 	subject = "Change Contact for Project {0}".format(doc_name)
 	send_email(recipient, subject, content)
 	frappe.msgprint(_("Your request have been sent to your project manager."))
