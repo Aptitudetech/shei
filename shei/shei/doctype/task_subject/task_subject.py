@@ -7,6 +7,8 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 from frappe.model.rename_doc import rename_doc
+from shei.shei.doctype.task_template.task_template import reorder_tasks_after_update
+from shei.shei.doctype.task_template.task_template import get_all_task_template_from_sub_type
 
 class TaskSubject(Document):
 
@@ -32,7 +34,7 @@ class TaskSubject(Document):
 			task.update({'disabled': disabled, 'task_desc': task_desc, 'sub_type': sub_type}).save()
 			task_template = frappe.new_doc('Task Template')
                         task_template.flags.ignore_permissions = True
-			last_task_order_template = self.get_all_task_template_from_sub_type(sub_type)
+			last_task_order_template = get_all_task_template_from_sub_type(sub_type)
 			if not last_task_order_template:
 				last_task_order = 0
 			else:
@@ -55,7 +57,6 @@ class TaskSubject(Document):
 		return new_name
 
 	def update_task_template(self, old_name, new_name, need_renaming):
-		from shei.shei.doctype.task_template.task_template import reorder_tasks_after_update
 		reorder_tasks_after_update(self.sub_type)
 		if need_renaming:
 			frappe.rename_doc(doctype='Task Template', old=old_name, new=new_name, ignore_permissions=True)
@@ -94,7 +95,7 @@ class TaskSubject(Document):
 			tpr = frappe.get_doc('Task Progression Range', {'sub_type': sub_type, 'task_subject': new_name})
 			tpr.flags.ignore_permissions = True
 			have_replacement = False
-			tasks_template = self.get_all_task_template_from_sub_type(sub_type)
+			tasks_template = get_all_task_template_from_sub_type(sub_type)
 			if tasks_template and tasks_template[-1].task_order == tpr.task_order:
 				have_replacement = True
 
@@ -116,22 +117,3 @@ class TaskSubject(Document):
                 for task in next_task: #need to find the task Subject with sub_type
                         if frappe.exists('Task Subject', {'name':task.name, 'sub_type':sub_type}):
                                 return frappe.db.get_value('Task Template', {'task_subject':task.name}, '*', as_dict=True)
-
-	def get_all_task_template_from_sub_type(self, sub_type):
-                tasks_subject = frappe.db.get_all('Task Subject', {'sub_type': sub_type, 'disabled':False}, ['name'])
-                tasks = []
-                for t in tasks_subject:
-                        task = frappe.db.get_value('Task Template', {'name':t.name}, '*')
-			if task:
-	                        tasks.append(task)
-                frappe.msgprint(_("tasks : {0}").format(tasks))
-		if tasks:
-                	tasks.sort(key=self.order_task_by_task_order, reverse=False)
-                return tasks
-
-        def order_task_by_task_order(self, json_task):
-                try:
-                        return int(json_task['task_order'])
-                except KeyError:
-                        return 0
-

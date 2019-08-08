@@ -18,33 +18,6 @@ class TaskTemplate(Document):
                 self.update_task_progression_range_order(self.task_order, self.task_subject)
                 frappe.msgprint(_("Tasks have been updated"))
 
-#	def get_all_task_template_from_sub_type(self, sub_type):
-#		tasks_subject = frappe.db.get_all('Task Subject', {'sub_type': sub_type, 'disabled':False}, ['name'])
-#		tasks = []
-#		for t in tasks_subject:
-#	                task = frappe.db.get_value('Task Template', {'name':t.name}, '*')
-#			if task:
-#				tasks.append(task)
-#		frappe.msgprint(_("tasks : {0}").format(tasks))
-#		tasks.sort(key=self.order_task_by_task_order, reverse=False)
-#		return tasks
-#
-#	def order_task_by_task_order(self, json_task):
- #   		try:
-  #      		return int(json_task['task_order'])
-#	    	except KeyError:
-#	        	return 0
-
-#	def reorder_tasks_after_update(self, sub_type):
-#		tasks = self.get_all_task_template_from_sub_type(sub_type)
- #               task_order = 1
-  #              for task in tasks:
-   #                     if task.task_order != task_order: #we don't want to update it if already alright
-    #                            doc = frappe.get_doc('Task Template', task.name)
-     #                           doc.flags.ignore_permissions = True
-      #                          doc.update({'task_order':task_order}).save()
-       #                 task_order = task_order + 1
-
 	def update_task_progression_range_order(self, task_order, task_subject):
 		ts = frappe.db.get_values('Task Subject', self.name, ['sub_type', 'disabled', 'name'], as_dict=True)
                 if frappe.db.exists('Task Progression Range', {'task_subject': task_subject}):
