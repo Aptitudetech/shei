@@ -17,6 +17,19 @@ from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
+
+def on_task_before_save(doc, handler=None):
+	if not doc.is_new():
+		return
+	depends_on_task_subject_name = frappe.db.get_all('Dynamic Task Subject', {'parent':doc.subject, 'parenttype':'Task Template'}, 'doctype_id')
+	for ts in depends_on_task_subject_name:
+		task = frappe.db.get_value('Task', {'project':doc.project, 'subject':ts.doctype_id}, 'name')
+		doc.append('depends_on', {
+			'task':task,
+			'subject':ts.doctype_id,
+			'project':doc.project,
+		})
+
 def on_issue_before_save(doc, handler=None):
 	if doc.kanban_status == 'Completed' and frappe.db.get_value('Issue', doc.name, 'kanban_status') != 'Completed':
 		doc.release_date = frappe.utils.nowdate()

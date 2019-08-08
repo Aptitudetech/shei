@@ -25,7 +25,7 @@ frappe.ui.form.on('Task Subject', {
 });
 
 //will fetch the last task_order from the curr sub_type and add 1
-frappe.ui.form.on("Task Subject", "sub_type", function(frm, cdt, cdn) {
+/*frappe.ui.form.on("Task Subject", "sub_type", function(frm, cdt, cdn) {
 		frappe.call({
 			'method': 'frappe.client.get_list',
 			'args': {
@@ -42,4 +42,4 @@ frappe.ui.form.on("Task Subject", "sub_type", function(frm, cdt, cdn) {
 				}
 		}
 	});
-});
+});*/
