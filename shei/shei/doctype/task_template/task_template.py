@@ -23,7 +23,7 @@ class TaskTemplate(Document):
                 if frappe.db.exists('Task Progression Range', {'task_subject': task_subject}):
                         tpr = frappe.get_doc('Task Progression Range', {'task_subject': ts.name})
                         tpr.flags.ignore_permissions = True
-                        tpr.update({'task_oder': task_order})
+                        tpr.update({'task_order': task_order})
                         tpr.save()
 
 	def update_other_tasks(self, sub_type, task_order, task_subject):
