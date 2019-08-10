@@ -62,7 +62,6 @@ def get_all_task_template_from_sub_type(sub_type):
                 task = frappe.db.get_value('Task Template', {'name':t.name}, '*')
 		if task:
 			tasks.append(task)
-	frappe.msgprint(_("tasks : {0}").format(tasks))
 	tasks.sort(key=order_task_by_task_order, reverse=False)
 	return tasks
 
