@@ -10,13 +10,21 @@ import json
 
 class TaskTemplate(Document):
 
+
 	#Entry Point -> Update Informations button
 	def update_task_template(self):
 		curr_task_sub_type = frappe.db.get_value('Task Subject', self.task_subject, 'sub_type')
+		self.save_curr_task_template()
                 self.update_other_tasks(curr_task_sub_type, self.task_order, self.task_subject)
                 reorder_tasks_after_update(curr_task_sub_type)
                 self.update_task_progression_range_order(self.task_order, self.task_subject)
                 frappe.msgprint(_("Tasks have been updated"))
+
+	def save_curr_task_template(self):
+		doc = frappe.get_doc('Task Template', self.name)
+		doc.flags.ignore_permissions = True
+		doc.update({'task_order': self.task_order, 'assigned_to':self.assigned_to, 'depends_on': self.depends_on})
+		doc.save()
 
 	def update_task_progression_range_order(self, task_order, task_subject):
 		ts = frappe.db.get_values('Task Subject', self.name, ['sub_type', 'disabled', 'name'], as_dict=True)
@@ -52,6 +60,7 @@ def reorder_tasks_after_update(sub_type):
         	        doc = frappe.get_doc('Task Template', task.name)
                         doc.flags.ignore_permissions = True
                         doc.update({'task_order':task_order}).save()
+			frappe.db.commit()
                 task_order = task_order + 1
 
 @frappe.whitelist()
