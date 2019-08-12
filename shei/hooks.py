@@ -192,6 +192,7 @@ fixtures = [
 		"First Open Task by Open Project - ngoyette",
 		"Suppliers with Invoices",
 		"Facture du 1er nov a maintenant",
+		"ERIKA - Graphic In Production by Item 2",
             ]]
         }
     },
