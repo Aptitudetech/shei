@@ -126,7 +126,7 @@
 		<div class="col-sm-6" style="width: 25%;  ">
 			<div id="project_stage_box" style="background-color: {{first_open_task['color']}};"><p id="project_stage_label" >{{_(first_open_task['progression_name'])}}</p></div>
 			<p id="project_stage_description" style="color: {{first_open_task['color']}}; border: 2px solid {{first_open_task['color']}};">
-				{{first_open_task['message']}}
+				{{_(first_open_task['message'])}}
 			</p>
 		</div>
 		<!--Display Shipping informations based on the related sales order-->
@@ -146,11 +146,11 @@
 							{% endif %}
 						</strong>
 					</p>
-					<p>{{_("Shipping address have a dock?")}} <strong>{{_(frappe.db.get_value('Address', sales_orders[0]['shipping_address_name'], 'have_dock')) or _("Unknown")}}</strong></p>
-					<p>{{_("Shipping address is a residential address?")}} <strong>{{_(frappe.db.get_value('Address', sales_orders[0]['shipping_address_name'], 'is_residential_address')) or _("Unknown") }}</strong></p>
+					<p>{{_("Dock at shipping address?")}} <strong>{{_(frappe.db.get_value('Address', sales_orders[0]['shipping_address_name'], 'have_dock')) or _("Unknown")}}</strong></p>
+					<p>{{_("Is this a residential address?")}} <strong>{{_(frappe.db.get_value('Address', sales_orders[0]['shipping_address_name'], 'is_residential_address')) or _("Unknown") }}</strong></p>
 					<p>{{_("Contact Person")}}: <strong>{{sales_orders[0]['contact_display'] or _("Unknown")}}</strong></p>
 					<a href="" class="btn btn-info btn-rounded mb-4" data-toggle="modal" style="background: {{sh_color}};" data-target="#modalLoginForm">
-						{{_("Update Shipping Informations")}}
+						{{_("Update Shipping Information")}}
 					</a>
 				</div>
 
@@ -231,7 +231,7 @@
 	<p>{{_("Problem with the link above?")}}</p>
 	<a href="https://wetransfer.com/?to={{doc.project_manager}}&msg={{doc.name}}" target="_blank">
 		<span class="glyphicon glyphicon-upload" aria-hidden="true"></span>
-		<strong data-toggle="tooltip" data-placement="top" title="Transfert your file with WeTransfer">{{_("Click here to transfert your file")}}</strong>
+		<strong data-toggle="tooltip" data-placement="top" title="Transfert your file with WeTransfer">{{_("Click here to transfer files")}}</strong>
 	</a>
 	
 	<!--Display attachments related to the project-->
@@ -265,9 +265,7 @@
 				</div>
 				<div class="modal-body mx-3">
 					<p style="font-style: italic;">
-							<strong>Note: </strong>{{ _("The request to change shipping address will be sent to your project manager.  
-							This change may incur additional shipping charges; if this is the case,
-								your project manager will contact you for your approval.")}}
+							<strong>Note: </strong>{{ _("The request to change shipping address will be sent to your project manager. This change may incur additional shipping charges; if this is the case, your project manager will contact you for your approval.")}}
 					</p>
 					<h2>{{_("Contact")}}</h2>
 					<!--Contact Section-->
@@ -394,7 +392,7 @@
 																<option value="No">{{_("No")}}</option>
 															{% endif %}
 													</select>
-													<label>{{_("Have a dock")}}</label>
+													<label>{{_("Shipping dock available?")}}</label>
 													<br>
 													<div style="margin-top: 10px;">
 														<select id="is_residential_{{address.name}}" class="btn btn-secondary dropdown-toggle">
@@ -412,7 +410,7 @@
 																<option value="No">{{_("No")}}</option>
 															{% endif %}
 														</select>
-														<label>{{_("Is a residential address")}}</label>
+														<label>{{_("Is this a residential address?")}}</label>
 													</div>
 												</div>
 											</div>
@@ -461,7 +459,7 @@
 					
 				</div>
 				<div class="modal-footer d-flex justify-content-center">
-					<button class="btn btn-default" onclick="update_shipping_address()" style="background: {{sh_color}}">{{_("Save and change the shipping address")}}</button>
+					<button class="btn btn-default" onclick="update_shipping_address()" style="background: {{sh_color}}">{{_("Save to change shipping address")}}</button>
 				</div>
 			</div>
 		</div>

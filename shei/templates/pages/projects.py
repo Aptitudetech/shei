@@ -14,7 +14,7 @@ def upload_wetransfer_link(doc_name, link):
 	"""Send the WeTransfer link by emil to the project manager"""
 	recipient = frappe.get_value('Project', doc_name, 'project_manager')
 	recipient = 'melissaraymond48@gmail.com'
-	content = _('<p>Hi,</p><p>You received some files from <a href="https://{0}/desk#Form/Project/{1}" target="_blank">{1}</a></p><p>To see them, please click on this link: <a href="{2}" target="_blank">WeTransfer</a></p>').format(get_site_name(frappe.local.request.host), doc_name, link)
+	content = _('<p>Hi,</p><p>you received files from <a href="https://{0}/desk#Form/Project/{1}" target="_blank">{1}</a></p><p>To see them, please click this link: <a href="{2}" target="_blank">WeTransfer</a></p>').format(get_site_name(frappe.local.request.host), doc_name, link)
 	subject = "Files Received for project {0}".format(doc_name)
 	send_email(recipient, subject, content)
 
@@ -80,7 +80,7 @@ def update_shipping_address(doc_name, sales_order_name, customer, address_line_1
 @frappe.whitelist()
 def address_validation(address_title, address_line_1, address_city, address_country, address_zipcode, checked_address_value):
 	if((checked_address_value == 'Other') and (not address_title or not address_line_1 or not address_city or not address_country or not address_zipcode)):
-		frappe.throw(_("You must filled all mandatory fields for the new address"))
+		frappe.throw(_("Fill all mandatory fields for the new address"))
 	if frappe.db.exists('Address', "{0}-Shipping".format(address_title)):
 		frappe.throw(_("Sorry, this address title already exist. Please choose something else"))
 
@@ -125,14 +125,14 @@ def update_contact(doc_name, customer, contact_first_name, contact_last_name,
 
 	content = _('<p>Hi,</p><p>{1} would like to change his contact for the Sales Order <a href="https://{0}/desk#Form/Sales%20Order/{2}" target="_blank">{2}</a></p> \
 	<p>New Contact: <a href="https://{0}/desk#Form/Contact/{3}" target="_blank">{3}</a></p>').format(site, customer, so_name, contact_name)
-	subject = "Change Contact for Project {0}".format(doc_name)
+	subject = "Change project contact person {0}".format(doc_name)
 	send_email(recipient, subject, content)
-	frappe.msgprint(_("Your request have been sent to your project manager."))
+	frappe.msgprint(_("Your request has forwarded to a project manager."))
 
 @frappe.whitelist()
 def contact_validation(customer, contact_first_name, contact_last_name, contact_email, contact_phone, checked_contact_value):
 	if((checked_contact_value == 'Other') and (not contact_first_name or not contact_last_name or not contact_email or not contact_phone)):
-		frappe.throw(_("You must filled all mandatory fields for the new Contact"))
+		frappe.throw(_("Fill all mandatory fields for new contact"))
 	email = re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', contact_email)
 	if((checked_contact_value == 'Other') and (not email)):
 		frappe.throw(_("The given email is invalid: {0}").format(contact_email))
