@@ -23,7 +23,13 @@ class TaskTemplate(Document):
 	def save_curr_task_template(self):
 		doc = frappe.get_doc('Task Template', self.name)
 		doc.flags.ignore_permissions = True
-		doc.update({'task_order': self.task_order, 'assigned_to':self.assigned_to, 'depends_on': self.depends_on})
+		task_order = self.task_order
+		if not self.is_new():
+			if self.task_order < int(frappe.db.get_value('Task Template', self.name, 'task_order')):
+				task_order = task_order - 1
+					#whenwe do the reordering, the task_order will always be + 1. 
+					#By doing this line, we ensure that the final task_order value is the one the user chose
+		doc.update({'task_order': task_order, 'assigned_to':self.assigned_to, 'depends_on': self.depends_on})
 		doc.save()
 
 	def update_task_progression_range_order(self, task_order, task_subject):
@@ -57,11 +63,11 @@ def reorder_tasks_after_update(sub_type):
         task_order = 1
         for task in tasks:
 	        if task.task_order != task_order: #we don't want to update it if already alright
-        	        doc = frappe.get_doc('Task Template', task.name)
-                        doc.flags.ignore_permissions = True
-                        doc.update({'task_order':task_order}).save()
+       		        doc = frappe.get_doc('Task Template', task.name)
+               	        doc.flags.ignore_permissions = True
+                       	doc.update({'task_order':task_order}).save()
 			frappe.db.commit()
-                task_order = task_order + 1
+               	task_order = task_order + 1
 
 @frappe.whitelist()
 def get_all_task_template_from_sub_type(sub_type):

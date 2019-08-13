@@ -43,6 +43,7 @@ class TaskSubject(Document):
                 task_template.update({'task_subject': self.generate_doc_name(sub_type, task_desc), 'task_order': last_task_order + 1}).save()
 
 	def update_data(self, name, disabled, task_desc, sub_type):
+		new_name = self.name
 		if not frappe.db.exists('Task Subject', name):
 			self.create_new_task_subject(name, disabled, task_desc, sub_type)
 			self.create_tast_template(sub_type, task_desc)
