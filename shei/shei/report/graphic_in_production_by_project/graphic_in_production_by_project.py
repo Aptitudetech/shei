@@ -20,6 +20,9 @@ class GraphicInProductionByProject(object):
                 columns += [_("Project") + ":Link/Project:250"]
                 columns += [_("Exp End Date") + ":date:200"]
                 columns += [_("First Open Task") + ":text:150"]
+                columns += [_("Height") + ":text:50"]
+                columns += [_("Width") + ":text:50"]
+                columns += [_("Measurement") + ":text:50"]
                 columns += [_("Quantity") + ":text:50"]
                 columns += [_("Item Code") + ":Link/Item:150"]
                 return columns
@@ -38,11 +41,14 @@ class GraphicInProductionByProject(object):
 				first_open_task = task[0]['subject']
 			else:
 				first_open_task = ""
-			so_items = frappe.db.get_all('Sales Order Item', {'parenttype':'Sales Order', 'parent':so.name}, ['qty', 'item_code'])
+			so_items = frappe.db.get_all('Sales Order Item', {'parenttype':'Sales Order', 'parent':so.name}, ['qty', 'item_code', 'height', 'width', 'measurement'])
 			for item in so_items:
 				quantity = item.qty
 				item_code = item.item_code
-				obj = (sales_order_id, project_name, exp_end_date, first_open_task, quantity, item_code)
+				height = item.height
+				width = item.width
+				measurement= item.measurement
+				obj = (sales_order_id, project_name, exp_end_date, first_open_task, height, width, measurement, quantity, item_code)
         	                tuple_list.append(obj)
                 return tuple(tuple_list) #data needs to be in Json
 
