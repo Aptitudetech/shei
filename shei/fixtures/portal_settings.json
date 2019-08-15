@@ -205,7 +205,7 @@
     "title": "Patient Appointment"
    }, 
    {
-    "enabled": 1, 
+    "enabled": 0, 
     "parent": "Portal Settings", 
     "parentfield": "menu", 
     "parenttype": "Portal Settings", 
@@ -282,7 +282,7 @@
     "title": "Material Request"
    }
   ], 
-  "modified": "2019-05-08 09:17:04.180319", 
+  "modified": "2019-08-13 10:34:16.493577", 
   "name": "Portal Settings", 
   "parent": null, 
   "parentfield": null, 
