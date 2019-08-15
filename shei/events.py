@@ -28,6 +28,7 @@ def on_task_before_save(doc, handler=None):
 			'task':task,
 			'subject':ts.doctype_id,
 			'project':doc.project,
+			'description': doc.description,
 		})
 
 def on_issue_before_save(doc, handler=None):
@@ -56,7 +57,7 @@ def on_project_onload(doc, handler=None):
                                 "start_date": task.exp_start_date,
                                 "end_date": task.exp_end_date,
                                 "task_id": task.name,
-                                "description": task.descrition,
+                                "description": task.description,
                                 "task_weight": task.task_weight,
                                 "idx": task.task_order or i
                         }
@@ -453,65 +454,59 @@ def on_sales_invoice_validate(doc, handler=None):
                 frappe.throw("You're not allowed to create invoices from here") 
 
 @frappe.whitelist()
+def update_work_order(so_name=None, mfg_items=[], work_order_name=""):
+    '''Update the latest Work Order related to the given Sales Order'''
+    import json
+    items = []
+    if not mfg_items:
+        return None
+    if not work_order_name:
+	frappe.throw(_("Please create a work order first"))
+
+    json_items = json.loads(mfg_items)
+    for item in json_items:
+        new_item = {
+                "item_code": item["item_code"] ,
+                "item_description": item["description"] ,
+                "quantity": item["qty"],
+                "width": item.get('width', 0),
+                "height": item.get('height', 0),
+                "measurement": item.get('measurement', "")
+        }
+        items.append(new_item)
+
+    so  = frappe.db.get_value('Sales Order', so_name, ['delivery_date', 'project'], as_dict=True)
+    work_order = frappe.get_doc('SO Work Order', work_order_name)
+    work_order.update({
+                'work_order_number': work_order_name,
+                'expected_ship_date': so.delivery_date,
+                'project': so.project,
+                'work_order_items': items,
+        })
+    work_order.flags.ignore_permissions = True
+    work_order.save()
+    frappe.msgprint("The Work Order have been updated")
+
+@frappe.whitelist()
 #Create a work order from a sales order
 def create_work_order(so_name = None, mfg_items = []):
     '''Copy data from sales order and create a work order based on those data'''
     import json
-    items = []
-    if not mfg_items:
-    	return None 
-    json_items = json.loads(mfg_items)
-    for item in json_items:
-        #if 'width_in_inches' in item:
-        #    new_item = {
-        #        "item_code": item["item_code"] ,
-        #        "item_description": item["description"] ,
-        #        "quantity": item["qty"] , 
-        #        "width": item['width_in_inches'],
-        #        "height": item['height_in_inches'],
-        #        "measurement": 'Inches',
-        #    }
-        #elif 'width_in_mm' in item:
-        #    new_item = {
-        #        "item_code": item["item_code"] ,
-        #        "item_description": item["description"] ,
-        #        "quantity": item["qty"] , 
-        #        "width": item['width_in_mm'],
-        #        "height": item['height_in_mm'],
-        #        "measurement": 'MM',
-        #    }
-        #else:
-        new_item = {
-        	"item_code": item["item_code"] ,
-                "item_description": item["description"] ,
-                "quantity": item["qty"],
-		"width": item.get('width', 0),
-                "height": item.get('height', 0),
-                "measurement": item.get('measurement', "")
-	}
-        items.append(new_item)
-    
-    so  = frappe.db.get_value('Sales Order', so_name, ['delivery_date', 'project'], as_dict=True)
-    work_order_name = "WO-" + so_name.split("-")[1]
-    #If Work order is new, creat it, otherwhise update it
-    if frappe.db.exists('SO Work Order', work_order_name):
-        work_order = frappe.get_doc('SO Work Order', work_order_name)
+    sales_order_doc = frappe.get_doc('Sales Order', so_name)
+    so_works_order = sales_order_doc.work_orders
+    if len(sales_order_doc.work_orders) == 0:
+        work_order_name = "WO-" + "-".join(so_name.split('-')[1:])
     else:
-        work_order = frappe.new_doc('SO Work Order')
-
-    work_order.update({
-		'work_order_number': work_order_name,
-		'expected_ship_date': so.delivery_date,
-		'project': so.project,
-		'work_order_items': items,
-	})
+	work_order_name = "WO-" + "-".join(so_name.split('-')[1:]) + 'v' + str(len(sales_order_doc.work_orders))
+    work_order = frappe.new_doc('SO Work Order')
+    work_order.work_order_number = work_order_name
     work_order.flags.ignore_permissions = True
     work_order.save()
+    update_work_order(so_name, mfg_items, work_order.name)
 
-    sales_order_doc = frappe.get_doc('Sales Order', so_name)
-    sales_order_doc.update({ 'work_order' : work_order_name})
+    sales_order_doc.append('work_orders', work_order)
     sales_order_doc.flags.ignore_permissions = True
     sales_order_doc.save()
-    frappe.msgprint("The Work Order have been updated")
+    frappe.msgprint("The Work Order have been created")
 
 
