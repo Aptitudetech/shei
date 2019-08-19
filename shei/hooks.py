@@ -58,12 +58,12 @@ app_include_js = "/assets/js/shei.js"
 # -----------
 # Permissions evaluated in scripted ways
 permission_query_conditions = {
- 	"Project": "shei.permissions.get_project_permissions_query_conditions",
+    "Project": "shei.permissions.get_project_permissions_query_conditions",
 }
 
-#has_permission = {
+# has_permission = {
 # 	"Report": "shei.permissions.has_permission_to_report",
-#}
+# }
 
 # Document Events
 # ---------------
@@ -82,29 +82,29 @@ doc_events = {
         ]
     },
     'Issue': {
-	'before_save': [
-	    'shei.events.on_issue_before_save'
-	],
+        'before_save': [
+            'shei.events.on_issue_before_save'
+        ],
     },
     'Task': {
-	'before_save': [
-	    'shei.events.on_task_before_save'
-	],
+        'before_save': [
+            'shei.events.on_task_before_save'
+        ],
     },
-#    'Quotation': {
- #       'validate': [
-  #          'shei.events.on_quotation_validate'
-   #     ]
-    #},
+    #    'Quotation': {
+    #       'validate': [
+    #          'shei.events.on_quotation_validate'
+    #     ]
+    # },
     'Project': {
-	'onload': [
-		'shei.events.on_project_onload'
-	],
+        'onload': [
+            'shei.events.on_project_onload'
+        ],
     },
     'Sales Invoice': {
-        #'validate':[
+        # 'validate':[
         #    'shei.events.on_sales_invoice_validate'
-        #],
+        # ],
 
         'on_submit': [
             'shei.events.on_sales_invoice_submit'
@@ -158,14 +158,13 @@ doc_events = {
 # ------------------------------
 #
 override_whitelisted_methods = {
-	"frappe.desk.form.assign_to.add":"shei.route.assign_to_notify",
-#    "frappe.core.doctype.communication.email.make": "shei.events.make",
-#    #"frappe.desk.doctype.event.event.get_events": "shei.event.get_events",
-#    "erpnext.selling.doctype.sales_order.sales_order.make_sales_invoice": "shei.route.make_sales_invoice",
-# 	"frappe.model.mapper.make_mapped_doc": "shei.route.make_mapped_doc",
-#    "frappe.model.mapper.map_docs": "shei.route.map_docs"
+    "frappe.desk.form.assign_to.add": "shei.route.assign_to_notify",
+    #    "frappe.core.doctype.communication.email.make": "shei.events.make",
+    #    #"frappe.desk.doctype.event.event.get_events": "shei.event.get_events",
+    #    "erpnext.selling.doctype.sales_order.sales_order.make_sales_invoice": "shei.route.make_sales_invoice",
+    # 	"frappe.model.mapper.make_mapped_doc": "shei.route.make_mapped_doc",
+    #    "frappe.model.mapper.map_docs": "shei.route.map_docs"
 }
-
 
 fixtures = [
     {'dt': 'Print Node Settings'},
@@ -187,19 +186,19 @@ fixtures = [
         "filters": {
             "name": ["in", [
                 "Closed Task",
-		"Graphic Production",
-		"Contacts per Customer",
-		"First Open Task by Open Project - ngoyette",
-		"Suppliers with Invoices",
-		"Facture du 1er nov a maintenant",
-		"ERIKA - Graphic In Production by Item 2",
+                "Graphic Production",
+                "Contacts per Customer",
+                "First Open Task by Open Project - ngoyette",
+                "Suppliers with Invoices",
+                "Facture du 1er nov a maintenant",
+                "ERIKA - Graphic In Production by Item 2",
             ]]
         }
     },
     {
         "dt": "Custom Field",
-	    "filters": {
-        	"name": ["in", [
+        "filters": {
+            "name": ["in", [
                 "Address-have_dock",
                 "Address-is_residential_address",
                 "Project-absolute_end_date",
@@ -215,8 +214,8 @@ fixtures = [
                 "Workstation Working Hour-tuesday",
                 "Workstation Working Hour-monday",
                 "Workstation Working Hour-sunday",
-		"Employee-workstation",
-		"Sales Order-work_order",
+                "Employee-workstation",
+                "Sales Order-work_order",
                 "Item-price_per_sqft",
                 "Issue-kanban_status",
                 "Lead-others",
@@ -323,17 +322,17 @@ fixtures = [
                 "Item-location",
                 "Item-detailed_description",
                 "Print Settings-compact_item_print",
-         	]]
-    	}
+            ]]
+        }
     },
     {'dt': 'Web Page'},
     {
         "dt": "Print Format",
-	    "filters": {
-        	"name": ["in", [
+        "filters": {
+            "name": ["in", [
                 "shei - Bill Of Lading",
                 "shei - Commercial Invoice",
-			    "SHEI - SO Work Order",
+                "SHEI - SO Work Order",
                 "shei - Cheque BNC",
                 "shei - Packing Slip",
                 "shei - Material Request",
@@ -352,14 +351,14 @@ fixtures = [
                 "shei - Cheque BMO - JV",
                 "shei - EFT",
                 "shei - Item label",
-         	]]
-    	}
+            ]]
+        }
     },
     {
         "dt": "Custom Script",
         "filters": {
             "name": ["in", [
-		"Delivery Note-Client",
+                "Delivery Note-Client",
                 "Sales Order-Client",
                 "Quotation-Client",
                 "Bank Account-Client",
@@ -371,7 +370,7 @@ fixtures = [
                 "Stock Entry-Client",
                 "Purchase Invoice-Client",
                 "Payment Entry-Client",
-		"Address-Client",
+                "Address-Client",
             ]]
         }
     },

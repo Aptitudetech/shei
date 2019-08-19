@@ -13,7 +13,6 @@ from datetime import datetime
 
 class PriceConfigurator(Document):
 
-
 	def validate(self):
 		self.validate_panel()
 		self.validate_graphic_section()

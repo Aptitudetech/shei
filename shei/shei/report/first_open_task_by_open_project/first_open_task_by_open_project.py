@@ -22,21 +22,21 @@ class FirstOpenTaskbyOpenProject(object):
 		return columns, data, None, chart
 
 	def get_columns(self, args):
-        	user_roles = frappe.get_roles(frappe.session.user)
-        	columns = [_("Project") + ":Link/Project:250"]
-        	columns += [_("Project Name") + ":text:200"]
-        	columns += [_("Subject") + ":text:225"]
-        	columns += [_("Status") + ":text:105"]
-        	columns += [_("Exp. End Date") + ":date:90"]
-        	if ('Projects Manager' in user_roles):
-            		columns += [_("Abs. End Date") + ":date:90"]
-        	columns += [_("Amount") + ":Currency:90"]
-        	columns += [_("SubType") + ":text:105"]
-        	columns += [_("Project Manager") + ":Link/User:150"]
-       		columns += [_("Type") + ":text:105"]
-        	columns += [_("Assigned To") + ":Link/User:150"]
-        	columns += [_("Task") + ":Link/Task:100"]
-        	return columns
+		user_roles = frappe.get_roles(frappe.session.user)
+		columns = [_("Project") + ":Link/Project:250"]
+		columns += [_("Project Name") + ":text:200"]
+		columns += [_("Subject") + ":text:225"]
+		columns += [_("Status") + ":text:105"]
+		columns += [_("Exp. End Date") + ":date:90"]
+		if ('Projects Manager' in user_roles):
+			columns += [_("Abs. End Date") + ":date:90"]
+		columns += [_("Amount") + ":Currency:90"]
+		columns += [_("SubType") + ":text:105"]
+		columns += [_("Project Manager") + ":Link/User:150"]
+		columns += [_("Type") + ":text:105"]
+		columns += [_("Assigned To") + ":Link/User:150"]
+		columns += [_("Task") + ":Link/Task:100"]
+		return columns
 
 	def get_data(self, args):
 		from erpnext.accounts.utils import get_currency_precision
