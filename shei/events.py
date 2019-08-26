@@ -18,6 +18,7 @@ from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 
 
+
 def on_task_before_save(doc, handler=None):
     if not doc.is_new():
         return
@@ -389,6 +390,9 @@ def on_party_onload(doc, handler):
 def on_customer_validate(doc, handler=None):
     #    if doc.is_new() and not doc.lead_name:
     #        frappe.throw('Sorry, you need to create a Lead first')
+
+    #pydevd_pycharm.settrace('192.168.2.111', port=8005, stdoutToServer=True, stderrToServer=True)
+    #frappe.errprint("allo")
     if not doc.get('customer_code'):
         doc.customer_code = frappe.db.get_value(
             'Custom Series',

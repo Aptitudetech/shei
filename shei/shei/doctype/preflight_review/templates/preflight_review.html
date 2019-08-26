@@ -1,7 +1,101 @@
 {% extends "templates/web.html" %}
-
 {% block page_content %}
-<h1>{{ title }}</h1>
+
+
+<h1>{{ title }} </h1>
+{% set contenteditable = 'false' %}
+{% if workflow_state == 'Pending'%}
+    {% set state_color = 'Orange'%}
+{% elif workflow_state == 'Approved' %}
+    {% set state_color = 'Green'%}
+{% else %}
+    <div style="float: right;">
+        <button id="run" class="btn btn-default" onclick="update_preflight_review()" style="background: #f89925">{{_("Update Preflight Information")}}</button>
+    </div>
+    {% set contenteditable = 'true' %}
+    {% set state_color = 'Red'%}
+{% endif %}
+
+
+
+<h2 style="color: {{state_color}}">{{workflow_state}}</h2>
+
+{{_("Project: ")}} <a href="/projects?project={{project}}">{{project}}</a>
+<table class="table table-hover" id="example-table" >
+    <thead>
+        <caption style="text-align: left;">{{_("Graphic File")}}</caption>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">{{_("Graphic File Name")}}</th>
+            <th scope="col">{{_("Panel Height")}}</th>
+            <th scope="col">{{_("Panel Width")}}</th>
+            <th scope="col">{{_("Panel Quantity")}}</th>
+            <th scope="col">{{_("DieCut")}}</th>
+            <th scope="col">{{_("Bleed")}}</th>
+            <th scope="col">{{_("Picture")}}</th>
+            <th scope="col">{{_("Fonts")}}</th>
+            <th scope="col">{{_("Notes")}}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+            <tr>
+                <td scope="row">{{loop.index}}</td>
+                <td contenteditable={{contenteditable}}>{{item.filename}}</td>
+                <td contenteditable={{contenteditable}}>{{item.height}}</td>
+                <td contenteditable={{contenteditable}}>{{item.width}}</td>
+                <td contenteditable={{contenteditable}}>{{item.panel_qty}}</td>
+                <td>{{item.diecut}}</td>
+                <td>{{item.bleed}}</td>
+                <td>{{item.picture}}</td>
+                <td>{{item.fonts}}</td>
+                <td>{{item.notes}}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+
+<script>
+
+    function update_preflight_review (){
+        var json_table = convert_table_to_json();
+        console.log(json_table);
+        frappe.call({
+				method: "shei.shei.doctype.preflight_review.preflight_review.amend_preflight_review",
+				args: {
+					'doc_name': "{{ name }}",
+					'items': json_table,
+				},
+				callback: function(content) {
+				}
+			});
+    }
+
+    function convert_table_to_json() {
+        var myRows = [];
+        var headersText = [];
+        var $headers = $("th");
+
+        // Loop through grabbing everything
+        var $rows = $("tbody tr").each(function(index) {
+            $cells = $(this).find("td");
+            myRows[index] = {};
+
+            $cells.each(function(cellIndex) {
+                // Set the header text
+                if(headersText[cellIndex] === undefined) {
+                  headersText[cellIndex] = $($headers[cellIndex]).text();
+                }
+                // Update the row object with the header/cell combo
+                myRows[index][headersText[cellIndex]] = $(this).text();
+            });
+        });
+        return myRows;
+    }
+</script>
 {% endblock %}
+
 
 <!-- this is a sample default web page template -->
