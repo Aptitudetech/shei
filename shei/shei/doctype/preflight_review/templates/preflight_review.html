@@ -4,29 +4,36 @@
 
 <h1>{{ title }} </h1>
 {% set contenteditable = 'false' %}
+{% set button_status = 'none' %}
 {% if workflow_state == 'Pending'%}
     {% set state_color = 'Orange'%}
 {% elif workflow_state == 'Approved' %}
     {% set state_color = 'Green'%}
 {% else %}
+    {% set state_color = 'Red'%}
+{% endif %}
+
+{# We only want to let the client modify the latest Rejected Preflight Report. #}
+{% if title == frappe.db.get_value('Preflight Review', {'project':project}, 'pr_name', order_by='name desc') and (not items or workflow_state == 'Rejected')%}
     <div style="float: right;">
-        <button id="run" class="btn btn-default" onclick="update_preflight_review()" style="background: #f89925">{{_("Update Preflight Information")}}</button>
+        <button class="btn btn-default" onclick="update_preflight_review()" style="background: #f89925">{{_("Update Preflight Information")}}</button>
     </div>
     {% set contenteditable = 'true' %}
-    {% set state_color = 'Red'%}
+    {% set button_status = 'inline' %}
 {% endif %}
 
 
 
-<h2 style="color: {{state_color}}">{{workflow_state}}</h2>
+<h1 style="color: {{state_color}}">{{workflow_state}}</h1>
 
 {{_("Project: ")}} <a href="/projects?project={{project}}">{{project}}</a>
-<table class="table table-hover" id="example-table" >
+<table class="table table-hover" id="preflight_item_table" >
     <thead>
         <caption style="text-align: left;">{{_("Graphic File")}}</caption>
         <tr>
             <th scope="col">#</th>
             <th scope="col">{{_("Graphic File Name")}}</th>
+            <th scope="col">{{_("Measurement")}}</th>
             <th scope="col">{{_("Panel Height")}}</th>
             <th scope="col">{{_("Panel Width")}}</th>
             <th scope="col">{{_("Panel Quantity")}}</th>
@@ -40,8 +47,30 @@
     <tbody>
         {% for item in items %}
             <tr>
-                <td scope="row">{{loop.index}}</td>
+                <td scope="row">
+                    {{loop.index}}
+                    <br>
+                    <input type="checkbox" name="row">
+                </td>
                 <td contenteditable={{contenteditable}}>{{item.filename}}</td>
+                <td contenteditable={{contenteditable}}>
+                    <select id="measurements-{{loop.index}}">
+                        {% if not item.measurement%}
+                                <option name="measurement" value=""></option>
+                                <option name="measurement" value="Inches">Inches</option>
+                                <option name="measurement" value="MM">MM</option>
+                        {% elif item.measurement == 'Inches' %}
+                                <option name="measurement" value=""></option>
+                                <option name="measurement" value="Inches" selected="selected">Inches</option>
+                                <option name="measurement" value="MM">MM</option>
+                        {% else %}
+                                <option name="measurement" value=""></option>
+                                <option name="measurement" value="Inches">Inches</option>
+                                <option name="measurement" value="MM" selected="selected">MM</option>
+                        {% endif %}
+                    </select>
+
+                </td>
                 <td contenteditable={{contenteditable}}>{{item.height}}</td>
                 <td contenteditable={{contenteditable}}>{{item.width}}</td>
                 <td contenteditable={{contenteditable}}>{{item.panel_qty}}</td>
@@ -54,19 +83,64 @@
         {% endfor %}
     </tbody>
 </table>
-
+<button class="btn btn-default" onclick="add_row()" style="background: #f89925; display: {{button_status}}">{{_("Add Row")}}</button>
+<button class="btn btn-default" onclick="remove_row()" style="background: #f89925; display: {{button_status}};">{{_("Remove Selected Rows")}}</button>
 
 
 <script>
+    function remove_row() {
+        var items=document.getElementsByName('row');
+		for(var i=0; i<items.length; i++){
+			if(items[i].type=='checkbox' && items[i].checked==true){
+                document.getElementById("preflight_item_table").deleteRow(i+1); //the header count as a row in the table, so we want to skip the next one
+            }
+		}
+    }
+
+    function add_row() {
+        var table = document.getElementById("preflight_item_table");
+        var table_length = table.rows.length;
+        var NewRow = table.insertRow(table_length);
+
+        var first_cell = NewRow.insertCell(0);
+        first_cell.innerHTML = table_length++ + "<br> <input type='checkbox' name='row'>";
+        //var cell = "";
+        for (var i = 1; i < 11; i++) {
+            var cell = NewRow.insertCell(i);
+            if(i<=4){ //The client should only modify the first 4 column
+                cell.innerHTML = "0000";
+                cell.setAttribute("contenteditable", "{{contenteditable}}");
+            }
+        }
+        var third_cell = NewRow.insertCell(2);
+        third_cell.innerHTML = "<select id=\'measurements-"+(table_length-1)+"\'> <option name=\'measurement\' value=\'\'></option> <option name=\'measurement\' value=\'Inches\'>Inches</option> <option name=\'measurement\' value=\'MM\'>MM</option> </select>";
+
+    }
+
+    //get the value of any dropdown with ID
+	function get_dropdown_value(select_id){
+        if(document.getElementById(select_id).selectedIndex == 0){
+                frappe.throw("Sorry, you must enter all the measurements");
+        }
+		var dock_selected_index = document.getElementById(select_id).selectedIndex;
+		var dock_options = document.getElementById(select_id).options;
+		return dock_options[dock_selected_index].text;
+	}
 
     function update_preflight_review (){
-        var json_table = convert_table_to_json();
-        console.log(json_table);
+        var table_str = convert_table_to_json();
+        for (var i = 1; i < table_str.length; i++) {
+            console.log(table_str[i]['Measurement']);
+            if(table_str[i]['Measurement'] == '' || table_str[i]['Measurement'] == null){
+                frappe.throw("Sorry, you must enter all the measurements");
+            }
+            table_str[i]['Measurement'] = get_dropdown_value('measurements-' + i);
+        }
         frappe.call({
 				method: "shei.shei.doctype.preflight_review.preflight_review.amend_preflight_review",
 				args: {
 					'doc_name': "{{ name }}",
-					'items': json_table,
+					'items_str': table_str,
 				},
 				callback: function(content) {
 				}

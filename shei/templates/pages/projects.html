@@ -131,9 +131,29 @@
 		</div>
 		<!--Display Shipping informations based on the related sales order-->
 		{% set sales_orders = frappe.get_list('Sales Order', filters={'project': doc.name, 'status': ['IN', ['Completed', 'To Bill', 'To Deliver and Bill']]}, fields=['shipping_address', 'customer_address', 'shipping_address_name', 'contact_person', 'contact_display', 'name', 'docstatus']) %}
+		{% set latest_preflight_review = frappe.db.get_value('Preflight Review', {'project':doc.name}, ['route', 'name', 'workflow_state'], order_by='name desc', as_dict=True) %}
+		{% if latest_preflight_review %}
+			<div class="col-sm-6" style="width: 75%;  ">
+					<div class="col-sm-6" style="width: 50%;  ">
+						<p>Status on the latest preflight Review: </p>
+						<strong>
+							<a href={{ latest_preflight_review['route'] }}>{{ latest_preflight_review['name'] }}</a>  -
+							<text style="color:{{state_color}}">{{latest_preflight_review['workflow_state']}}</text>
+						</strong>
+					</div>
+			</div>
+		{% elif not latest_preflight_review and first_open_task['progression_name'] == 'Preflight' %}
+			<div class="col-sm-6" style="width: 75%;  ">
+					<div class="col-sm-6" style="width: 50%;  ">
+						<p>You don't seems to have any Preflight Review created. To proceed with your project, please create one: </p>
+						<button class="btn btn-default" onclick="create_preflight_review()" style="background: #f89925">{{_("Create a Preflight Review")}}</button>
+					</div>
+			</div>
+		{% endif %}
 		<!--We take the index [0] because a project can have multiple sales order, but the shipping address will be the same for each of them-->
 		{% if sales_orders[0] %}
 			<div class="col-sm-6" style="width: 75%;  ">
+
 				<div class="col-sm-6" style="width: 50%;  ">
 					<p>{{_("Shipping Address:")}} <br>
 						<strong> 
@@ -152,6 +172,7 @@
 					<a href="" class="btn btn-info btn-rounded mb-4" data-toggle="modal" style="background: {{sh_color}};" data-target="#modalLoginForm">
 						{{_("Update Shipping Information")}}
 					</a>
+
 				</div>
 
 				<!-- Only display those shipping informations when the package is at Shipping-->
@@ -468,7 +489,22 @@
 
 
 <script>
-	//open another section for address when 'Other' is selected in the modal
+
+	function create_preflight_review() {
+		frappe.call({
+			method: "shei.shei.doctype.preflight_review.preflight_review.create_preflight_review",
+			args: {
+				'project_name': "{{ doc.name }}"
+			},
+			callback: function(content) {
+				{% set route = frappe.db.get_value('Preflight Review', {'project': doc.name}, 'route', order_by='name desc') %}
+				console.log(route);
+				window.location.href = '../../' + route;
+			}
+		});
+	}
+
+//open another section for address when 'Other' is selected in the modal
 	var address_rad = document.getElementsByName('address');
 	for (var i = 0; i < address_rad.length; i++) {
 		if ( "{{task_stage}}" == 'Shipping'){

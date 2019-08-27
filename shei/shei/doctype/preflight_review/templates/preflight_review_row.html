@@ -1,8 +1,18 @@
 
 <!-- Only displays the Preflight Review related to the client's project-->
+{% if workflow_state == 'Pending'%}
+    {% set state_color = 'Orange'%}
+{% elif workflow_state == 'Approved' %}
+    {% set state_color = 'Green'%}
+{% else %}
+    {% set state_color = 'Red'%}
+{% endif %}
+
+
+
 {% if frappe.db.get_value('Project User', {'parenttype': 'Project', 'parent': project , 'email': frappe.session.user}, 'name') %}
 	<div>
-		<a href={{ route }}>{{ name }}</a>
+		<a href={{ route }}>{{ name }}</a>  -  <text style="color:{{state_color}}">{{workflow_state}}</text>
 	</div>
 {% endif %}
 <!-- this is a sample default list template -->
