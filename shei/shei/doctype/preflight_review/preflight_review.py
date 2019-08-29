@@ -67,9 +67,12 @@ def amend_preflight_review(doc_name, items_str=[]):
 	items_json = json.loads(items_str)
 	items_json = items_json[1:]  # the first item will aways be empty, because it's the __proto__: Object from JS
 	validate_data(items_json)
-	doc.cancel()
-	new_pr = frappe.copy_doc(doc)
-	new_pr.amended_from = doc.name
+	if doc.workflow_state != 'Pending':
+		doc.cancel()
+		new_pr = frappe.copy_doc(doc)
+		new_pr.amended_from = doc.name
+	else:
+		new_pr = doc
 	new_pr.status = "Draft"
 	new_pr.set("items", [])
 	items = []
@@ -82,5 +85,9 @@ def amend_preflight_review(doc_name, items_str=[]):
 			'panel_qty': i['Panel Quantity'],
 		})
 	new_pr.set("items", items)
-	new_pr.insert()
-	frappe.msgprint(_("A new Document have been created with the updated information. You can access by clicking here: <a href={0}>{1}</a>").format(new_pr.route, new_pr.name))
+	if doc.workflow_state != 'Pending':
+		new_pr.insert()
+	else:
+		new_pr.flags.ignore_permissions = True
+		new_pr.save()
+	frappe.msgprint(_("A new Document have been created with the updated information."))

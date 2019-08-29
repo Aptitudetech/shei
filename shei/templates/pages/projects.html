@@ -29,7 +29,7 @@
 			left:40%;
 		}
 		.four{
-			left:60%;
+			left:63%;
 		}
 		.five{
 			left:82%;
@@ -76,10 +76,10 @@
 <!--Get the first unfinished open task for the project-->
 {% set curr_project = frappe.get_doc("Project", doc.name) %}
 {% set delivery_note_list = frappe.get_list('Delivery Note', {'project':doc.name}, ['transporter', 'lr_no']) %}
-{% set first_open_task_order = frappe.db.get_value('Task', {'project':doc.name, 'status': ('!=', 'Closed')}, ['task_order'], order_by='task_order asc') %}
+{% set first_open_task_name = frappe.db.get_value('Task', {'project':doc.name, 'status': ('!=', 'Closed')}, ['subject'], order_by='task_order asc') %}
+{% set first_open_task_order = frappe.db.get_value('Task Template', first_open_task_name, 'task_order') %}
 {% set task_range_progress = frappe.get_list('Task Progression Range', {'sub_type': curr_project.sub_type}, '*', order_by="task_order asc") %}
 {% set progression_pourcentage = [0, 25, 50, 75, 100] %}
-
 <div class="container">
 	<div class="row"><br />
 		<div class="col-md-12">
@@ -136,6 +136,13 @@
 			<div class="col-sm-6" style="width: 75%;  ">
 					<div class="col-sm-6" style="width: 50%;  ">
 						<p>Status on the latest preflight Review: </p>
+						{% if latest_preflight_review['workflow_state'] == 'Pending'%}
+							{% set state_color = 'Orange'%}
+						{% elif latest_preflight_review['workflow_state'] == 'Approved' %}
+							{% set state_color = 'Green'%}
+						{% else %}
+							{% set state_color = 'Red'%}
+						{% endif %}
 						<strong>
 							<a href={{ latest_preflight_review['route'] }}>{{ latest_preflight_review['name'] }}</a>  -
 							<text style="color:{{state_color}}">{{latest_preflight_review['workflow_state']}}</text>
@@ -145,8 +152,8 @@
 		{% elif not latest_preflight_review and first_open_task['progression_name'] == 'Preflight' %}
 			<div class="col-sm-6" style="width: 75%;  ">
 					<div class="col-sm-6" style="width: 50%;  ">
-						<p>You don't seems to have any Preflight Review created. To proceed with your project, please create one: </p>
-						<button class="btn btn-default" onclick="create_preflight_review()" style="background: #f89925">{{_("Create a Preflight Review")}}</button>
+						<i><strong>{{_("You don't seems to have any Preflight Review created. To proceed with your project, please create one: ")}}</strong></i>
+						<button class="btn btn-info btn-rounded mb-4" onclick="create_preflight_review()" style="background: #f89925">{{_("Create a Preflight Review")}}</button>
 					</div>
 			</div>
 		{% endif %}
