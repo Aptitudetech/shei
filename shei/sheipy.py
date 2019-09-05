@@ -143,10 +143,10 @@ def get_digits(str1):
                         c += i
         return len(c)
 
-@frappe.whitelist()
-def get_sales_person_from_customer(dt, customer_name, project):
-        cust = frappe.get_doc("Customer", customer_name)
-        prj = frappe.get_doc("Project", project)
+#@frappe.whitelist()
+#def get_sales_person_from_customer(dt, customer_name, project):
+#        cust = frappe.get_doc("Customer", customer_name)
+#        prj = frappe.get_doc("Project", project)
 @frappe.whitelist()
 def get_sales_person_from_customer(dt, customer_name, project):
         cust = frappe.get_doc("Customer", customer_name)

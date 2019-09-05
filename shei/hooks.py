@@ -215,8 +215,8 @@ fixtures = [
                 "Workstation Working Hour-monday",
                 "Workstation Working Hour-sunday",
                 "Employee-workstation",
-                "Sales Order-work_order",
-                "Item-price_per_sqft",
+                "Sales Order-work_orders",
+                "Sales Order-work_orders_sb",
                 "Issue-kanban_status",
                 "Lead-others",
                 "Lead-specify",
@@ -351,6 +351,7 @@ fixtures = [
                 "shei - Cheque BMO - JV",
                 "shei - EFT",
                 "shei - Item label",
+                "shei - New POS Invoice",
             ]]
         }
     },
