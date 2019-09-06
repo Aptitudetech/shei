@@ -5,6 +5,20 @@
 import frappe
 import json
 from frappe.utils import add_days, formatdate
+from frappe import _
+
+@frappe.whitelist()
+def set_price_configurator_item_selects(dt):
+    selects_obj = []
+    backs = frappe.db.get_all('Dropdown Options', {'doctype_type': dt, 'variable_name': 'back'}, 'option_label')
+    cuts = frappe.db.get_all('Dropdown Options', {'doctype_type': dt, 'variable_name': 'cut'}, 'option_label')
+    thickness = frappe.db.get_all('Dropdown Options', {'doctype_type': dt, 'variable_name': 'thickness'}, 'option_label')
+    selects_obj.append({
+        'backs': [b['option_label'] for b in backs],
+        'cuts': [c['option_label'] for c in cuts],
+        'thickness': [t['option_label'] for t in thickness],
+    })
+    return selects_obj
 
 @frappe.whitelist()
 def update_terms():

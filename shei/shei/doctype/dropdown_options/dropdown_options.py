@@ -16,9 +16,7 @@ class DropdownOptions(Document):
 
 
 	def validate(self):
-		if frappe.db.exists('Dropdown Options', {'doctype_type': self.doctype_type, 'variable_name': self.variable_name, 'option_label': self.option_label}, 'name'):
-			frappe.throw(_("Sorry, this option already exist for that document"))
-		if self.value_is_a_price:
+		if self.value_is_a_price and self.option_value:
 			try:
 				price = round(float(self.option_value), 2)
 			except ValueError:
