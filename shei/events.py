@@ -16,13 +16,17 @@ from frappe.utils import nowdate, add_to_date, flt, now_datetime
 from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
-from shei.quotation_price_configurator import validate
+from quotation_price_configurator import validate, calculate_final_price
 
 def on_quotation_validate(doc, handler=None):
-    pass
+    if doc.quotation_mode == 'Price Configurator':
+        validate(doc)
+
 
 def on_quotation_before_save(doc, handler=None):
-    pass
+    if doc.quotation_mode == 'Price Configurator':
+       doc = calculate_final_price(doc)
+
 
 def on_task_before_save(doc, handler=None):
     if not doc.is_new():

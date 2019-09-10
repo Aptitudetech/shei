@@ -91,11 +91,11 @@ doc_events = {
             'shei.events.on_task_before_save'
         ],
     },
-        'Quotation': {
-           'validate': [
-               'shei.events.on_quotation_validate',
-               'shei.events.on_quotation_before_save'
-           ]
+    'Quotation': {
+       'validate': [
+           'shei.events.on_quotation_validate',
+           'shei.events.on_quotation_before_save'
+       ]
      },
     'Project': {
         'onload': [
