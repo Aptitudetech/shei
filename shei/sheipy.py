@@ -6,6 +6,16 @@ import frappe
 import json
 from frappe.utils import add_days, formatdate
 from frappe import _
+import uuid
+
+
+@frappe.whitelist()
+def set_panel_uuid():
+    panel_uuid = uuid.uuid4()
+    while frappe.db.exists('Price Configurator Item', {'panel_id': panel_uuid}, 'name'):
+        panel_uuid = uuid.uuid4()
+    return str(panel_uuid)
+
 
 @frappe.whitelist()
 def set_price_configurator_item_selects(dt):

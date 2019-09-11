@@ -8,7 +8,7 @@ from frappe import _
 
 
 def validate(doc):
-    validate_panel(doc.panel_list)
+    validate_panel(doc)
     validate_graphic_section(doc)
 
 
@@ -21,10 +21,10 @@ def validate_graphic_section(doc):
         frappe.throw(_("You need to specify the number of hours needed for the technical drawing"))
 
 
-def validate_panel(panels):
+def validate_panel(doc):
     message = "You need to fill: <br>"
     row_index = 1
-    for panel in panels:
+    for panel in doc.panel_list:
         if panel.have_aluminium and not panel.aluminum_item:
             frappe.throw(_("{0} Aluminum Provided  - Row {1}").format(message, row_index))
         if not panel.height:
@@ -138,13 +138,13 @@ def get_cut_price(panel):
     return float(cut_price)
 
 
-def get_additional_preflight_price(nb_file, preflight_price):
+def get_additional_preflight_price(doc):
     # The first file cost a certain amount, but any additional price will be at a different price
     price = 0
-    if nb_file > 1:
-        additional_file_qty = nb_file - 1
+    if doc.number_of_files > 1:
+        additional_file_qty = doc.number_of_files - 1
         additional_preflight_price = get_single_additional_preflight_price()
-        price = preflight_price + (additional_preflight_price * additional_file_qty)
+        price = doc.preflight_price + (additional_preflight_price * additional_file_qty)
     return price
 
 
@@ -279,8 +279,7 @@ def get_total_graphic_price(doc):
     doc.sample_with_order_price = get_sample_with_order_price(doc.sample_with_order_qty)
     doc.sample_without_order_price = get_sample_without_order_price(doc.sample_without_order_qty)
     doc.preflight_price = get_preflight_price()
-    doc.additional_preflight_price = get_additional_preflight_price(doc.number_of_files,
-                                                                     doc.preflight_price)
+    doc.additional_preflight_price = get_additional_preflight_price(doc)
     doc.total_studs_price = get_total_studs_price(doc.total_studs)
     doc.total_av_nuts_price = get_total_av_nuts_price(doc.total_av_nuts)
     doc.total_tools_price = get_total_tools_price(doc.total_tools)
