@@ -75,8 +75,6 @@ def calculate_final_price(doc):
     get_total(doc.conversion_rate, doc, doc.panel_list)
     #doc.save()
     frappe.msgprint(_("Your quote is now complete"))
-    frappe.msgprint(_("doc: {0}").format(doc.as_json()))
-    return doc
 
 
 def set_panel_data(doc):
