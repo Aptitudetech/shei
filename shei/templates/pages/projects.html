@@ -87,15 +87,15 @@
 			<!--display the progress bar based on the project stage-->
 				{% set first_open_task = {} %}
 				{% for trp in task_range_progress %}
-                                        {% if trp['task_order'] <= first_open_task_order %}
-                                                {% set test = first_open_task.update({'progression_name' : trp['progression'] }) %}
-                                                {% set test = first_open_task.update({'message' : trp['message'] }) %}
-                                                {% set test = first_open_task.update({'color' : trp['color'] }) %}
-                                                {% set test = first_open_task.update({'glyphicon' : trp['glyphicon'] }) %}
-                                                {% set test = first_open_task.update({'progression_pourcentage': progression_pourcentage[loop.index - 1]}) %}
-                                        {% endif %}
-                                {%endfor %}
-				
+					{% if trp['task_order'] <= first_open_task_order or (not first_open_task and task_range_progress[-1] == trp) %}
+						{% set test = first_open_task.update({'progression_name' : trp['progression'] }) %}
+						{% set test = first_open_task.update({'message' : trp['message'] }) %}
+						{% set test = first_open_task.update({'color' : trp['color'] }) %}
+						{% set test = first_open_task.update({'glyphicon' : trp['glyphicon'] }) %}
+						{% set test = first_open_task.update({'progression_pourcentage': progression_pourcentage[loop.index - 1]}) %}
+					{% endif %}
+				{%endfor %}
+
 				<!--Deposit dot-->
 				<div data-toggle="tooltip" data-placement="top" title={{_(task_range_progress[0]['progression'] )}} class="one" style="background-color: {{task_range_progress[0]['color']}};">
 					<span style="text-align: center; margin-top: 11px; margin-left: 12px" class="glyphicon {{task_range_progress[0]['glyphicon']}}" aria-hidden="true"></span>

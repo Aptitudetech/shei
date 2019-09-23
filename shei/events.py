@@ -28,11 +28,13 @@ def on_quotation_before_save(doc, handler=None):
     if doc.quotation_mode == 'Price Configurator':
         calculate_final_price(doc)
         create_panel_items(doc)
+        create_other_item(doc)
         #create_graphical_item(doc)
         update_doc_totals(doc)
 
 
 def add_item_to_list(doc, item_code, item_name, base_rate, panel_id="", height="", width=""):
+    frappe.msgprint(_("item_code: {0}").format(item_code))
     uom_details = frappe.db.get_value('UOM Conversion Detail',
                                       {'parenttype': 'Item', 'parent': item_code},
                                       ['uom', 'conversion_factor'], as_dict=True)
@@ -60,69 +62,69 @@ def add_item_to_list(doc, item_code, item_name, base_rate, panel_id="", height="
         'amount': float(base_rate) * doc.conversion_rate,
     })
 # TODO finish the general prices
-# def create_other_item(doc):
-#     studs_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'studs_item')
-#     price = get_total_studs_price(total_studs)
-#     add_item_to_list(doc, studs_item, item_name, price)
-#     nuts_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'nuts_item')
-#     price = get_total_av_nuts_price(total_av_nuts)
-#     add_item_to_list(doc, item_code, item_name, price)
-#     tool_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'tool_item')
-#     price = get_total_tools_price(total_tools)
-#     add_item_to_list(doc, item_code, item_name, price)
-#     folds_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'folds_item')
-#     price = get_total_folds_price(total_folds)
-#     add_item_to_list(doc, item_code, item_name, price)
-#     holds_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'holds_item')
-#     price = get_total_holes_price(total_holes)
-#     add_item_to_list(doc, item_code, item_name, price)
-#     zclip_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'zclip_item')
-#     # price = calculate_zclip_price(panel, doc.measurement)
-#     # add_item_to_list(doc, item_code, item_name, price, panel_id, height="", width="") #see where to put the zclip
-#
-#
+def create_other_item(doc):
+    studs_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'studs_item')
+    price = get_total_studs_price(doc.total_studs)
+    add_update_quotation_item(doc, studs_item, studs_item, price) #item_name == item_code?
+    nuts_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'nuts_item')
+    price = get_total_av_nuts_price(doc.total_av_nuts)
+    add_update_quotation_item(doc, nuts_item, nuts_item, price)
+    tool_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'tool_item')
+    price = get_total_tools_price(doc.total_tools)
+    add_update_quotation_item(doc, tool_item, tool_item, price)
+    folds_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'folds_item')
+    price = get_total_folds_price(doc.total_folds)
+    add_update_quotation_item(doc, folds_item, folds_item, price)
+    holds_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'holds_item')
+    price = get_total_holes_price(doc.total_holes)
+    add_update_quotation_item(doc, holds_item, holds_item, price)
+    #zclip_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'zclip_item')
+    #price = calculate_zclip_price(panel, doc.measurement)
+    #add_update_quotation_item(doc, zclip_item, zclip_item, price) #see where to put the zclip
+
+
 # def create_graphical_item(doc):
 #     matching_mural_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
 #                                               'matching_mural_item')
 #     price = get_matching_mural_price(have_matching_mural)
-#     add_item_to_list(doc, matching_mural_item, matching_mural_item, price)
+#     add_update_quotation_item(doc, matching_mural_item, matching_mural_item, price)
 #     colour_match_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
 #                                             'colour_match_item')
 #     price = get_color_match_price(need_colour_match, nb_colour_to_match)
-#     add_item_to_list(doc, colour_match_item, colour_match_item, price)
+#     add_update_quotation_item(doc, colour_match_item, colour_match_item, price)
 #     graphic_design_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
 #                                               'graphic_design_item')
 #     price = get_graphic_design_price(have_graphic_design, graphic_design_nb_hours)
-#     add_item_to_list(doc, graphic_design_item, graphic_design_item, price)
+#     add_update_quotation_item(doc, graphic_design_item, graphic_design_item, price)
 #     sample_with_order_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
 #                                                  'sample_with_order_item')
 #     price = get_sample_with_order_price(sample_with_order_qty)
-#     add_item_to_list(doc, sample_with_order_item, sample_with_order_item, price)
+#     add_update_quotation_item(doc, sample_with_order_item, sample_with_order_item, price)
 #     sample_without_order_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
 #                                                     'sample_without_order_item')
 #     price = get_sample_without_order_price(sample_without_order_qty)
-#     add_item_to_list(doc, sample_without_order_item, sample_without_order_item, price)
+#     add_update_quotation_item(doc, sample_without_order_item, sample_without_order_item, price)
 #     technical_drawing_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
 #                                                  'technical_drawing_item')
 #     price = get_technical_drawing_price(have_technical_drawing, technical_drawing_hours)
-#     add_item_to_list(doc, technical_drawing_item, technical_drawing_item, price)
+#     add_update_quotation_item(doc, technical_drawing_item, technical_drawing_item, price)
 #     additional_preflight_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
 #                                                     'additionnal_preflight_item')
 #     price = get_additional_preflight_price(doc)
-#     add_item_to_list(doc, additional_preflight_item, additional_preflight_item, price)
+#     add_update_quotation_item(doc, additional_preflight_item, additional_preflight_item, price)
 #     preflight_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
 #                                          'preflight_item')
 #     price = get_preflight_price()
-#     add_item_to_list(doc, preflight_item, preflight_item, price)
+#     add_update_quotation_item(doc, preflight_item, preflight_item, price)
 #     wallmount_kit_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
 #                                              'wallmount_kit_item')
 #     price = calculate_wallmount_kit_price(panel, measurement)
-#     add_item_to_list(doc, wallmount_kit_item, wallmount_kit_item, price)
+#     add_update_quotation_item(doc, wallmount_kit_item, wallmount_kit_item, price)
 #
 #     lbracket_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
 #                                         'wallmount_lbracket_item')
 #     price = calculate_lbracket_price(panel, measurement)
-#     add_item_to_list(doc, lbracket_item, lbracket_item, price)
+#     add_update_quotation_item(doc, lbracket_item, lbracket_item, price)
 
 
 def update_doc_totals(doc):
@@ -138,6 +140,23 @@ def create_panel_items(doc):
         create_cut_item(doc, panel)
         create_aluminum_item(doc, panel)
 
+def add_update_quotation_item(doc, item_code, item_name, base_rate, panel_id="", height="", width=""):
+    found = False
+    frappe.msgprint(_("reach"))
+    for item in doc.items:
+        if item.item_code == item_code and item.reference_panel == panel_id and item.item_name == item_name:
+            frappe.msgprint(_("if 1  {0} - {1} <br> {2} - {3}  <br> {4} - {5}").format(item.item_code,item_code , item.reference_panel,panel_id , item.item_name , item_name))
+            if item.base_rate != base_rate or item.height != height or item.width != width:
+                frappe.msgprint(_("if 2  {0} - {1} <br> {2} - {3}  <br> {4} - {5}").format(item.base_rate,base_rate , item.height,height , item.width , width))
+
+                item.base_rate = base_rate
+                item.height = height
+                item.width = width
+            found = True
+            break
+    if not found:
+        add_item_to_list(doc, item_code, item_name, base_rate, panel_id, height, width)
+
 
 def create_back_item(doc, panel):
     back_details = frappe.db.get_value('Dropdown Options',
@@ -147,7 +166,7 @@ def create_back_item(doc, panel):
     if back_details.is_calculated_with_uom:
         if back_details.uom.lower() == 'sqft':
             back_price = float(back_details.option_value) * panel.sqft_per_panel
-    add_item_to_list(doc, back_details.related_item, panel.back, back_price, panel.panel_id)
+    add_update_quotation_item(doc, back_details.related_item, panel.back, back_price, panel.panel_id)
 
 
 def create_thickness_item(doc, panel):
@@ -155,8 +174,7 @@ def create_thickness_item(doc, panel):
                                             {'doctype_type': 'Price Configurator Item', 'variable_name': 'thickness',
                                              'option_label': panel.thickness}, '*')
     thickness_rate = float(thickness_details.option_value) * panel.sqft_per_panel
-    add_item_to_list(doc, thickness_details.related_item, panel.thickness, thickness_rate, panel.panel_id)
-
+    add_update_quotation_item(doc, thickness_details.related_item, panel.thickness, thickness_rate, panel.panel_id)
 
 def create_cut_item(doc, panel):
     cut_details = frappe.db.get_value('Dropdown Options',
@@ -166,7 +184,7 @@ def create_cut_item(doc, panel):
         cut_price = (panel.outsource_amount * 0.3) + panel.outsource_amount
     else:
         cut_price = cut_details.option_value * panel.qty
-    add_item_to_list(doc, cut_details.related_item, panel.cut, cut_price, panel.panel_id)
+    add_update_quotation_item(doc, cut_details.related_item, panel.cut, cut_price, panel.panel_id)
 
 
 def create_aluminum_item(doc, panel):
@@ -180,7 +198,7 @@ def create_aluminum_item(doc, panel):
                                          {'price_list': 'Standard Selling', 'item_code': panel.item},
                                          'price_list_rate')
         item_code = panel.item
-    add_item_to_list(doc, item_code, "Aluminum", item_price, panel.panel_id, panel.height, panel.width)
+    add_update_quotation_item(doc, item_code, "Aluminum", item_price, panel.panel_id, panel.height, panel.width)
 
 
 def on_task_before_save(doc, handler=None):
