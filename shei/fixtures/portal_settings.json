@@ -1,6 +1,18 @@
 [
  {
-  "custom_menu": [], 
+  "custom_menu": [
+   {
+    "enabled": 1, 
+    "parent": "Portal Settings", 
+    "parentfield": "custom_menu", 
+    "parenttype": "Portal Settings", 
+    "reference_doctype": "Preflight Review", 
+    "role": "Customer", 
+    "route": "/preflight-review", 
+    "target": null, 
+    "title": "Preflight Review"
+   }
+  ], 
   "default_role": null, 
   "docstatus": 0, 
   "doctype": "Portal Settings", 
@@ -282,7 +294,7 @@
     "title": "Material Request"
    }
   ], 
-  "modified": "2019-08-13 10:34:16.493577", 
+  "modified": "2019-08-26 19:28:53.141348", 
   "name": "Portal Settings", 
   "parent": null, 
   "parentfield": null, 

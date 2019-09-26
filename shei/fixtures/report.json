@@ -375,7 +375,7 @@
   "icon": null, 
   "is_standard": "No", 
   "javascript": null, 
-  "json": "{\"order_by\": \"`tabSales Order`.`modified` desc\", \"add_total_row\": 0, \"fields\": [[\"name\", \"Sales Order\"], [\"docstatus\", \"Sales Order\"], [\"project\", \"Sales Order\"], [\"qty\", \"Sales Order Item\"], [\"delivery_date\", \"Sales Order\"], [\"status\", \"Sales Order\"], [\"item_code\", \"Sales Order Item\"]], \"column_widths\": {\"status\": 118, \"name\": 67, \"Sales Order Item:item_code\": 236, \"project\": 317, \"Sales Order Item:qty\": 64, \"delivery_date\": 83}, \"add_totals_row\": true, \"filters\": [[\"Sales Order\", \"status\", \"not in\", [\"Completed\", \"Closed\", \"Cancelled\", null], false], [\"Sales Team\", \"sales_person\", \"=\", \"Graphic Sales\", false]], \"page_length\": 20}", 
+  "json": "{\"order_by\": \"`tabSales Order`.`modified` desc\", \"add_total_row\": 0, \"fields\": [[\"name\", \"Sales Order\"], [\"docstatus\", \"Sales Order\"], [\"project\", \"Sales Order\"], [\"item_code\", \"Sales Order Item\"], [\"item_code\", \"Sales Order Item\"], [\"qty\", \"Sales Order Item\"], [\"delivery_date\", \"Sales Order\"], [\"status\", \"Sales Order\"], [\"item_code\", \"Sales Order Item\"]], \"column_widths\": {\"status\": 118, \"name\": 67, \"Sales Order Item:item_code\": 236, \"item_code\": 20, \"project\": 317, \"Sales Order Item:qty\": 64, \"delivery_date\": 83}, \"add_totals_row\": true, \"filters\": [[\"Sales Order\", \"status\", \"not in\", [\"Completed\", \"Closed\", \"Cancelled\", null], false], [\"Sales Team\", \"sales_person\", \"=\", \"Graphic Sales\", false]], \"page_length\": 20}", 
   "letter_head": "Standard - header & footer", 
   "modified": "2019-08-12 10:33:18.480583", 
   "module": "Selling", 

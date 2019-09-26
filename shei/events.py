@@ -29,6 +29,9 @@ def on_quotation_before_save(doc, handler=None):
         create_other_item(doc)
         create_graphical_item(doc)
         update_doc_totals(doc)
+    doc.run_method('set_missing_values')
+    doc.run_method('set_missing_item_details')
+    doc.run_method('calculate_taxes_and_totals')
 
 
 def add_item_to_list(doc, item_code, item_name, base_rate, qty, panel_id="", height="", width=""):
@@ -133,9 +136,12 @@ def update_doc_totals(doc):
     doc.base_total = sum(float(i.base_amount) for i in doc.items)  # cad
     doc.total = sum(float(i.amount) for i in doc.items)  # usd
 
+def set_panel_sqft(doc, panel):
+    panel.sqft_per_panel = convert_measurement_to_foot(panel.height, doc.measurement) * convert_measurement_to_foot(panel.width, doc.measurement)
 
 def create_panel_items(doc):
     for panel in doc.panel_list:
+        set_panel_sqft(doc, panel)
         create_back_item(doc, panel)
         create_thickness_item(doc, panel)
         create_cut_item(doc, panel)
@@ -234,7 +240,7 @@ def create_aluminum_item(doc, panel):
                                          {'price_list': 'Standard Selling', 'item_code': panel.item},
                                          'price_list_rate')
         item_code = panel.item
-    base_price = item_price * convert_measurement_to_foot(panel.height, doc.measurement) * convert_measurement_to_foot(panel.width, doc.measurement)
+    base_price = item_price * panel.sqft_per_panel
     add_update_quotation_item(doc, item_code, "Aluminum", base_price, panel.qty, panel.panel_id, panel.height, panel.width)
 
 def convert_measurement_to_foot(nb, measurement):

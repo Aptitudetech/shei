@@ -331,6 +331,7 @@ fixtures = [
         "dt": "Print Format",
         "filters": {
             "name": ["in", [
+                "shei - PC Quotation",
                 "shei - Bill Of Lading",
                 "shei - Commercial Invoice",
                 "SHEI - SO Work Order",
