@@ -12,7 +12,7 @@
   "insert_style": 0, 
   "javascript": "$(function() { });", 
   "main_section": "<h1>About us</h1><div>SH was established in 1975 as Syst\u00e8me Huntington Inc. (Sh [i]) and was initially specialized in the design and construction of showrooms and their components. With the mission of enhancing the value of branded environments, the company quickly became a leading provider of innovative graphic solutions.</div><div><br></div><div>ALTO<span style=\"background-color: rgb(254, 253, 250); color: rgb(0, 0, 0);\">\u2122</span></div><span style=\"background-color: rgb(254, 253, 250); color: rgb(0, 0, 0);\"> &amp; FOLIA</span><span><span style=\"color: rgb(0, 0, 0);\">\u2122</span></span><span style=\"color: rgb(0, 0, 0);\">, our personalized surface materials products, have enabled us to build various architectural elements which create durable and unique spaces. Today, we group together our offer of graphic and architectural solutions under the SH Immersive Environments brand name and we employ close to 50 employees. Our sales network extends across Canada, the United States and internationally.</span><span style=\"color: rgb(0, 0, 0);\"><br></span><span><br></span><div><br></div><span><br></span><div><br></div><span style=\"background-color: rgb(254, 253, 250); color: rgb(0, 0, 0);\"><br></span>", 
-  "modified": "2019-03-27 11:37:21.242163", 
+  "modified": "2019-09-27 08:57:32.716036", 
   "name": "sh-environnements-immersifs", 
   "parent": null, 
   "parentfield": null, 
@@ -24,7 +24,7 @@
   "slideshow": null, 
   "start_date": null, 
   "text_align": "Left", 
-  "title": "SH Environnements Immersifs", 
+  "title": "The SH Group", 
   "website_sidebar": null
  }
 ]

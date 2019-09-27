@@ -16,12 +16,41 @@ from frappe.utils import nowdate, add_to_date, flt, now_datetime
 from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
-from quotation_price_configurator import calculate_welding_price, get_lbracket_qty, get_single_additional_preflight_price, validate, get_zclip_qty, get_total_studs_price, get_total_av_nuts_price, get_total_tools_price, get_total_folds_price, get_total_holes_price, calculate_zclip_price,calculate_lbracket_price, calculate_wallmount_kit_price, get_preflight_price, get_additional_preflight_price,get_technical_drawing_price, get_sample_without_order_price, get_sample_with_order_price, get_graphic_design_price, get_color_match_price, get_matching_mural_price
+from quotation_price_configurator import convert_measurement_to_foot, calculate_welding_price, get_lbracket_qty, \
+    get_single_additional_preflight_price, validate, get_zclip_qty, get_studs_price, get_av_nuts_price, \
+    get_tools_price, get_folds_price, get_holes_price, calculate_zclip_price,get_lbracket_price, \
+    get_wallmount_kit_price, get_preflight_price,get_technical_drawing_price, get_sample_without_order_price, \
+    get_sample_with_order_price, get_graphic_design_price, get_color_match_price, get_matching_mural_price
+
+
+def on_quotation_submit(doc, handler=""):
+    for panel in doc.panel_list:
+        cut_details = frappe.db.get_value('Dropdown Options',
+                                          {'doctype_type': 'Price Configurator Item', 'variable_name': 'cut',
+                                           'option_label': panel.cut}, '*')
+        if cut_details.is_value_from_user and panel.outsource_amount == 0:
+            frappe.throw(_("You must enter a valid amount for the outsourced cut. panel id: {0}").format(panel.panel_id))
+
 
 def on_quotation_validate(doc, handler=None):
     if doc.quotation_mode == 'Price Configurator':
+        set_default_value_pc(doc)
         validate(doc)
 
+def set_default_value_pc(doc):
+    for panel in doc.panel_list:
+        if not panel.welding_qty:
+            panel.welding_qty = 0
+        if not panel.nb_panel_with_zclip:
+            panel.nb_panel_with_zclip = 0
+        if not panel.wallmount_kit_qty:
+            panel.wallmount_kit_qty = 0
+        if not panel.panel_with_wallmount_lbracket:
+            panel.panel_with_wallmount_lbracket = 0
+        if not panel.outsource_amount:
+            panel.outsource_amount = 0
+        if not panel.thickness:
+            panel.thickness = "Alto 1/8"
 
 def on_quotation_before_save(doc, handler=None):
     if doc.quotation_mode == 'Price Configurator':
@@ -35,6 +64,7 @@ def on_quotation_before_save(doc, handler=None):
 
 
 def add_item_to_list(doc, item_code, item_name, base_rate, qty, panel_id="", height="", width=""):
+    '''Convert the given information into an item and append it to items list'''
     uom_details = frappe.db.get_value('UOM Conversion Detail',
                                       {'parenttype': 'Item', 'parent': item_code},
                                       ['uom', 'conversion_factor'], as_dict=True)
@@ -66,23 +96,23 @@ def add_item_to_list(doc, item_code, item_name, base_rate, qty, panel_id="", hei
 def create_other_item(doc):
     if doc.total_studs:
         studs_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'studs_item')
-        unit_price = get_total_studs_price(doc.total_studs)
+        unit_price = get_studs_price()
         add_update_quotation_item(doc, studs_item, studs_item, unit_price, doc.total_studs)
     if doc.total_av_nuts:
         nuts_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'nuts_item')
-        price = get_total_av_nuts_price()
+        price = get_av_nuts_price()
         add_update_quotation_item(doc, nuts_item, nuts_item, price, doc.total_av_nuts)
     if doc.total_tools:
         tool_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'tool_item')
-        price = get_total_tools_price()
+        price = get_tools_price()
         add_update_quotation_item(doc, tool_item, tool_item, price, doc.total_tools)
     if doc.total_folds:
         folds_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'folds_item')
-        price = get_total_folds_price()
+        price = get_folds_price()
         add_update_quotation_item(doc, folds_item, folds_item, price, doc.total_folds)
     if doc.total_holes:
         holds_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'holds_item')
-        price = get_total_holes_price()
+        price = get_holes_price()
         add_update_quotation_item(doc, holds_item, holds_item, price, doc.total_holes)
 
 
@@ -142,10 +172,10 @@ def set_panel_sqft(doc, panel):
 def create_panel_items(doc):
     for panel in doc.panel_list:
         set_panel_sqft(doc, panel)
-        create_back_item(doc, panel)
-        create_thickness_item(doc, panel)
-        create_cut_item(doc, panel)
         create_aluminum_item(doc, panel)
+        create_back_item(doc, panel)
+        create_cut_item(doc, panel)
+        create_thickness_item(doc, panel)
         create_welding_item(doc, panel)
         create_zclip_item(doc, panel)
         create_wallmount_item(doc, panel)
@@ -156,23 +186,23 @@ def create_welding_item(doc, panel):
         welding_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
                                                  'welding_item')
         price = calculate_welding_price()
-        add_update_quotation_item(doc, welding_item, welding_item, price, panel.welding_qty)
+        add_update_quotation_item(doc, welding_item, welding_item, price, panel.welding_qty, panel.panel_id)
 
 
 def create_wallmount_item(doc, panel):
     if panel.wallmount_kit_qty:
         wallmount_kit_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
                                                  'wallmount_kit_item')
-        price = calculate_wallmount_kit_price(panel, doc.measurement)
-        add_update_quotation_item(doc, wallmount_kit_item, wallmount_kit_item, price, panel.wallmount_kit_qty)
+        price = get_wallmount_kit_price(panel, doc.measurement)
+        add_update_quotation_item(doc, wallmount_kit_item, wallmount_kit_item, price, panel.wallmount_kit_qty, panel.panel_id)
 
 def create_wallmount_lbracket(doc, panel):
     if panel.panel_with_wallmount_lbracket:
         lbracket_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
                                             'wallmount_lbracket_item')
-        price = calculate_lbracket_price(panel, doc.measurement)
+        price = get_lbracket_price(panel, doc.measurement)
         lbracket_qty = get_lbracket_qty(panel, doc.measurement)
-        add_update_quotation_item(doc, lbracket_item, lbracket_item, price, lbracket_qty)
+        add_update_quotation_item(doc, lbracket_item, lbracket_item, price, lbracket_qty, panel.panel_id)
 
 
 def create_zclip_item(doc, panel):
@@ -180,7 +210,7 @@ def create_zclip_item(doc, panel):
         zclip_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting', 'zclip_item')
         zclip_qty = get_zclip_qty(panel, doc.measurement)
         zclip_price = calculate_zclip_price(panel, doc.measurement)
-        add_update_quotation_item(doc, zclip_item, zclip_item, zclip_price, zclip_qty) #see where to put the zclip
+        add_update_quotation_item(doc, zclip_item, zclip_item, zclip_price, zclip_qty, panel.panel_id)
 
 
 def add_update_quotation_item(doc, item_code, item_name, base_rate, qty, panel_id="", height="", width=""):
@@ -220,7 +250,7 @@ def create_cut_item(doc, panel):
     cut_details = frappe.db.get_value('Dropdown Options',
                                       {'doctype_type': 'Price Configurator Item', 'variable_name': 'cut',
                                        'option_label': panel.cut}, '*')
-    if cut_details.is_value_coming_from_user:
+    if cut_details.is_value_from_user:
         cut_price = (panel.outsource_amount * 0.3) + panel.outsource_amount
         qty = 1
     else:
@@ -230,27 +260,11 @@ def create_cut_item(doc, panel):
 
 
 def create_aluminum_item(doc, panel):
-    if panel.have_aluminium:
-        item_price = frappe.db.get_value('Item Price',
-                                         {'price_list': 'Standard Selling', 'item_code': panel.have_aluminium},
-                                         'price_list_rate')
-        item_code = panel.have_aluminium
-    else:
-        item_price = frappe.db.get_value('Item Price',
-                                         {'price_list': 'Standard Selling', 'item_code': panel.item},
-                                         'price_list_rate')
-        item_code = panel.item
+    item_price = frappe.db.get_value('Item Price',
+                                     {'price_list': 'Standard Selling', 'item_code': panel.aluminum_item},
+                                     'price_list_rate')
     base_price = item_price * panel.sqft_per_panel
-    add_update_quotation_item(doc, item_code, "Aluminum", base_price, panel.qty, panel.panel_id, panel.height, panel.width)
-
-def convert_measurement_to_foot(nb, measurement):
-    if measurement == "MM":
-        nb = float(nb) / 25.4
-    if measurement == "CM":
-        nb = float(nb) / 2.54
-    if measurement == "Inches":
-        nb = float(nb) / 12
-    return nb
+    add_update_quotation_item(doc, panel.aluminum_item, "Aluminum", base_price, panel.qty, panel.panel_id, panel.height, panel.width)
 
 
 def on_task_before_save(doc, handler=None):

@@ -95,7 +95,10 @@ doc_events = {
        'validate': [
            'shei.events.on_quotation_validate',
            'shei.events.on_quotation_before_save'
-       ]
+       ],
+        'on_submit': [
+            'shei.events.on_quotation_submit'
+        ],
      },
     'Project': {
         'onload': [
