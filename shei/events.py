@@ -54,13 +54,29 @@ def set_default_value_pc(doc):
 
 def on_quotation_before_save(doc, handler=None):
     if doc.quotation_mode == 'Price Configurator':
+        #doc.set('items', [])
         create_panel_items(doc)
         create_other_item(doc)
         create_graphical_item(doc)
+        # remove_unused_item(doc)
         update_doc_totals(doc)
+        #set_old_value(doc)
+    for idx, item in enumerate(doc.items, 1):
+        item.idx = idx
     doc.run_method('set_missing_values')
     doc.run_method('set_missing_item_details')
     doc.run_method('calculate_taxes_and_totals')
+
+
+# def set_old_value(doc):
+#     for panel in doc.panel_list:
+#         back_item = frappe.db.get_value('Dropdown Options', {'option_label': panel.back, 'variable_name':'back', 'doctype_type':'Price Configurator Item'}, 'related_item')
+#         panel.old_back_item = back_item
+#         cut_item = frappe.db.get_value('Dropdown Options', {'option_label': panel.cut, 'variable_name':'cut', 'doctype_type':'Price Configurator Item'}, 'related_item')
+#         panel.old_cut_item = cut_item
+#         thickness_item = frappe.db.get_value('Dropdown Options', {'option_label': panel.thickness, 'variable_name':'thickness', 'doctype_type':'Price Configurator Item'}, 'related_item')
+#         panel.old_thickness_item = thickness_item
+#         panel.old_aluminum_item = panel.aluminum_item
 
 
 def add_item_to_list(doc, item_code, item_name, base_rate, qty, panel_id="", height="", width=""):
@@ -212,12 +228,42 @@ def create_zclip_item(doc, panel):
         zclip_price = calculate_zclip_price(panel, doc.measurement)
         add_update_quotation_item(doc, zclip_item, zclip_item, zclip_price, zclip_qty, panel.panel_id)
 
+# def remove_unused_item(doc):
+#     backup_panels = doc.get("__onload").backup_panels
+#
+#
+#     for panel in doc.panel_list:
+#         for item in doc.get('items', {'reference_panel': panel.panel_id}):
+#             if item.reference_panel:
+#                 if item.reference_panel == panel.panel_id:
+#                     back_item = frappe.db.get_value('Dropdown Options',
+#                                                     {'option_label': panel.back, 'variable_name': 'back',
+#                                                      'doctype_type': 'Price Configurator Item'}, 'related_item')
+#                     cut_item = frappe.db.get_value('Dropdown Options',
+#                                                    {'option_label': panel.cut, 'variable_name': 'cut',
+#                                                     'doctype_type': 'Price Configurator Item'}, 'related_item')
+#                     thickness_item = frappe.db.get_value('Dropdown Options',
+#                                                          {'option_label': panel.thickness, 'variable_name': 'thickness',
+#                                                           'doctype_type': 'Price Configurator Item'}, 'related_item')
+#                     if (panel.old_cut_item == item.item_code) and (cut_item != panel.old_cut_item):
+#                         if item in doc.items:
+#                             doc.items.remove(item)
+#                     if (panel.old_thickness_item == item.item_code) and (thickness_item != panel.old_thickness_item):
+#                         if item in doc.items:
+#                             doc.items.remove(item)
+#                     if (panel.old_back_item == item.item_code) and (back_item != panel.old_back_item):
+#                         if item in doc.items:
+#                             doc.items.remove(item)
+#                     if (panel.old_aluminum_item == item.item_code) and (panel.aluminum_item != panel.old_aluminum_item):
+#                         if item in doc.items:
+#                             doc.items.remove(item)
+
 
 def add_update_quotation_item(doc, item_code, item_name, base_rate, qty, panel_id="", height="", width=""):
     found = False
     for item in doc.items:
-        if item.item_code == item_code and item.reference_panel == panel_id and item.item_name == item_name:
-            if item.base_rate != base_rate or item.height != height or item.width != width:
+        if item.item_code == item_code and item.reference_panel == panel_id:
+            if item.base_rate != base_rate or item.height != height or item.width != width or item.qty != qty:
                 item.base_rate = base_rate
                 item.qty = qty
                 item.height = height
