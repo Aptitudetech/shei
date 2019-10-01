@@ -54,7 +54,7 @@ def set_default_value_pc(doc):
 
 def on_quotation_before_save(doc, handler=None):
     if doc.quotation_mode == 'Price Configurator':
-        #doc.set('items', [])
+        doc.set('items', [])
         create_panel_items(doc)
         create_other_item(doc)
         create_graphical_item(doc)
@@ -280,7 +280,7 @@ def create_back_item(doc, panel):
                                         'option_label': panel.back}, '*')
     back_price = float(back_details.option_value)
     if back_details.is_calculated_with_uom:
-        if back_details.uom.lower() == 'sqft':
+        if back_details.uom.lower() == 'square foot':
             back_price = float(back_details.option_value) * panel.sqft_per_panel
     add_update_quotation_item(doc, back_details.related_item, panel.back, back_price, panel.qty, panel.panel_id)
 
