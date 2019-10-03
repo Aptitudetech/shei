@@ -4,6 +4,12 @@
 
 frappe.query_reports["Schedule Aid"] = {
 	"filters": [
-
+		{
+			"fieldname": "prj_type",
+			"label": __("Type"),
+			"fieldtype": "Select",
+			"options": "\nArchitectural\nGraphic",
+			"default": "Graphic",
+		},
 	]
 }
