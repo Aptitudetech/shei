@@ -8,6 +8,7 @@ from frappe import _
 from frappe import scrub
 from frappe.utils import getdate, nowdate, flt, cint
 from shei.quotation_price_configurator import get_lbracket_qty, get_zclip_qty
+from datetime import timedelta
 
 
 class ScheduleAid(object):
@@ -72,11 +73,11 @@ class ScheduleAid(object):
                 zclip_qty = sum([int(get_zclip_qty(row, measurement)) for row in quote_panel_list])
                 wallmount_kit_qty = sum([int(row['wallmount_kit_qty']) for row in quote_panel_list])
                 ready_for_production_date = self.get_ready_for_production_date(project.ready_for_production_date)
-                cnc_time = self.get_cnc_required_time()
-                paint_time = self.get_paint_required_time()
-                sublimation_time = self.get_sublimation_required_time()
-                installation_hardware_time = self.get_installation_required_time()
-                inspection_time = self.get_inspection_required_time()
+                cnc_time = self.get_cnc_required_time(panel_qty)
+                paint_time = self.get_paint_required_time(total_width)
+                sublimation_time = self.get_sublimation_required_time(panel_qty)
+                installation_hardware_time = self.get_installation_required_time(panel_qty)
+                inspection_time = self.get_inspection_required_time(panel_qty)
                 tuple_obj = self.convert_to_tuple_obj(project.name, task_name, panel_qty, total_width, lbracket_qty,
                                                       zclip_qty, wallmount_kit_qty, ready_for_production_date, cnc_time,
                                                       paint_time,
@@ -85,11 +86,9 @@ class ScheduleAid(object):
         return tuple(tuple_list)  # data needs to be in Json
 
     def get_ready_for_production_date(self, ready_for_production_date):
-        frappe.msgprint(_("B ready_for_production_date {0}").format(ready_for_production_date))
-
         if self.filters['prj_type'] == 'Graphic':
-            ready_for_production_date = ready_for_production_date.days
-        frappe.msgprint(_("A ready_for_production_date {0}").format(ready_for_production_date))
+            ready_for_production_date = ready_for_production_date + timedelta(days=35)
+        return ready_for_production_date
 
     def convert_to_tuple_obj(self, project_name, task_name, panel_qty, total_width, lbracket_qty,
                              zclip_qty, wallmount_kit_qty, project_ready_for_production_date, cnc_time, paint_time,
@@ -101,56 +100,25 @@ class ScheduleAid(object):
                )
         return obj
 
-    def get_preflight_time(self, paint_time, cnc_time):
-        if not paint_time or not cnc_time:
-            return ""
-        return (paint_time - cnc_time).days
 
-    def get_printing_time(self, installation_hardware_time, sublimation_time):
-        if not installation_hardware_time or not sublimation_time:
-            return ""
-        return (installation_hardware_time - sublimation_time).days
+    def get_cnc_required_time(self, panel_qty):
+        return float(30 * panel_qty) / 60 #convert it into hours
 
-    def get_fabrication_time(self, inspection_time, installation_hardware_time):
-        if not inspection_time or not installation_hardware_time:
-            return ""
-        return (inspection_time - installation_hardware_time).days
+    def get_paint_required_time(self, total_width):
+        if total_width < 144:
+            nb_min = 30
+        else:
+            nb_min = float(total_width/144) * 30
+        return float("{0:.2f}".format(nb_min/60))
 
-    def get_total_time(self, inspection_time, project_expected_start_date):
-        if not inspection_time or not project_expected_start_date:
-            return ""
-        return (inspection_time - project_expected_start_date).days
+    def get_sublimation_required_time(self, panel_qty):
+        return float(30 * panel_qty) / 60
 
-    def get_cnc_required_time(self, tasks=[]):
-        for task in tasks:
-            if task.title.split('-')[1] == '00':
-                return task.end_date
+    def get_installation_required_time(self, panel_qty):
+        return float(panel_qty * 30) / 60
 
-    def get_paint_required_time(self, tasks=[]):
-        for task in tasks:
-            if task.title.split('-')[1] == '02' and task.title.split('-')[2][0] == 'B':
-                return task.end_date
-
-    def get_sublimation_required_time(self, tasks=[]):
-        for task in tasks:
-            if task.title.split('-')[1] == '07':
-                return task.end_date
-
-    #			product_name = task.title.split('-')[0] #the pdf approval is different for the products Alto and Folia
-    #			if product_name == 'FOLIA' and task.title.split('-')[1] == '07':
-    #				return task.end_date
-    #                       if product_name == 'ALTO' and task.title.split('-')[1] == '09':
-    #                              return task.end_date
-
-    def get_installation_required_time(self, tasks=[]):
-        for task in tasks:
-            if task.title.split('-')[1] == '06':
-                return task.end_date
-
-    def get_inspection_required_time(self, tasks=[]):
-        for task in tasks:
-            if task.title.split('-')[1] == '12':
-                return task.end_date
+    def get_inspection_required_time(self, panel_qty):
+        return float(panel_qty * 15) / 60
 
     def get_chart_data(self, columns, data):
         return {
