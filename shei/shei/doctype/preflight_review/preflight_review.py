@@ -35,6 +35,7 @@ def create_preflight_review(project_name):
 	})
 	new_pr.flags.ignore_permissions = True
 	new_pr.save()
+	return new_pr.route
 
 
 @frappe.whitelist()

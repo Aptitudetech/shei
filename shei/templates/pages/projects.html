@@ -120,7 +120,7 @@
 				</div>
 			</div>
 		</div>
-	</div>	
+	</div>
 	<div class="row">
 		<!--Display informative text for the task stage-->
 		<div class="col-sm-6" style="width: 25%;  ">
@@ -163,7 +163,7 @@
 
 				<div class="col-sm-6" style="width: 50%;  ">
 					<p>{{_("Shipping Address:")}} <br>
-						<strong> 
+						<strong>
 							{% set shipping_address = frappe.get_doc('Address', sales_orders[0]['shipping_address_name']) %}
 							{{shipping_address['address_line1']}}
 							{{shipping_address['city'] or ''}}, {{shipping_address['state'] or ''}}, {{shipping_address['pincode'] or ''}} <br>
@@ -241,9 +241,9 @@
 	</div>
 	<br> <br>
 	<hr/>
-	
+
 	<!--Wetransfert Link-->
-	<div data-widget-host="habitat" id="wt_embed" style="width: 25%;" > 
+	<div data-widget-host="habitat" id="wt_embed" style="width: 25%;" >
 		<script type="text/props">
 		  {
 			"wtEmbedKey": "a0124faf-6f51-4fb2-979b-b48552843532",
@@ -253,15 +253,15 @@
 	</div>
 	<script async src="https://prod-embed-cdn.wetransfer.net/v1/latest.js"></script>
 	<input type="text" name="wt_embed_output" id="wt_embed_output" class="wt_embed_output" hidden/>
-	  
-	
+
+
 	<div class='padding'></div>
 	<p>{{_("Problem with the link above?")}}</p>
 	<a href="https://wetransfer.com/?to={{doc.project_manager}}&msg={{doc.name}}" target="_blank">
 		<span class="glyphicon glyphicon-upload" aria-hidden="true"></span>
 		<strong data-toggle="tooltip" data-placement="top" title="Transfert your file with WeTransfer">{{_("Click here to transfer files")}}</strong>
 	</a>
-	
+
 	<!--Display attachments related to the project-->
 	{% if doc.attachments %}
 		<div class='padding'></div>
@@ -280,7 +280,7 @@
 			{% endfor %}
 		</div>
 	{% endif %}
-	
+
 	<!-- Modal to modify shipping address -->
 	<div class="modal fade" id="modalLoginForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-dialog" role="document">
@@ -310,9 +310,9 @@
 										<div class="card-header">
 											<label>
 												{% if sales_orders[0].contact_person == contact.name %}
-													<input type="radio" class="custom-control-input" name="contact" value="{{contact.first_name}} {{contact.last_name or ''}}" checked> 
+													<input type="radio" class="custom-control-input" name="contact" value="{{contact.first_name}} {{contact.last_name or ''}}" checked>
 												{% else %}
-													<input type="radio" class="custom-control-input" name="contact" value="{{contact.first_name}} {{contact.last_name or ''}}"> 
+													<input type="radio" class="custom-control-input" name="contact" value="{{contact.first_name}} {{contact.last_name or ''}}">
 												{% endif %}
 												<a class="card-link" data-toggle="collapse" href="#{{contact_id}}">
 													{{contact.first_name}} {{contact.last_name or ''}}
@@ -322,8 +322,8 @@
 										<div id="{{contact_id}}" class="collapse " data-parent="#contact_accordion">
 											<div class="card-body">
 												<div class="container">
-													{{_("Email")}}: {{contact.email_id or ''}}, <br> 
-													{{_("Phone")}}: {{contact.phone or ''}}, {{_("Mobile No")}}: {{contact.mobile_no}} <br> 
+													{{_("Email")}}: {{contact.email_id or ''}}, <br>
+													{{_("Phone")}}: {{contact.phone or ''}}, {{_("Mobile No")}}: {{contact.mobile_no}} <br>
 													{{_("Department")}}: {{contact.department or ''}}/{{_("Designation")}}: {{contact.designation or ''}}
 												</div>
 											</div>
@@ -332,26 +332,26 @@
 								{% endif %}
 							{% endfor %}
 							<input type="radio" class="custom-control-input" name="contact" value="Other"><label style="font-size: 15px;">{{_("Other")}}</label>
-							<br>													
+							<br>
 							<label id="modal_error_message_contact" style="color: red; font-style: italic;"></label>
 						</div>
 					</div>
-					<div id="other_contact" style="display: none;">   			
+					<div id="other_contact" style="display: none;">
 						<div class="md-form mb-4">
 							<label data-error="wrong" data-success="right" for="contact_first_name">* {{_("First Name")}}</label>
 							<input type="text" id="contact_first_name" class="form-control validate" placeholder="Samuel">
 						</div>
-	
+
 						<div class="md-form mb-3">
 							<label data-error="wrong" data-success="right" for="contact_last_name">* {{_("Last Name")}}</label>
 							<input type="text" id="contact_last_name" class="form-control validate" placeholder="Wallot">
 						</div>
-	
+
 						<div class="md-form mb-3">
 							<label data-error="wrong" data-success="right" for="contact_email">* {{_("Email")}}</label>
 							<input type="email" id="contact_email" class="form-control validate" placeholder="some@email.com">
 						</div>
-						
+
 						<div class="md-form mb-3">
 							<label data-error="wrong" data-success="right" for="contact_phone">* {{_("Phone")}}</label>
 							<input type="text" id="contact_phone" class="form-control validate" placeholder="111-222-3456 ext:103">
@@ -382,16 +382,16 @@
 							{% for a in address_list %}
 								{% set address = frappe.get_list("Address", fields=["name", "phone", "country", "pincode", "state", "city", "address_line1", "have_dock", "is_residential_address"], filters={"name": a['parent']})[0] %}
 								{% set shipping_address_list = shipping_address_list.append(address.name) %}
-								
+
 								{% if address is defined%}
 									{% set address_id = address.name|replace(" ", "_")|replace("(", "")|replace(")", "")|replace("&", "")%}
 									<div class="card">
 										<div class="card-header">
 											<label>
 												{% if sales_orders[0].shipping_address_name == address.name %}
-													<input type="radio" class="custom-control-input" name="address" value="{{address.name}}" checked> 
+													<input type="radio" class="custom-control-input" name="address" value="{{address.name}}" checked>
 												{% else %}
-													<input type="radio" class="custom-control-input" name="address" value="{{address.name}}"> 
+													<input type="radio" class="custom-control-input" name="address" value="{{address.name}}">
 												{% endif %}
 												<a class="card-link" data-toggle="collapse" href="#{{address_id}}">
 													{{address.name}}
@@ -401,8 +401,8 @@
 										<div id="{{address_id}}" class="collapse " data-parent="#accordion">
 											<div class="card-body">
 												<div class="container">
-													{{address.address_line1}}, {{address.city or ''}}, {{address.state or ''}}, <br> 
-													{{address.pincode or ''}}, {{address.country}} <br> 
+													{{address.address_line1}}, {{address.city or ''}}, {{address.state or ''}}, <br>
+													{{address.pincode or ''}}, {{address.country}} <br>
 													{{address.phone or ''}}
 													<br>
 													<select id="have_dock_{{address.name}}" class="btn btn-secondary dropdown-toggle">
@@ -451,17 +451,17 @@
 							<label id="modal_error_message_address" style="color: red; font-style: italic;"></label>
 						</div>
 					</div>
-					<div id="other_address" style="display: none;">   			
+					<div id="other_address" style="display: none;">
 						<div class="md-form mb-4">
 							<label data-error="wrong" data-success="right" for="address_title">* {{_("Address Title")}}</label>
 							<input type="text" id="address_title" class="form-control validate" placeholder="Dorion Shipping">
 						</div>
-	
+
 						<div class="md-form mb-3">
 							<label data-error="wrong" data-success="right" for="address_line_1">* {{_("Address Line 1")}}</label>
 							<input type="text" id="address_line_1" class="form-control validate" placeholder="123 ave St-Charles">
 						</div>
-	
+
 						<div class="md-form mb-3">
 							<label data-error="wrong" data-success="right" for="address_city">* {{_("City/Town")}}</label>
 							<input type="text" id="address_city" class="form-control validate" placeholder="Dorion">
@@ -471,11 +471,11 @@
 							<label data-error="wrong" data-success="right" for="address_zipcode">* {{_("Zipcode")}}</label>
 							<input type="text" id="address_zipcode" class="form-control validate" placeholder="J021M0 or 45687">
 						</div>
-						
+
 						<div class="md-form mb-2">
 							<label data-error="wrong" data-success="right" for="address_country">* {{_("Country")}}</label>
 							<br>
-							
+
 							{% set countries = frappe.get_list('Country', 'name') %}
 							<select id="address_country" class="btn btn-secondary dropdown-toggle">
 								{% for country in countries %}
@@ -484,7 +484,7 @@
 							</select>
 						</div>
 					</div>
-					
+
 				</div>
 				<div class="modal-footer d-flex justify-content-center">
 					<button class="btn btn-default" onclick="update_shipping_address()" style="background: {{sh_color}}">{{_("Save to change shipping address")}}</button>
@@ -492,7 +492,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 
 
 <script>
@@ -504,9 +504,7 @@
 				'project_name': "{{ doc.name }}"
 			},
 			callback: function(content) {
-				{% set route = frappe.db.get_value('Preflight Review', {'project': doc.name}, 'route', order_by='name desc') %}
-				console.log(route);
-				window.location.href = '../../' + route;
+				window.location.href = '../../' + content.message;
 			}
 		});
 	}
@@ -549,7 +547,7 @@
 		console.log('OK');
 		var x = document.getElementById("modalLoginForm");
 		$('#modalLoginForm').modal('hide');
-		//x.hide(); 
+		//x.hide();
 
 	}
 
@@ -638,9 +636,9 @@
 		var contact_department = document.getElementById('contact_department').value;
 		var contact_title = document.getElementById('contact_title').value;
 		var success = false;
-		if ((checked_contact_value == 'Other') 
-			  && (contact_first_name.trim() == "" 
-			  || contact_last_name.trim() == "" 
+		if ((checked_contact_value == 'Other')
+			  && (contact_first_name.trim() == ""
+			  || contact_last_name.trim() == ""
 			  || contact_phone.trim() == ""
 			  || contact_email.trim() == ""))
 		{

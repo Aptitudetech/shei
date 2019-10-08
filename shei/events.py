@@ -23,6 +23,13 @@ from quotation_price_configurator import convert_measurement_to_foot, calculate_
     get_sample_with_order_price, get_graphic_design_price, get_color_match_price, get_matching_mural_price
 
 
+def on_request_for_quotation_validate(doc, handler=""):
+    for item in doc.items:
+        mr_item_prj = frappe.db.get_value('Material Request Item', {'parenttype': 'Material Request', 'parent': item.material_request, 'item_code':item.item_code}, 'project')
+        if mr_item_prj:
+            item.project_name = mr_item_prj
+
+
 def on_quotation_submit(doc, handler=""):
     for panel in doc.panel_list:
         cut_details = frappe.db.get_value('Dropdown Options',

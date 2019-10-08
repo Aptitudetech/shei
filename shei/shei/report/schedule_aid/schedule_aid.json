@@ -8,7 +8,7 @@
  "idx": 0, 
  "is_standard": "Yes", 
  "letter_head": "Standard - header & footer", 
- "modified": "2019-10-01 15:03:53.231361", 
+ "modified": "2019-10-08 08:54:28.874270", 
  "modified_by": "Administrator", 
  "module": "SHEI", 
  "name": "Schedule Aid", 
@@ -17,5 +17,9 @@
  "ref_doctype": "Project", 
  "report_name": "Schedule Aid", 
  "report_type": "Script Report", 
- "roles": []
+ "roles": [
+  {
+   "role": "SHEI - Admin"
+  }
+ ]
 }

@@ -135,7 +135,7 @@
         var NewRow = table.insertRow(table_length);
         for (var i = 0; i < 11; i++) {
             var cell = NewRow.insertCell(i);
-            if(i<=4){ //The client should only modify the first 4 column
+            if(i<=3){ //The client should only modify the first 4 column
                 cell.innerHTML = "0000";
                 cell.setAttribute("contenteditable", "{{contenteditable}}");
             }
