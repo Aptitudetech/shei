@@ -3722,7 +3722,7 @@
   "modified": "2019-08-02 11:28:47.107484", 
   "name": "Sales Order Item-measurement", 
   "no_copy": 0, 
-  "options": "\nMM\nInches", 
+  "options": "\nMM\nCM\nInches\nFoot", 
   "parent": null, 
   "parentfield": null, 
   "parenttype": null, 

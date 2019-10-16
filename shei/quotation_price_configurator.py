@@ -249,7 +249,7 @@ def get_wallmount_kit_price(panel, measurement):
                                               'price_list_rate')
     panel_perimeter = 2 * (panel.width + panel.height)
     panel_perimeter_foot = convert_measurement_to_foot(panel_perimeter, measurement)
-    wall_kit_price = wallmount_kit_price * panel_perimeter_foot
+    wall_kit_price = float(wallmount_kit_price) * panel_perimeter_foot
     return wall_kit_price
 
 
