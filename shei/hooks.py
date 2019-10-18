@@ -70,6 +70,16 @@ permission_query_conditions = {
 # Hook on document methods and events
 
 doc_events = {
+    'Communication':{
+        'before_save':[
+            'shei.events.before_communication_save'
+        ],
+    },
+    'Email Queue':{
+        'before_save':[
+            'shei.events.before_eq_save'
+        ],
+    },
     'Customer': {
         'onload': [
             'shei.events.on_party_onload'
@@ -140,23 +150,23 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
 # 	"all": [
 # 		"shei.tasks.all"
 # 	],
 # 	"daily": [
 # 		"shei.tasks.daily"
 # 	],
-# 	"hourly": [
-# 		"shei.tasks.hourly"
-# 	],
+    "hourly": [
+        "shei.tasks.send_warning_email"
+    ],
 # 	"weekly": [
 # 		"shei.tasks.weekly"
 # 	]
 # 	"monthly": [
 # 		"shei.tasks.monthly"
 # 	]
-# }
+}
 
 # Testing
 # -------
@@ -201,6 +211,8 @@ fixtures = [
                 "Suppliers with Invoices",
                 "Facture du 1er nov a maintenant",
                 "ERIKA - Graphic In Production by Item 2",
+                "Sommaire Journalier",
+                "SH Budget Variance Report",
             ]]
         }
     },
@@ -208,6 +220,34 @@ fixtures = [
         "dt": "Custom Field",
         "filters": {
             "name": ["in", [
+                "Delivery Note-eta_date",
+                "Delivery Note-is_special_shipping",
+                "Address-state_per_country",
+                "Project-ready_for_production_date",
+                "Quotation Item-reference_panel",
+                "Quotation-measurement",
+                "Quotation-quotation_mode",
+                "Quotation-total_folds",
+                "Quotation-total_holes",
+                "Quotation-total_tools",
+                "Quotation-total_av_nuts",
+                "Quotation-total_studs",
+                "Quotation-sample_without_order_qty",
+                "Quotation-sample_with_order_qty",
+                "Quotation-number_of_files",
+                "Quotation-technical_drawing_hours",
+                "Quotation-have_technical_drawing",
+                "Quotation-graphic_design_nb_hours",
+                "Quotation-have_graphic_design",
+                "Quotation-nb_colour_to_match",
+                "Quotation-need_colour_match",
+                "Quotation-have_matching_mural",
+                "Quotation-panel_list",
+                "Issue-release_date",
+                "Project-sub_type",
+                "Project-update_task_order",
+                "Project Task-task_order",
+                "Task-task_order",
                 "Address-have_dock",
                 "Address-is_residential_address",
                 "Project-absolute_end_date",

@@ -439,5 +439,137 @@
     "role": "Accounts User"
    }
   ]
+ }, 
+ {
+  "add_total_row": 0, 
+  "color": null, 
+  "disable_prepared_report": 0, 
+  "disabled": 0, 
+  "docstatus": 0, 
+  "doctype": "Report", 
+  "icon": null, 
+  "is_standard": "Yes", 
+  "javascript": null, 
+  "json": null, 
+  "letter_head": "Standard - header & footer", 
+  "modified": "2019-10-10 10:09:52.993993", 
+  "module": "SHEI", 
+  "name": "SH Budget Variance Report", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "prepared_report": 0, 
+  "query": null, 
+  "ref_doctype": "Cost Center", 
+  "reference_report": null, 
+  "report_name": "SH Budget Variance Report", 
+  "report_type": "Script Report", 
+  "roles": [
+   {
+    "parent": "SH Budget Variance Report", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Accounts Manager"
+   }, 
+   {
+    "parent": "SH Budget Variance Report", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Admin - Office"
+   }, 
+   {
+    "parent": "SH Budget Variance Report", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Sales User"
+   }, 
+   {
+    "parent": "SH Budget Variance Report", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Office and Shop Manager"
+   }, 
+   {
+    "parent": "SH Budget Variance Report", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Purchase User"
+   }, 
+   {
+    "parent": "SH Budget Variance Report", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Accounts User"
+   }, 
+   {
+    "parent": "SH Budget Variance Report", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Auditor"
+   }
+  ]
+ }, 
+ {
+  "add_total_row": 0, 
+  "color": null, 
+  "disable_prepared_report": 0, 
+  "disabled": 0, 
+  "docstatus": 0, 
+  "doctype": "Report", 
+  "icon": null, 
+  "is_standard": "No", 
+  "javascript": null, 
+  "json": null, 
+  "letter_head": "Standard - header & footer", 
+  "modified": "2019-10-16 14:54:32.242090", 
+  "module": "SHEI", 
+  "name": "Sommaire Journalier", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "prepared_report": 0, 
+  "query": "SELECT\n    Distinct(`tabDelivery Note`.name) as \"Delivery Note:Link/Delivery Note:100\",\n    tabProject.name as \"Project:Link/Project:250\",\n    `tabDelivery Note`.transporter as \"Transporter:text:90\",\n    `tabDelivery Note`.lr_no as \"Waybill:text:90\"\nFROM \n    tabProject, \n    `tabDelivery Note`\nWHERE \n    `tabDelivery Note`.project = tabProject.name\n    AND `tabDelivery Note`.status != 'Completed'\n    AND CURDATE() = `tabDelivery Note`.lr_date\nORDER BY tabProject.Name\n", 
+  "ref_doctype": "Delivery Note", 
+  "reference_report": null, 
+  "report_name": "Sommaire Journalier", 
+  "report_type": "Query Report", 
+  "roles": [
+   {
+    "parent": "Sommaire Journalier", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Sales User"
+   }, 
+   {
+    "parent": "Sommaire Journalier", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Customer"
+   }, 
+   {
+    "parent": "Sommaire Journalier", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Accounts User"
+   }, 
+   {
+    "parent": "Sommaire Journalier", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Admin - Office"
+   }, 
+   {
+    "parent": "Sommaire Journalier", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Stock User"
+   }, 
+   {
+    "parent": "Sommaire Journalier", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Stock Manager"
+   }
+  ]
  }
 ]

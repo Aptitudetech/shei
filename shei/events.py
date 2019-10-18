@@ -18,14 +18,36 @@ from erpnext import get_default_currency
 from erpnext.accounts.party import (get_party_account_currency)
 from quotation_price_configurator import convert_measurement_to_foot, calculate_welding_price, get_lbracket_qty, \
     get_single_additional_preflight_price, validate, get_zclip_qty, get_studs_price, get_av_nuts_price, \
-    get_tools_price, get_folds_price, get_holes_price, calculate_zclip_price,get_lbracket_price, \
-    get_wallmount_kit_price, get_preflight_price,get_technical_drawing_price, get_sample_without_order_price, \
+    get_tools_price, get_folds_price, get_holes_price, calculate_zclip_price, get_lbracket_price, \
+    get_wallmount_kit_price, get_preflight_price, get_technical_drawing_price, get_sample_without_order_price, \
     get_sample_with_order_price, get_graphic_design_price, get_color_match_price, get_matching_mural_price
+from frappe.email.doctype.email_template.email_template import get_email_template
+
+
+def before_communication_save(doc, handler=""):
+    frappe.msgprint(_("Reach"))
+    #frappe.msgprint(_("name: {0}").format(doc.name))
+    #email_queue = frappe.get_doc('Email Queue', {'communication': doc.name})
+    #frappe.sendmail(
+    #    recipients="mra.net",
+    #    **get_email_template('Error while sending email', {'doc': email_queue})
+    #)
+
+
+def before_eq_save(doc, handler=""):
+    frappe.msgprint(_("Reach eq"))
+    #frappe.msgprint(_("name: {0}").format(doc.name))
+    #frappe.sendmail(
+    #    recipients="mraymond@aptitudetech.net",
+    #    **get_email_template('Error while sending email', {'doc': doc})
+    #)
 
 
 def on_request_for_quotation_validate(doc, handler=""):
     for item in doc.items:
-        mr_item_prj = frappe.db.get_value('Material Request Item', {'parenttype': 'Material Request', 'parent': item.material_request, 'item_code':item.item_code}, 'project')
+        mr_item_prj = frappe.db.get_value('Material Request Item',
+                                          {'parenttype': 'Material Request', 'parent': item.material_request,
+                                           'item_code': item.item_code}, 'project')
         if mr_item_prj:
             item.project_name = mr_item_prj
 
@@ -36,13 +58,15 @@ def on_quotation_submit(doc, handler=""):
                                           {'doctype_type': 'Price Configurator Item', 'variable_name': 'cut',
                                            'option_label': panel.cut}, '*')
         if cut_details.is_value_from_user and panel.outsource_amount == 0:
-            frappe.throw(_("You must enter a valid amount for the outsourced cut. panel id: {0}").format(panel.panel_id))
+            frappe.throw(
+                _("You must enter a valid amount for the outsourced cut. panel id: {0}").format(panel.panel_id))
 
 
 def on_quotation_validate(doc, handler=None):
     if doc.quotation_mode == 'Price Configurator':
         set_default_value_pc(doc)
         validate(doc)
+
 
 def set_default_value_pc(doc):
     for panel in doc.panel_list:
@@ -59,6 +83,7 @@ def set_default_value_pc(doc):
         if not panel.thickness:
             panel.thickness = "Alto 1/8"
 
+
 def on_quotation_before_save(doc, handler=None):
     if doc.quotation_mode == 'Price Configurator':
         doc.set('items', [])
@@ -67,7 +92,7 @@ def on_quotation_before_save(doc, handler=None):
         create_graphical_item(doc)
         # remove_unused_item(doc)
         update_doc_totals(doc)
-        #set_old_value(doc)
+        # set_old_value(doc)
     for idx, item in enumerate(doc.items, 1):
         item.idx = idx
     doc.run_method('set_missing_values')
@@ -139,9 +164,8 @@ def create_other_item(doc):
         add_update_quotation_item(doc, holds_item, holds_item, price, doc.total_holes)
 
 
-
 def create_graphical_item(doc):
-    #we always charge 1 preflight
+    # we always charge 1 preflight
     preflight_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
                                          'preflight_item')
     price = get_preflight_price()
@@ -150,7 +174,7 @@ def create_graphical_item(doc):
         matching_mural_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
                                                   'matching_mural_item')
         price = get_matching_mural_price()
-        add_update_quotation_item(doc, matching_mural_item, matching_mural_item, price, 1) #we only charge it once
+        add_update_quotation_item(doc, matching_mural_item, matching_mural_item, price, 1)  # we only charge it once
     if doc.need_colour_match:
         colour_match_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
                                                 'colour_match_item')
@@ -170,18 +194,21 @@ def create_graphical_item(doc):
         sample_without_order_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
                                                         'sample_without_order_item')
         price = get_sample_without_order_price()
-        add_update_quotation_item(doc, sample_without_order_item, sample_without_order_item, price, doc.sample_without_order_qty)
+        add_update_quotation_item(doc, sample_without_order_item, sample_without_order_item, price,
+                                  doc.sample_without_order_qty)
     if doc.have_technical_drawing:
         technical_drawing_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
                                                      'technical_drawing_item')
         price = get_technical_drawing_price()
-        add_update_quotation_item(doc, technical_drawing_item, technical_drawing_item, price, doc.technical_drawing_hours)
+        add_update_quotation_item(doc, technical_drawing_item, technical_drawing_item, price,
+                                  doc.technical_drawing_hours)
     if doc.number_of_files > 1:
         additional_preflight_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
                                                         'additionnal_preflight_item')
         price = get_single_additional_preflight_price()
-        additionnal_preflight = doc.number_of_files - 1 #the first one is the regular 'preflight'
-        add_update_quotation_item(doc, additional_preflight_item, additional_preflight_item, price, additionnal_preflight)
+        additionnal_preflight = doc.number_of_files - 1  # the first one is the regular 'preflight'
+        add_update_quotation_item(doc, additional_preflight_item, additional_preflight_item, price,
+                                  additionnal_preflight)
 
 
 def update_doc_totals(doc):
@@ -189,8 +216,11 @@ def update_doc_totals(doc):
     doc.base_total = sum(float(i.base_amount) for i in doc.items)  # cad
     doc.total = sum(float(i.amount) for i in doc.items)  # usd
 
+
 def set_panel_sqft(doc, panel):
-    panel.sqft_per_panel = convert_measurement_to_foot(panel.height, doc.measurement) * convert_measurement_to_foot(panel.width, doc.measurement)
+    panel.sqft_per_panel = convert_measurement_to_foot(panel.height, doc.measurement) * convert_measurement_to_foot(
+        panel.width, doc.measurement)
+
 
 def create_panel_items(doc):
     for panel in doc.panel_list:
@@ -204,10 +234,11 @@ def create_panel_items(doc):
         create_wallmount_item(doc, panel)
         create_wallmount_lbracket(doc, panel)
 
+
 def create_welding_item(doc, panel):
     if panel.welding_qty:
         welding_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
-                                                 'welding_item')
+                                           'welding_item')
         price = calculate_welding_price()
         add_update_quotation_item(doc, welding_item, welding_item, price, panel.welding_qty, panel.panel_id)
 
@@ -217,7 +248,9 @@ def create_wallmount_item(doc, panel):
         wallmount_kit_item = frappe.db.get_value('Price Configurator Setting', 'Price Configurator Setting',
                                                  'wallmount_kit_item')
         price = get_wallmount_kit_price(panel, doc.measurement)
-        add_update_quotation_item(doc, wallmount_kit_item, wallmount_kit_item, price, panel.wallmount_kit_qty, panel.panel_id)
+        add_update_quotation_item(doc, wallmount_kit_item, wallmount_kit_item, price, panel.wallmount_kit_qty,
+                                  panel.panel_id)
+
 
 def create_wallmount_lbracket(doc, panel):
     if panel.panel_with_wallmount_lbracket:
@@ -234,6 +267,7 @@ def create_zclip_item(doc, panel):
         zclip_qty = get_zclip_qty(panel, doc.measurement)
         zclip_price = calculate_zclip_price(panel, doc.measurement)
         add_update_quotation_item(doc, zclip_item, zclip_item, zclip_price, zclip_qty, panel.panel_id)
+
 
 # def remove_unused_item(doc):
 #     backup_panels = doc.get("__onload").backup_panels
@@ -297,7 +331,9 @@ def create_thickness_item(doc, panel):
                                             {'doctype_type': 'Price Configurator Item', 'variable_name': 'thickness',
                                              'option_label': panel.thickness}, '*')
     thickness_rate = float(thickness_details.option_value) * panel.sqft_per_panel
-    add_update_quotation_item(doc, thickness_details.related_item, panel.thickness, thickness_rate, panel.qty, panel.panel_id)
+    add_update_quotation_item(doc, thickness_details.related_item, panel.thickness, thickness_rate, panel.qty,
+                              panel.panel_id)
+
 
 def create_cut_item(doc, panel):
     cut_details = frappe.db.get_value('Dropdown Options',
@@ -317,7 +353,8 @@ def create_aluminum_item(doc, panel):
                                      {'price_list': 'Standard Selling', 'item_code': panel.aluminum_item},
                                      'price_list_rate')
     base_price = item_price * panel.sqft_per_panel
-    add_update_quotation_item(doc, panel.aluminum_item, "Aluminum", base_price, panel.qty, panel.panel_id, panel.height, panel.width)
+    add_update_quotation_item(doc, panel.aluminum_item, "Aluminum", base_price, panel.qty, panel.panel_id, panel.height,
+                              panel.width)
 
 
 def on_task_before_save(doc, handler=None):
