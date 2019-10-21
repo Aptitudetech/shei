@@ -70,16 +70,6 @@ permission_query_conditions = {
 # Hook on document methods and events
 
 doc_events = {
-    'Communication':{
-        'before_save':[
-            'shei.events.before_communication_save'
-        ],
-    },
-    'Email Queue':{
-        'before_save':[
-            'shei.events.before_eq_save'
-        ],
-    },
     'Customer': {
         'onload': [
             'shei.events.on_party_onload'

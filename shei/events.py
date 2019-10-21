@@ -21,26 +21,6 @@ from quotation_price_configurator import convert_measurement_to_foot, calculate_
     get_tools_price, get_folds_price, get_holes_price, calculate_zclip_price, get_lbracket_price, \
     get_wallmount_kit_price, get_preflight_price, get_technical_drawing_price, get_sample_without_order_price, \
     get_sample_with_order_price, get_graphic_design_price, get_color_match_price, get_matching_mural_price
-from frappe.email.doctype.email_template.email_template import get_email_template
-
-
-def before_communication_save(doc, handler=""):
-    frappe.msgprint(_("Reach"))
-    #frappe.msgprint(_("name: {0}").format(doc.name))
-    #email_queue = frappe.get_doc('Email Queue', {'communication': doc.name})
-    #frappe.sendmail(
-    #    recipients="mra.net",
-    #    **get_email_template('Error while sending email', {'doc': email_queue})
-    #)
-
-
-def before_eq_save(doc, handler=""):
-    frappe.msgprint(_("Reach eq"))
-    #frappe.msgprint(_("name: {0}").format(doc.name))
-    #frappe.sendmail(
-    #    recipients="mraymond@aptitudetech.net",
-    #    **get_email_template('Error while sending email', {'doc': doc})
-    #)
 
 
 def on_request_for_quotation_validate(doc, handler=""):
