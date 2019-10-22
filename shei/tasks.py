@@ -3,10 +3,6 @@
 from __future__ import unicode_literals
 
 import frappe
-import types
-import json
-import datetime
-from frappe import _
 from frappe.utils import now_datetime
 from frappe.email.doctype.email_template.email_template import get_email_template
 

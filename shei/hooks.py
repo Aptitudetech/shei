@@ -203,6 +203,7 @@ fixtures = [
                 "ERIKA - Graphic In Production by Item 2",
                 "Sommaire Journalier",
                 "SH Budget Variance Report",
+                "SO Work Order Status",
             ]]
         }
     },
