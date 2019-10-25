@@ -8,6 +8,10 @@ from frappe import _
 import json
 
 @frappe.whitelist()
+def test(args=None):
+    frappe.throw("NO")
+
+@frappe.whitelist()
 def assign_to_notify(args=None):
 	from frappe.desk.form.assign_to import add
 	if not args:

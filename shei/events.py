@@ -23,6 +23,10 @@ from quotation_price_configurator import convert_measurement_to_foot, calculate_
     get_sample_with_order_price, get_graphic_design_price, get_color_match_price, get_matching_mural_price
 
 
+def tests(doc, hanlder=""):
+    #frappe.msgprint(_("OK"))
+    doc.error = "ok"
+
 def on_request_for_quotation_validate(doc, handler=""):
     for item in doc.items:
         mr_item_prj = frappe.db.get_value('Material Request Item',
@@ -43,6 +47,9 @@ def on_quotation_submit(doc, handler=""):
 
 
 def on_quotation_validate(doc, handler=None):
+    #from frappe.utils import get_site_name
+    #site = get_site_name(frappe.local.request.host)
+    #frappe.msgprint(_("site: {0}").format(site))
     if doc.quotation_mode == 'Price Configurator':
         set_default_value_pc(doc)
         validate(doc)

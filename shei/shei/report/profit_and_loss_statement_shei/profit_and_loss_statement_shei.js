@@ -6,6 +6,11 @@ frappe.require("assets/erpnext/js/financial_statements.js", function() {
 		erpnext.financial_statements);
 
 	var periodicity = frappe.utils.filter_dict(frappe.query_reports['Profit and Loss Statement SHEI']['filters'], {'fieldname': 'periodicity'})[0];
+	var today = new Date();
+	var lastDayOfMonth = new Date(today.getFullYear(), today.getMonth()+1, 0);
+	if(lastDayOfMonth.getDate() != today.getDate()){
+		lastDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+	}
 	periodicity.options = [
 		{'value': 'Monthly', 'label': __('Monthly')},
 		{'value': 'Quarterly', 'label': __('Quarterly')},
@@ -62,7 +67,9 @@ frappe.require("assets/erpnext/js/financial_statements.js", function() {
 			"fieldname": "as_on",
 			"label": __("As On"),
 			"fieldtype": "Date",
-			"default": frappe.datetime.get_today()
+			"default": lastDayOfMonth
+			// "default": frappe.datetime.get_today()
 		}
 	);
+
 });

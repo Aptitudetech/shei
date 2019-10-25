@@ -31,6 +31,29 @@ def execute(filters=None):
 		data.append(net_profit_loss)
 
 	columns = get_columns(filters.periodicity, period_list, filters.accumulated_values, filters.company)
+	#  from shei.shei.report.sh_budget_variance_report.sh_budget_variance_report import get_columns as bv_column
+	from shei.shei.report.sh_budget_variance_report.sh_budget_variance_report import get_data as bv_get_data
+	filters['period'] = filters.periodicity
+	filters['budget_against'] = "Cost Center"
+	bv_columns = [
+		{'width': 150, 'fieldname': 'budget', 'fieldtype': 'Currency',
+		 u'label': 'Budget 2018-2019'},
+		{'width': 150, 'fieldname': 'difference', 'fieldtype': 'Currency',
+		 u'label': 'Difference'},
+		{'width': 150, 'fieldname': 'variance', 'fieldtype': 'Currency',
+		 u'label': 'Varaiance 2018-2019'}
+	]
+	merged_columns = columns + bv_columns
+
+	bv_data = bv_get_data(filters)
+	for bv in bv_data:
+		for d in data:
+			frappe.msgprint(_("d: {0}").format(d))
+			if d.get("account") == bv[1]:
+				d.budget = bv[2]
+				d.difference =  float(bv[3]) - float(d.get('oct_2019'))
+				d.variance = bv[4]
+
 
 	chart = get_chart_data(filters, columns, income, expense, net_profit_loss)
 
@@ -71,8 +94,7 @@ def execute(filters=None):
 								col = filter(lambda c: c.get('fieldname') == 'total', columns)
 								if col:
 									columns.remove(col[0])
-
-	return columns, data, None, chart
+	return merged_columns, data, None, chart
 
 def get_net_profit_loss(income, expense, period_list, company):
 	total = 0

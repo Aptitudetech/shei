@@ -60,6 +60,51 @@ def execute(filters=None):
 				data.append(row)
 	return columns, data
 
+def get_data(filters=None):
+	validate_filters(filters)
+	if filters.get("cost_center"):
+		cost_centers = [filters.get("cost_center")]
+	else:
+		cost_centers = get_cost_centers(filters)
+
+	period_month_ranges = get_period_month_ranges(filters["period"], filters["from_fiscal_year"])
+	cam_map = get_cost_center_account_month_map(filters)
+
+	data = []
+	for cost_center in cost_centers:
+		cost_center_items = cam_map.get(cost_center)
+		if cost_center_items:
+			for account, monthwise_data in iteritems(cost_center_items):
+				row = [cost_center, account]
+				totals = [0, 0, 0]
+				for year in get_fiscal_years(filters):
+					last_total = 0
+					for relevant_months in period_month_ranges:
+						period_data = [0, 0, 0]
+						for month in relevant_months:
+							if monthwise_data.get(year[0]):
+								month_data = monthwise_data.get(year[0]).get(month, {})
+								for i, fieldname in enumerate(["target", "actual", "variance"]):
+									value = flt(month_data.get(fieldname))
+									period_data[i] += value
+									totals[i] += value
+						period_data[0] += last_total
+						if (filters.get("show_cumulative")):
+							last_total = period_data[0] - period_data[1]
+						period_data[2] = period_data[0] - period_data[1]
+						period_data[0] = rounded(period_data[0], 0)
+						period_data[1] = rounded(period_data[1], 0)
+						period_data[2] = rounded(period_data[2], 0)
+						row += period_data
+				totals[2] = totals[0] - totals[1]
+				totals[0] = rounded(totals[0], 0)
+				totals[1] = rounded(totals[1], 0)
+				totals[2] = rounded(totals[2], 0)
+				if filters["period"] != "Yearly":
+					row += totals
+				data.append(row)
+	return data
+
 def validate_filters(filters):
 	if filters.get("budget_against") != "Cost Center" and filters.get("cost_center"):
 		frappe.throw(_("Filter based on Cost Center is only applicable if Budget Against is selected as Cost Center"))
@@ -99,6 +144,8 @@ def get_cost_centers(filters):
 
 #Get cost center & target details
 def get_cost_center_target_details(filters):
+	frappe.msgprint(_("cost: {0}").format(filters))
+	frappe.msgprint(_("filters.from_fiscal_year: {0}").format(filters.from_fiscal_year))
 	cond = ""
 	if filters.get("cost_center"):
 		cond += " and b.cost_center=%s" % frappe.db.escape(filters.get("cost_center"))
