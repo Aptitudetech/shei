@@ -144,8 +144,6 @@ def get_cost_centers(filters):
 
 #Get cost center & target details
 def get_cost_center_target_details(filters):
-	frappe.msgprint(_("cost: {0}").format(filters))
-	frappe.msgprint(_("filters.from_fiscal_year: {0}").format(filters.from_fiscal_year))
 	cond = ""
 	if filters.get("cost_center"):
 		cond += " and b.cost_center=%s" % frappe.db.escape(filters.get("cost_center"))

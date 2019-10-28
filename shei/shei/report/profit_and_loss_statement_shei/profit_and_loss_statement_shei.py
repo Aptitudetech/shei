@@ -75,8 +75,6 @@ def execute(filters=None):
 	filters['period'] = filters.periodicity
 	filters['budget_against'] = "Cost Center"
 	from shei.shei.report.sh_budget_variance_report.sh_budget_variance_report import get_columns as bv_get_columns
-	cc = bv_get_columns(filters)
-	frappe.msgprint(_("cc: {0}").format(cc))
 	bv_columns = [
 		{'width': 150, 'fieldname': 'budget', 'fieldtype': 'Currency',
 		 u'label': 'Budget 2018-2019'},
@@ -138,7 +136,6 @@ def get_budget_variance_for_given_month(filters, bv_data, data=[]):
 					remaining_time_bf_end_of_year = 12 - nb_start_month
 					time = remaining_time_bf_end_of_year + nb_periodicity_month
 					starting_index = int(time * 3) + 2 # the 2 is to compensate for the 2 string at the start of the table
-				frappe.msgprint(_("starting_index: {0}").format(starting_index))
 				d.budget = bv[starting_index]
 				d.difference = bv[starting_index + 1]
 				d.variance = bv[starting_index + 2]
