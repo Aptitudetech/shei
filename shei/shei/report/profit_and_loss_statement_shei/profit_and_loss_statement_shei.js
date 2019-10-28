@@ -25,7 +25,7 @@ frappe.require("assets/erpnext/js/financial_statements.js", function() {
 		{'value': 'Monthly_jul', 'label': __('July')},
 		{'value': 'Monthly_aug', 'label': __('August')},
 		{'value': 'Monthly_sep', 'label': __('September')},
-		{'value': 'Monthly_oct', 'label': __('Octuber')},
+		{'value': 'Monthly_oct', 'label': __('October')},
 		{'value': 'Monthly_nov', 'label': __('November')},
 		{'value': 'Monthly_dec', 'label': __('December')},
 		{'value': 'Quarterly_1', 'label': __('1st Quarter')},
