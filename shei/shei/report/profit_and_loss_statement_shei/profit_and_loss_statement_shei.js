@@ -72,8 +72,8 @@ frappe.require("assets/erpnext/js/financial_statements.js", function() {
 	);
 
 	frappe.query_reports['Profit and Loss Statement SHEI']['formatter'] = function(value, row, column, data, default_formatter) {
-			if (column['fieldname'] == "difference"){
-			 	if (data['difference'] < 0){
+			if (column['fieldname'] == "variance"){
+			 	if (data['variance'] < 0){
 			 		value = "<span style='color:red!important;font-weight:bold;'>" + value + "</span>";
 			 	}
 			 }

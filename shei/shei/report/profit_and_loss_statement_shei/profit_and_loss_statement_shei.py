@@ -87,8 +87,6 @@ def set_columns_filters_for_budget_variance(filters):
 	return [
 		{'width': 150, 'fieldname': 'budget', 'fieldtype': 'Currency',
 		 u'label': 'Budget 2018-2019'},
-		{'width': 150, 'fieldname': 'difference', 'fieldtype': 'Currency',
-		 u'label': 'Difference'},
 		{'width': 150, 'fieldname': 'variance', 'fieldtype': 'Currency',
 		 u'label': 'Varaiance 2018-2019'}
 	]
@@ -106,7 +104,6 @@ def set_data_for_bv_yearly(filters, data, columns):
 		for d in data:
 			if d.get("account") == bv[1]:
 				d.budget = bv[2]
-				d.difference = bv[3] //float(bv[3]) - float(d.get(year_key))
 				d.variance = bv[4]
 				break
 
@@ -124,7 +121,6 @@ def get_quarterly_budget_variance(filters, data, columns):
 		for d in data:
 			if d.get("account") == bv[1]:
 				d.budget = bv[index]
-				d.difference = bv[index + 1]
 				d.variance = bv[index + 2]
 				break
 
@@ -150,7 +146,6 @@ def get_budget_variance_for_given_month(filters, data, columns):
 					time = remaining_time_bf_end_of_year + nb_periodicity_month
 					starting_index = int(time * 3) + 2 # the 2 is to compensate for the 2 string at the start of the table
 				d.budget = bv[starting_index]
-				d.difference = bv[starting_index + 1]
 				d.variance = bv[starting_index + 2]
 				break
 
