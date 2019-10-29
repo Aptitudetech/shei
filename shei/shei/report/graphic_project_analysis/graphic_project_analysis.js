@@ -24,7 +24,8 @@ frappe.query_reports["Graphic Project Analysis"] = {
 			"default": "Completed",
                 },
 	],
-	"formatter":function (value, row, column, data, default_formatter){
+	"formatter":
+		function (value, row, column, data, default_formatter){
 	        if (column['content'] == "Fabrication Time"){
 		        if (data['Fabrication Time'] > 20){
 		             value = "<span style='color:red!important;font-weight:bold;'>" + value + "</span>";
@@ -43,4 +44,4 @@ frappe.query_reports["Graphic Project Analysis"] = {
 		}
 		return value;
 	}
-}
+};

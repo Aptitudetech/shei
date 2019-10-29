@@ -7,9 +7,9 @@ frappe.require("assets/erpnext/js/financial_statements.js", function() {
 
 	var periodicity = frappe.utils.filter_dict(frappe.query_reports['Profit and Loss Statement SHEI']['filters'], {'fieldname': 'periodicity'})[0];
 	var today = new Date();
-	var lastDayOfMonth = new Date(today.getFullYear(), today.getMonth()+1, 0);
-	if(lastDayOfMonth.getDate() != today.getDate()){
-		lastDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+	var lastDayOfPreviousMonth = new Date(today.getFullYear(), today.getMonth()+1, 0);
+	if(lastDayOfPreviousMonth.getDate() != today.getDate()){
+		lastDayOfPreviousMonth = new Date(today.getFullYear(), today.getMonth(), 0);
 	}
 	periodicity.options = [
 		{'value': 'Monthly', 'label': __('Monthly')},
@@ -67,9 +67,21 @@ frappe.require("assets/erpnext/js/financial_statements.js", function() {
 			"fieldname": "as_on",
 			"label": __("As On"),
 			"fieldtype": "Date",
-			"default": lastDayOfMonth
-			// "default": frappe.datetime.get_today()
+			"default": lastDayOfPreviousMonth
 		}
 	);
 
+	frappe.query_reports['Profit and Loss Statement SHEI']['formatter'] = function(value, row, column, data, default_formatter) {
+			if (column['fieldname'] == "difference"){
+			 	if (data['difference'] < 0){
+			 		value = "<span style='color:red!important;font-weight:bold;'>" + value + "</span>";
+			 	}
+			 }
+			 if (value == null){ //without this condition, it will print 'null' on the report
+			 	value = ""
+			 }
+			 return value;
+		};
+	//);
 });
+
