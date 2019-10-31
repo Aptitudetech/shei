@@ -199,6 +199,7 @@ fixtures = [
         "dt": "Report",
         "filters": {
             "name": ["in", [
+                "Client Satisfaction Rate",
                 "Closed Task",
                 "Graphic Production",
                 "Contacts per Customer",

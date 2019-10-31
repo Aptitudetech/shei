@@ -571,5 +571,119 @@
     "role": "Stock Manager"
    }
   ]
+ }, 
+ {
+  "add_total_row": 0, 
+  "color": null, 
+  "disable_prepared_report": 0, 
+  "disabled": 0, 
+  "docstatus": 0, 
+  "doctype": "Report", 
+  "icon": null, 
+  "is_standard": "No", 
+  "javascript": null, 
+  "json": null, 
+  "letter_head": "Standard - header & footer", 
+  "modified": "2019-10-21 13:43:09.426803", 
+  "module": "SHEI", 
+  "name": "SO Work Order Status", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "prepared_report": 0, 
+  "query": "SELECT\n    Distinct(tabProject.name) as \"Project:Link/Project:100\",\n    tabProject.status as \"Status:text:100\",\n    `tabSO Work Order`.name as \"SO:text:90\",\n    `tabSO Work Order`.expected_ship_date as \"Ship Date:date:90\"\nFROM \n    tabProject, \n    `tabSO Work Order`\nWHERE \n    `tabSO Work Order`.project = tabProject.name\nORDER BY tabProject.Name", 
+  "ref_doctype": "SO Work Order", 
+  "reference_report": null, 
+  "report_name": "SO Work Order Status", 
+  "report_type": "Query Report", 
+  "roles": [
+   {
+    "parent": "SO Work Order Status", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "System Manager"
+   }, 
+   {
+    "parent": "SO Work Order Status", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Admin - Office"
+   }, 
+   {
+    "parent": "SO Work Order Status", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Shop"
+   }, 
+   {
+    "parent": "SO Work Order Status", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Projects Manager"
+   }, 
+   {
+    "parent": "SO Work Order Status", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SH SO"
+   }
+  ]
+ }, 
+ {
+  "add_total_row": 0, 
+  "color": null, 
+  "disable_prepared_report": 0, 
+  "disabled": 0, 
+  "docstatus": 0, 
+  "doctype": "Report", 
+  "icon": null, 
+  "is_standard": "No", 
+  "javascript": null, 
+  "json": null, 
+  "letter_head": "Standard - header & footer", 
+  "modified": "2019-10-31 11:10:28.157989", 
+  "module": "SHEI", 
+  "name": "Client Satisfaction Rate", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "prepared_report": 0, 
+  "query": "SELECT\n    tabProject.satisfaction_level as \"Satisfaction Level:text:100\",\n    count(tabProject.name) as \"Total:text:250\",\n\t(COUNT(tabProject.name) / (\n\t\tSELECT COUNT(tabProject.name) \n\t\tFROM tabProject )\n\t) * 100 as \"Pourcentage:percentage:250\"\nFROM \n    tabProject\nGROUP BY tabProject.satisfaction_level", 
+  "ref_doctype": "Project", 
+  "reference_report": null, 
+  "report_name": "Client Satisfaction Rate", 
+  "report_type": "Query Report", 
+  "roles": [
+   {
+    "parent": "Client Satisfaction Rate", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Office and Shop Manager"
+   }, 
+   {
+    "parent": "Client Satisfaction Rate", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "SHEI - Admin - Office"
+   }, 
+   {
+    "parent": "Client Satisfaction Rate", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Projects User"
+   }, 
+   {
+    "parent": "Client Satisfaction Rate", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "BOM User"
+   }, 
+   {
+    "parent": "Client Satisfaction Rate", 
+    "parentfield": "roles", 
+    "parenttype": "Report", 
+    "role": "Customer"
+   }
+  ]
  }
 ]

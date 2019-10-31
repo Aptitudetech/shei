@@ -2446,7 +2446,7 @@
   "modified": "2019-03-27 09:56:53.284285", 
   "name": "Project-satisfaction_level", 
   "no_copy": 0, 
-  "options": "Very Satisfied\nSatisfied\nMixed\nNot Satisfied\nVery Not Satisfied", 
+  "options": "\nVery Satisfied\nSatisfied\nMixed\nNot Satisfied\nVery Not Satisfied", 
   "parent": null, 
   "parentfield": null, 
   "parenttype": null, 

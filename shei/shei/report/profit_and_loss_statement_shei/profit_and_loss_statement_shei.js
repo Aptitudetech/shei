@@ -70,7 +70,6 @@ frappe.require("assets/erpnext/js/financial_statements.js", function() {
 			"default": lastDayOfPreviousMonth
 		}
 	);
-
 	frappe.query_reports['Profit and Loss Statement SHEI']['formatter'] = function(value, row, column, data, default_formatter) {
 			if (column['fieldname'] == "variance"){
 			 	if (data['variance'] < 0){
