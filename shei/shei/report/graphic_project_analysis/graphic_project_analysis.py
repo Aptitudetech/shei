@@ -72,9 +72,9 @@ class GraphicProjectAnalysis(object):
 
     def convert_to_tuple_obj(self, project, deposit_end_date, preflight_end_date, printing_end_date, inspection_end_date):
         obj = (project.name, project.shei_project_name, project.project_manager, project.status, project.sub_type,
-            project.expected_start_date, deposit_end_date, preflight_end_date, project.ready_for_production_date, printing_end_date,
+            project.expected_start_date, deposit_end_date, preflight_end_date, project.date_ready_for_production, printing_end_date,
             inspection_end_date, self.get_preflight_time(preflight_end_date, deposit_end_date),
-            self.get_printing_time(printing_end_date, project.ready_for_production_date), self.get_fabrication_time(inspection_end_date, printing_end_date),
+            self.get_printing_time(printing_end_date, project.date_ready_for_production), self.get_fabrication_time(inspection_end_date, printing_end_date),
             self.get_total_time(inspection_end_date, project.expected_start_date),
         )
         return obj

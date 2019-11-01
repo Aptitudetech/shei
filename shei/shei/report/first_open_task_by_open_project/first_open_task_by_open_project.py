@@ -28,8 +28,10 @@ class FirstOpenTaskbyOpenProject(object):
 		columns += [_("Subject") + ":text:225"]
 		columns += [_("Status") + ":text:105"]
 		columns += [_("Exp. End Date") + ":date:90"]
+		columns += [_("Ready for Production") + ":date:90"]
+		columns += [_("Date Given by Production") + ":date:90"]
 		if ('Projects Manager' in user_roles):
-			columns += [_("Abs. End Date") + ":date:90"]
+			columns += [_("Customer Given Date") + ":date:90"]
 		columns += [_("Amount") + ":Currency:90"]
 		columns += [_("SubType") + ":text:105"]
 		columns += [_("Project Manager") + ":Link/User:150"]
@@ -50,6 +52,8 @@ class FirstOpenTaskbyOpenProject(object):
                 		tabTask.subject,
                 		tabTask.status,
                 		tabProject.expected_end_date,
+                		tabProject.date_ready_for_production,
+                		tabProject.date_given_by_production,
                 		tabProject.absolute_end_date,
                 		tabProject.project_amount_from_so,
                 		tabProject.sub_type,
@@ -71,6 +75,8 @@ class FirstOpenTaskbyOpenProject(object):
                 	tabTask.subject,
                 	tabTask.status,
                 	tabProject.expected_end_date,
+					tabProject.ready_for_production,
+					tabProject.date_given_by_production,
                 	tabProject.project_amount_from_so,
                 	tabProject.sub_type,
                 	tabProject.project_manager,
