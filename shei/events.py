@@ -15,17 +15,14 @@ from frappe.model.naming import make_autoname
 from frappe.utils import nowdate, add_to_date, flt, now_datetime
 from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
-from erpnext.accounts.party import (get_party_account_currency)
+from erpnext.accounts.party import get_party_account_currency, _get_party_details
 from quotation_price_configurator import convert_measurement_to_foot, calculate_welding_price, get_lbracket_qty, \
     get_single_additional_preflight_price, validate, get_zclip_qty, get_studs_price, get_av_nuts_price, \
     get_tools_price, get_folds_price, get_holes_price, calculate_zclip_price, get_lbracket_price, \
     get_wallmount_kit_price, get_preflight_price, get_technical_drawing_price, get_sample_without_order_price, \
     get_sample_with_order_price, get_graphic_design_price, get_color_match_price, get_matching_mural_price
+from multilingual_extension.get_terms_and_conditions import get_terms_and_conditions
 
-
-def tests(doc, hanlder=""):
-    #frappe.msgprint(_("OK"))
-    doc.error = "ok"
 
 def on_request_for_quotation_validate(doc, handler=""):
     for item in doc.items:
@@ -47,12 +44,20 @@ def on_quotation_submit(doc, handler=""):
 
 
 def on_quotation_validate(doc, handler=None):
-    #from frappe.utils import get_site_name
-    #site = get_site_name(frappe.local.request.host)
-    #frappe.msgprint(_("site: {0}").format(site))
     if doc.quotation_mode == 'Price Configurator':
         set_default_value_pc(doc)
         validate(doc)
+    tc = get_terms_and_conditions(doc.party_name, doc.quotation_to)
+    if tc != doc.tc_name:
+        frappe.msgprint(_("There's a difference in the terms and condition! <br> the one you're using: {0} <br> "
+                          "The one the system found: {1}").format(doc.tc_name, tc), indicator='orange', title=_('Warning'))
+    tax_template = _get_party_details(party=doc.party_name, party_type=doc.quotation_to, price_list=doc.selling_price_list,
+                                      posting_date=doc.transaction_date,
+                                      currency=doc.currency, company=doc.company, doctype="Quotation")
+    if tax_template['taxes_and_charges'] != doc.taxes_and_charges:
+        frappe.msgprint(_(
+            "There's a difference in the taxes and charges! <br> the one you're using: {0} <br> The one the system found: {1}").format(
+            doc.taxes_and_charges, tax_template['taxes_and_charges']), indicator='orange', title=_('Warning'))
 
 
 def set_default_value_pc(doc):
