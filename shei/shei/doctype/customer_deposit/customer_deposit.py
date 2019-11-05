@@ -37,7 +37,7 @@ class CustomerDeposit(Document):
 
         def get_customer_deposit_quotation(self):
                 self.customer_deposit_quotation = []
-                for qt in frappe.get_list("Quotation", fields=["name", "total", "grand_total", "status"], filters={"customer_deposit": True, "customer_deposit_received": False, "docstatus": 1, "customer_name": self.customer}):
+                for qt in frappe.get_list("Quotation", fields=["name", "total", "grand_total", "status"], filters={"customer_deposit": True, "customer_deposit_received": False, "docstatus": 1, "party_name": self.customer}):
                         self.append("customer_deposit_quotation", {
                                 "quotation": qt.name,
                                 "total_before_taxes": qt.total,
