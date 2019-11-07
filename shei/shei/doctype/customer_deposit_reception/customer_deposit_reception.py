@@ -91,7 +91,7 @@ class CustomerDepositReception(Document):
 			je.append("accounts", {
 				"account": deposit_account,
 				"balance": 0,
-				"cost_center": "Main - SHI",
+				"cost_center": "100 Main - SHI",
 				"party_type": "Customer",
 				"party": self.customer,
 				"party_balance": 0,
@@ -107,7 +107,7 @@ class CustomerDepositReception(Document):
 			je.append("accounts", {
 				"account": bank_account,
 				"balance": 0,
-				"cost_center": "Main - SHI",
+				"cost_center": "100 Main - SHI",
 				"account_currency": qt.currency,
 				"exchange_rate": qt.conversion_rate,
 				"debit_in_account_currency" : qt.grand_total,
@@ -122,7 +122,7 @@ class CustomerDepositReception(Document):
 				je.append("accounts", {
 					"account": t.account_head,
 					"balance": 0,
-					"cost_center": "Main - SHI",
+					"cost_center": "100 Main - SHI",
 					"account_currency": qt.currency,
 					"exchange_rate": qt.conversion_rate,
 					"debit_in_account_currency" : 0,
@@ -136,7 +136,7 @@ class CustomerDepositReception(Document):
 				je.append("accounts", {
 					"account": "21401 - Avance Client CN Sales Tax - SHI",
 					"balance": 0,
-					"cost_center": "Main - SHI",
+					"cost_center": "100 Main - SHI",
 					"account_currency": qt.currency,
 					"exchange_rate": qt.conversion_rate,
 					"debit_in_account_currency" : t.tax_amount,

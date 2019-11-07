@@ -50,7 +50,7 @@ class AdvancePayment(Document):
 				je.append("accounts", {
 					"account": it.income_account,
 	                                "balance": 0,
-        	                        "cost_center": "Main - SHI",
+        	                        "cost_center": "100 Main - SHI",
 	                                "account_currency": si.currency,
 					"exchange_rate": si.conversion_rate,
 					"debit_in_account_currency" : it.base_net_amount,
@@ -65,7 +65,7 @@ class AdvancePayment(Document):
 			je.append("accounts", {
                                 "account": frappe.db.get_value("Advance Payment Setup", {'destination_account':si.debit_to}, "origin_account"),
                                 "balance": 0,
-                                "cost_center": "Main - SHI",
+                                "cost_center": "100 Main - SHI",
                                 "party_type": "Customer",
                                 "party": self.customer,
                                 "party_balance": 0,
@@ -84,7 +84,7 @@ class AdvancePayment(Document):
 				je.append("accounts", {
 	                                "account": t.account_head,
         	                        "balance": 0,
-                	                "cost_center": "Main - SHI",
+                	                "cost_center": "100 Main - SHI",
         	                        "account_currency": si.currency,
                 	                "exchange_rate": si.conversion_rate,
                         	        "debit_in_account_currency" : t.tax_amount,
