@@ -198,6 +198,8 @@ class CustomerDeposit(Document):
         def on_submit(self):
                 default_cost_center = frappe.db.get_value('Customer Deposit Setup', 'Customer Deposit Setup',
                                                   'default_cost_center')
+                account_for_sales_tax = frappe.db.get_value('Customer Deposit Setup', 'Customer Deposit Setup',
+                                                  'account_for_sales_tax')
                 customer_currency = frappe.db.get_value("Customer", {'name': self.customer}, "default_currency")
                 if not customer_currency:
                         customer_currency = 'CAD'
@@ -286,7 +288,7 @@ class CustomerDeposit(Document):
                                         "is_advance" : "No"
                                 })
                                 je.append("accounts", {
-                                        "account": "21401 - Avance Client CN Sales Tax - SHI",
+                                        "account": account_for_sales_tax,
                                         "balance": 0,
                                         "cost_center": default_cost_center,
                                         "account_currency": qt.currency,
