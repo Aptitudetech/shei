@@ -50,6 +50,8 @@ class CustomerDepositReception(Document):
 #		if frappe.db.get_value("Customer", {'customer_name':self.customer}, "default_currency") = "USD"
 #		frappe.msgprint(frappe.db.get_value("Customer", {'customer_name':self.customer}, "default_currency"))
 #		if self.project and self.posting_date and len(self.get('customer_deposit_quotation')) > 0:
+		default_cost_center = frappe.db.get_value('Customer Deposit Setup', 'Customer Deposit Setup',
+												  'default_cost_center')
 		customer_currency = frappe.db.get_value("Customer", {'customer_name':self.customer}, "default_currency")
 		if customer_currency == "USD":
 			multi_currency = True
@@ -91,7 +93,7 @@ class CustomerDepositReception(Document):
 			je.append("accounts", {
 				"account": deposit_account,
 				"balance": 0,
-				"cost_center": "100 Main - SHI",
+				"cost_center": default_cost_center,
 				"party_type": "Customer",
 				"party": self.customer,
 				"party_balance": 0,
@@ -107,7 +109,7 @@ class CustomerDepositReception(Document):
 			je.append("accounts", {
 				"account": bank_account,
 				"balance": 0,
-				"cost_center": "100 Main - SHI",
+				"cost_center": default_cost_center,
 				"account_currency": qt.currency,
 				"exchange_rate": qt.conversion_rate,
 				"debit_in_account_currency" : qt.grand_total,
@@ -122,7 +124,7 @@ class CustomerDepositReception(Document):
 				je.append("accounts", {
 					"account": t.account_head,
 					"balance": 0,
-					"cost_center": "100 Main - SHI",
+					"cost_center": default_cost_center,
 					"account_currency": qt.currency,
 					"exchange_rate": qt.conversion_rate,
 					"debit_in_account_currency" : 0,
@@ -136,7 +138,7 @@ class CustomerDepositReception(Document):
 				je.append("accounts", {
 					"account": "21401 - Avance Client CN Sales Tax - SHI",
 					"balance": 0,
-					"cost_center": "100 Main - SHI",
+					"cost_center": default_cost_center,
 					"account_currency": qt.currency,
 					"exchange_rate": qt.conversion_rate,
 					"debit_in_account_currency" : t.tax_amount,

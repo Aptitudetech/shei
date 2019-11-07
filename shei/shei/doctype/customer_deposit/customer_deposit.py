@@ -15,9 +15,9 @@ class CustomerDeposit(Document):
         def update_posting_date(self):
                 count = 0
                 for i in frappe.get_list("Customer Deposit", fields=["name", "customer_deposit_application", "final_invoice_date"], filters={"docstatus": 1}):
-			if i.final_invoice_date:
-				frappe.db.set_value("Journal Entry", i.customer_deposit_application, "posting_date", i.final_invoice_date)
-                        	count = count + 1
+                        if i.final_invoice_date:
+                                frappe.db.set_value("Journal Entry", i.customer_deposit_application, "posting_date", i.final_invoice_date)
+                                count = count + 1
                 frappe.msgprint(str(count) + " JV were updated")
 
         def on_cancel(self):
@@ -33,7 +33,7 @@ class CustomerDeposit(Document):
                         frappe.db.set_value("Customer Deposit", self.name, "customer_deposit_application", "")
                 for i in self.get('customer_deposit_quotation'):
                         frappe.db.set_value("Quotation", i.quotation, "customer_deposit_received", False)
-			set_project_customer_deposit("cancel", self.project, i.quotation)
+                        set_project_customer_deposit("cancel", self.project, i.quotation)
 
         def get_customer_deposit_quotation(self):
                 self.customer_deposit_quotation = []
@@ -45,6 +45,7 @@ class CustomerDeposit(Document):
                         })
  
         def apply_customer_deposit(self):
+                default_cost_center = frappe.db.get_value('Customer Deposit Setup', 'Customer Deposit Setup', 'default_cost_center')
                 if not self.customer_deposit_application:
                         customer_currency = frappe.db.get_value("Customer", {'name':self.customer}, "default_currency")
                         if not customer_currency:
@@ -53,7 +54,7 @@ class CustomerDeposit(Document):
                         if accounts:
                                 #take the account from the table
                                 rec_account = accounts[0]['account']
-                        else: 
+                        else:
                                 #take default receivable account
                                 rec_account = frappe.db.get_value('Company', {'name':frappe.db.get_default("company")}, 'default_receivable_account')
 
@@ -89,7 +90,7 @@ class CustomerDeposit(Document):
                         ref = ""
                         for i in self.get('customer_deposit_quotation'):
                                 qt = frappe.get_doc("Quotation", i.quotation)
-				set_project_customer_deposit("apply", self.project, i.quotation)
+                                set_project_customer_deposit("apply", self.project, i.quotation)
                                 if ref:
                                         ref = ref + ", " + qt.name
                                 else:
@@ -97,17 +98,17 @@ class CustomerDeposit(Document):
 
                                 dep_ex_rate = get_exchange_rate(self.posting_date, deposit_account)
 
-				if self.final_invoice_date:
-					cur_ex_rate = get_exchange_rate(self.final_invoice_date, rec_account)
-				else:
-					exit()
+                                if self.final_invoice_date:
+                                        cur_ex_rate = get_exchange_rate(self.final_invoice_date, rec_account)
+                                else:
+                                        exit()
                                 base_cr = qt.grand_total * cur_ex_rate
                                 base_dt = qt.grand_total * dep_ex_rate
 
                                 je.append("accounts", {
                                         "account": deposit_account,
                                         "balance": 0,
-                                        "cost_center": "100 Main - SHI",
+                                        "cost_center": default_cost_center,
                                         "party_type": "Customer",
                                         "party": self.customer,
                                         "party_balance": 0,
@@ -122,7 +123,7 @@ class CustomerDeposit(Document):
                                 je.append("accounts", {
                                         "account": rec_account,
                                         "balance": 0,
-                                        "cost_center": "100 Main - SHI",
+                                        "cost_center": default_cost_center,
                                         "party_type": "Customer",
                                         "party": self.customer,
                                         "exchange_rate": cur_ex_rate,
@@ -149,20 +150,20 @@ class CustomerDeposit(Document):
                                         else:
                                                 field = "credit_in_account_currency"
 
-					if total_diff <> 0.0000:	
-						je.append("accounts", {
-							"account": "48900 GAIN PERTE - DEVISE US - SHI",
-							"exchange_rate": 1,
-							field: round(total_diff, 2),
-							"project": self.project,
-						})
+                                        if total_diff <> 0.0000:
+                                                je.append("accounts", {
+                                                        "account": "48900 GAIN PERTE - DEVISE US - SHI",
+                                                        "exchange_rate": 1,
+                                                        field: round(total_diff, 2),
+                                                        "project": self.project,
+                                                })
 
                                 # On débite les taxes dans les comptes de taxes et on crédite le compte de taxes temporaire
                                 for t in qt.get('taxes'):
                                         je.append("accounts", {
                                                 "account": t.account_head,
                                                 "balance": 0,
-                                                "cost_center": "100 Main - SHI",
+                                                "cost_center": default_cost_center,
                                                 "debit_in_account_currency" : t.tax_amount,
                                                 "debit": t.base_tax_amount,
                                                 "credit_in_account_currency" : 0,
@@ -172,7 +173,7 @@ class CustomerDeposit(Document):
                                         je.append("accounts", {
                                                 "account": "21401 - Avance Client CN Sales Tax - SHI",
                                                 "balance": 0,
-                                                "cost_center": "100 Main - SHI",
+                                                "cost_center": default_cost_center,
                                                 "debit_in_account_currency" : 0,
                                                 "debit": 0,
                                                 "credit_in_account_currency" : t.tax_amount,
@@ -185,22 +186,24 @@ class CustomerDeposit(Document):
                         je.update (json_update)
                         je.save()
                         frappe.db.set_value("Customer Deposit", self.name, "customer_deposit_application", je.name)
-			for i in je.get('accounts'):
-				if i.account == deposit_account:
-					i.reference_type = "Journal Entry"
-					i.reference_name = self.customer_deposit_reception
+                        for i in je.get('accounts'):
+                                if i.account == deposit_account:
+                                        i.reference_type = "Journal Entry"
+                                        i.reference_name = self.customer_deposit_reception
                         je.submit()
-			frappe.msgprint("Customer Deposit applied successfully")
+                        frappe.msgprint("Customer Deposit applied successfully")
                 else:
                         frappe.msgprint("This Customer Deposit has already been applied")
 
         def on_submit(self):
+                default_cost_center = frappe.db.get_value('Customer Deposit Setup', 'Customer Deposit Setup',
+                                                  'default_cost_center')
                 customer_currency = frappe.db.get_value("Customer", {'name': self.customer}, "default_currency")
                 if not customer_currency:
                         customer_currency = 'CAD'
                 bank_account = frappe.db.get_value('Bank Account', { 'currency': customer_currency, 'is_deposit_account': True}, 'account')
                 deposit_account = frappe.db.get_value('Bank Account', { 'currency': customer_currency, 'is_deposit_account': True}, 'deposit_account')
-                
+
                 if customer_currency == "USD":
                         multi_currency = True
                 #        bank_account = "11118 BANQUE DE MONTRÉAL (US) (4600-419) - SHI"
@@ -225,8 +228,8 @@ class CustomerDeposit(Document):
                         "pay_to_recd_from": self.customer,
                         "letter_head" : "Standard - header & footer",
                         "is_opening": "No",
-			"cheque_no": self.reference_no,
-			"cheque_date": self.reference_date,
+                        "cheque_no": self.reference_no,
+                        "cheque_date": self.reference_date,
                 }
                 je.update (json_update)
 
@@ -234,7 +237,7 @@ class CustomerDeposit(Document):
                 ref = ""
                 for i in self.get('customer_deposit_quotation'):
                         qt = frappe.get_doc("Quotation", i.quotation)
-			set_project_customer_deposit("submit", self.project, i.quotation, self.posting_date, self.name)
+                        set_project_customer_deposit("submit", self.project, i.quotation, self.posting_date, self.name)
                         frappe.db.set_value("Quotation", i.quotation, "customer_deposit_received", True)
                         if ref:
                                 ref = ref + ", " + qt.name
@@ -244,7 +247,7 @@ class CustomerDeposit(Document):
                         je.append("accounts", {
                                 "account": deposit_account,
                                 "balance": 0,
-                                "cost_center": "100 Main - SHI",
+                                "cost_center": default_cost_center,
                                 "party_type": "Customer",
                                 "party": self.customer,
                                 "party_balance": 0,
@@ -259,7 +262,7 @@ class CustomerDeposit(Document):
                         je.append("accounts", {
                                 "account": bank_account,
                                 "balance": 0,
-                                "cost_center": "100 Main - SHI",
+                                "cost_center": default_cost_center,
                                 "account_currency": qt.currency,
                                 "debit_in_account_currency" : qt.grand_total,
                                 "debit": qt.base_grand_total,
@@ -273,7 +276,7 @@ class CustomerDeposit(Document):
                                 je.append("accounts", {
                                         "account": t.account_head,
                                         "balance": 0,
-                                        "cost_center": "100 Main - SHI",
+                                        "cost_center": default_cost_center,
                                         "account_currency": qt.currency,
                                         "debit_in_account_currency" : 0,
                                         "debit": 0,
@@ -285,7 +288,7 @@ class CustomerDeposit(Document):
                                 je.append("accounts", {
                                         "account": "21401 - Avance Client CN Sales Tax - SHI",
                                         "balance": 0,
-                                        "cost_center": "100 Main - SHI",
+                                        "cost_center": default_cost_center,
                                         "account_currency": qt.currency,
                                         "debit_in_account_currency" : t.tax_amount,
                                         "debit": t.base_tax_amount,
@@ -314,5 +317,5 @@ def set_project_customer_deposit(action, project_name, pfi, reception_date=None,
                                 i.deposit_applied = True
                         elif action == "cancel":
                                 i.deposit_applied = False
-				i.customer_deposit = ""
+                                i.customer_deposit = ""
         pj.save()
