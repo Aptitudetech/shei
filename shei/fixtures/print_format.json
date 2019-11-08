@@ -550,5 +550,29 @@
   "print_format_type": "Server", 
   "show_section_headings": 1, 
   "standard": "No"
+ }, 
+ {
+  "align_labels_right": 1, 
+  "css": null, 
+  "custom_format": 0, 
+  "default_print_language": "en", 
+  "disabled": 0, 
+  "doc_type": "Delivery Note", 
+  "docstatus": 0, 
+  "doctype": "Print Format", 
+  "font": "Default", 
+  "format_data": "[{\"fieldname\": \"print_heading_template\", \"fieldtype\": \"Custom HTML\", \"options\": \"<div class=\\\"print-heading\\\">\\t\\t\\t\\t<h2>Delivery Note<br><small>{{ doc.name }}</small>\\t\\t\\t\\t</h2></div>\"}, {\"fieldtype\": \"Section Break\", \"label\": \"Delivery To\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"options\": \"{% set address = frappe.get_doc('Address', doc.shipping_address_name) %}\\n<p><strong>{{_(\\\"Customer\\\")}}</strong>: {{doc.customer}} </p>\\n<p><strong>{{_(\\\"Tax ID\\\")}}</strong>: {{frappe.db.get_value('Customer', doc.customer, 'tax_id') or \\\"\\\"}} </p>\\n<p><strong>{{_(\\\"Project\\\")}}</strong>: {{doc.project or \\\"\\\"}} </p>\\n<p><strong>{{_(\\\"Have Doc\\\")}}</strong>: {{address.have_dock or _(\\\"Unknown\\\")}} </p>\\n<p><strong>{{_(\\\"Have Lift Gate\\\")}}</strong>: {{address.lift_gate or _(\\\"Unknown\\\")}} </p>\\n<p><strong>{{_(\\\"Have limited access delivery\\\")}}</strong>: {{address.limited_access_delivery or _(\\\"Unknown\\\")}} </p>\\n<p><strong>{{_(\\\"Have delivery site\\\")}}</strong>: {{address.delivery_site or _(\\\"Unknown\\\")}} </p>\", \"fieldname\": \"_custom_html\", \"fieldtype\": \"HTML\", \"label\": \"Custom HTML\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"options\": \"<p><strong>{{_(\\\"Shipping Address\\\")}}</strong>: \\n<br>\\n{{doc.shipping_address}}</p>\", \"fieldname\": \"_custom_html\", \"fieldtype\": \"HTML\", \"label\": \"Custom HTML\"}, {\"fieldtype\": \"Section Break\", \"label\": \"\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"fieldname\": \"insurances\", \"label\": \"Insurances\"}, {\"print_hide\": 0, \"fieldname\": \"required_by\", \"label\": \"Required by\"}, {\"print_hide\": 0, \"fieldname\": \"eta_date\", \"label\": \"ETA\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"fieldname\": \"is_special_shipping\", \"label\": \"Special Shipping\"}, {\"print_hide\": 0, \"fieldname\": \"is_ground_delivery\", \"label\": \"is Ground Delivery\"}, {\"print_hide\": 0, \"fieldname\": \"is_inside_delivery\", \"label\": \"Is Inside Delivery\"}, {\"print_hide\": 0, \"fieldname\": \"is_flatbed_delivery_\", \"label\": \"is Flatbed Delivery \"}, {\"fieldtype\": \"Section Break\", \"label\": \"Notes\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"fieldname\": \"notes\", \"label\": \"Notes\"}, {\"fieldtype\": \"Section Break\", \"label\": \"\"}, {\"fieldtype\": \"Column Break\"}, {\"visible_columns\": [{\"print_hide\": 0, \"fieldname\": \"item_code\", \"print_width\": \"150px\"}, {\"print_hide\": 0, \"fieldname\": \"description\", \"print_width\": \"300px\"}, {\"print_hide\": 0, \"fieldname\": \"image\", \"print_width\": \"\"}, {\"print_hide\": 0, \"fieldname\": \"qty\", \"print_width\": \"100px\"}, {\"print_hide\": 0, \"fieldname\": \"stock_uom\", \"print_width\": \"50px\"}], \"print_hide\": 0, \"fieldname\": \"items\", \"label\": \"Items\"}, {\"print_hide\": 0, \"options\": \"\\n{% set project = frappe.get_doc('Project', doc.project) %}\\n<table style=\\\"text-align: left; width: 100%;\\\" border=\\\"0\\\" cellpadding=\\\"0\\\" cellspacing=\\\"0\\\" class=\\\"table-bordered\\\">\\n  <thead>\\n    <tr>\\n      <th width:10%;><label>{{ _(\\\"Sr\\\") }}</label></th>\\n      <th><label>{{ _(\\\"Height\\\") }}</label></th>\\n      <th><label>{{ _(\\\"Width\\\") }}</label></th>\\n      <th><label>{{ _(\\\"Length\\\") }}</label></th>\\n      <th><label>{{ _(\\\"Gross Weight\\\") }}</label></th>\\n      <th><label>{{ _(\\\"Net weight\\\") }}</label></th>\\n    </tr>\\n  </thead>\\n  <tbody>\\n{% for row in project.crates %}\\n    <tr>\\n      <td text-align:left\\\">{{ loop.index }}</td>\\n      <td text-align:left\\\">{{ row.crate_height }}</td>\\n      <td text-align:left\\\">{{ row.crate_width }}</td>\\n      <td text-align:left\\\">{{ row.crate_length }}</td>\\n      <td text-align:right\\\">{{ row.crate_gross_weight}}</td>\\n      <td text-align:right\\\">{{ row.crate_net_weight}}</td>\\n    </tr>\\n {% endfor %}\\n  </tbody>\\n</table>\", \"fieldname\": \"_custom_html\", \"fieldtype\": \"HTML\", \"label\": \"Custom HTML\"}, {\"fieldtype\": \"Section Break\", \"label\": \"\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"fieldname\": \"total_qty\", \"label\": \"Total Quantity\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"fieldname\": \"total\", \"label\": \"Total\"}, {\"fieldtype\": \"Section Break\", \"label\": \"\"}, {\"fieldtype\": \"Column Break\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"fieldname\": \"grand_total\", \"label\": \"Grand Total\"}]", 
+  "html": null, 
+  "line_breaks": 1, 
+  "modified": "2019-11-08 10:24:00.566297", 
+  "module": "Stock", 
+  "name": "shei - All Shipping Information", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "print_format_builder": 0, 
+  "print_format_type": "Server", 
+  "show_section_headings": 1, 
+  "standard": "No"
  }
 ]

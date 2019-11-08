@@ -171,7 +171,6 @@ scheduler_events = {
 #
 override_whitelisted_methods = {
     "frappe.desk.form.assign_to.add": "shei.route.assign_to_notify",
-    "frappe.auth.LoginManager.login": "shei.route.test",
     #    #"frappe.desk.doctype.event.event.get_events": "shei.event.get_events",
     #    "erpnext.selling.doctype.sales_order.sales_order.make_sales_invoice": "shei.route.make_sales_invoice",
     # 	"frappe.model.mapper.make_mapped_doc": "shei.route.make_mapped_doc",
@@ -374,6 +373,7 @@ fixtures = [
         "dt": "Print Format",
         "filters": {
             "name": ["in", [
+                "shei - All Shipping Information",
                 "shei - PC Quotation",
                 "shei - Bill Of Lading",
                 "shei - Commercial Invoice",
