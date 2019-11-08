@@ -62,14 +62,10 @@ class CustomerDeposit(Document):
                         deposit_account = frappe.db.get_value('Bank Account', { 'currency': customer_currency, 'is_deposit_account': True}, 'deposit_account')
                         if customer_currency == "USD":
                                 multi_currency = True
-                        #        rec_account = "12150 COMPTES CLIENTS US (ERP) - SHI"
-                        #        deposit_account = "21450 AVANCES CLIENTS US - SHI"
                         elif customer_currency == "CAD" or customer_currency is None:
                                 multi_currency = False
-                        #        rec_account = "12100 COMPTES CLIENTS (ERP) - SHI"
-                        #        deposit_account = "21400 AVANCES CLIENT CDN - SHI"
                         else:
-                                frappe.msgprint("The currency of customer " + self.customer + " is not supported by this module at this time.", raise_exception=True)
+                                frappe.throw(_("The currency of customer {0} is not supported by this module at this time.").format(self.customer))
                         je = frappe.new_doc("Journal Entry")
                         json_update = {
                                 "naming_series": "CD-",
@@ -150,7 +146,7 @@ class CustomerDeposit(Document):
                                         else:
                                                 field = "credit_in_account_currency"
 
-                                        if total_diff <> 0.0000:
+                                        if total_diff != 0.0000:
                                                 je.append("accounts", {
                                                         "account": "48900 GAIN PERTE - DEVISE US - SHI",
                                                         "exchange_rate": 1,
@@ -208,14 +204,10 @@ class CustomerDeposit(Document):
 
                 if customer_currency == "USD":
                         multi_currency = True
-                #        bank_account = "11118 BANQUE DE MONTRÉAL (US) (4600-419) - SHI"
-                #        deposit_account = "21450 AVANCES CLIENTS US - SHI"
                 elif customer_currency == "CAD":
                         multi_currency = False
-                #        bank_account = "11114 BANQUE DE MONTREAL (1011-290) - SHI"
-                #        deposit_account = "21400 AVANCES CLIENT CDN - SHI"
                 else:
-                        frappe.msgprint("The currency of customer " + self.customer + " is not supported by this module at this time.", raise_exception=True)
+                        frappe.throw(_("The currency of customer {0} is not supported by this module at this time.").format(self.customer))
 
                 je = frappe.new_doc("Journal Entry")
                 json_update = {
