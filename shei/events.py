@@ -128,8 +128,8 @@ def add_item_to_list(doc, item_code, item_name, base_rate, qty, panel_id="", hei
         'warehouse': warehouse,
         'reference_panel': panel_id,
         'base_amount': base_rate * qty,
-        'rate': float(base_rate) * doc.conversion_rate,
-        'amount': float(base_rate) * qty * doc.conversion_rate,
+        'rate': float(base_rate) * (1 / doc.conversion_rate),
+        'amount': float(base_rate) * qty * (1 / doc.conversion_rate),
     })
 
 

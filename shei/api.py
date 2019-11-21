@@ -9,6 +9,10 @@ from six import string_types
 from frappe.utils import cint, flt
 from frappe.desk.notifications import get_filters_for
 
+@frappe.whitelist(allow_guest=True)
+def make_stock_entry():
+    return 'test OKOK'
+
 #@frappe.whitelist()
 #def get_open_count(doctype, name, links):
 #	'''Get open count for given transactions and filters
