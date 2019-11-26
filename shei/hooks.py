@@ -181,6 +181,7 @@ fixtures = [
     {'dt': 'Print Node Settings'},
     {'dt': 'Website Settings'},
     {'dt': 'Portal Settings'},
+    {'dt': 'Workflow'},
     {
         "dt": "Property Setter",
         "filters": {

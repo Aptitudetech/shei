@@ -9,7 +9,7 @@ MIT
 ### Release
 
 
-#### October 2019
+#### November 2019
 * New fields
     * Delivery Note-eta_date
         * The date when the customer is supposed to have received his package
@@ -69,6 +69,8 @@ MIT
         * Display all SO Work Order with the Project Status
     
 * New/Modified Document
+    * Item
+        * Set Maintain Stock to false by default
     * Price Configurator Setting
     * Price Configurator Item
     * States per Country
@@ -87,6 +89,8 @@ MIT
         * add image beside description
     * shei - SO Work Order
         * add image beside description
+    * shei - All Shipping Information
+        * Display all information concerning the shipping
 
 * Other
     * In the Address doctype, the country is now empty by default and the user must select something in the field 'Country by State'. By doing this, it will automatically filed the country and the state. 
