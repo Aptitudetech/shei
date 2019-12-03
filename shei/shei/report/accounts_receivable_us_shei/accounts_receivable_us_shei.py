@@ -91,26 +91,23 @@ class ReceivablePayableReport(object):
 		from erpnext.accounts.utils import get_currency_precision
 		currency_precision = get_currency_precision() or 2
 		dr_or_cr = "debit" if args.get("party_type") == "Customer" else "credit"
-
 		voucher_details = self.get_voucher_details(args.get("party_type"))
-
 		future_vouchers = self.get_entries_after(self.filters.report_date, args.get("party_type"))
-
 		if not self.filters.get("company"):
 			self.filters["company"] = frappe.db.get_single_value('Global Defaults', 'default_company')
-
 		company_currency = frappe.db.get_value("Company", self.filters.get("company"), "default_currency")
-		
 		return_entries = self.get_return_entries(args.get("party_type"))
 
 		data = []
+		frappe.msgprint(_("Before FOR"))
+
 		for gle in self.get_entries_till(self.filters.report_date, args.get("party_type")):
 			if self.is_receivable_or_payable(gle, dr_or_cr, future_vouchers):
 				outstanding_amount, credit_note_amount = self.get_outstanding_amount(gle, 
 					self.filters.report_date, dr_or_cr, return_entries, currency_precision)
-				if abs(outstanding_amount) > 0.1/10**currency_precision:
+				if outstanding_amount > 0.01: #and abs(outstanding_amount) > 0: #/10**currency_precision:
+					frappe.msgprint(_("{0} > 0.01").format(abs(outstanding_amount)))
 					row = [gle.posting_date, gle.party]
-
 					# customer / supplier name
 					if party_naming_by == "Naming Series":
 						row += [self.get_party_name(gle.party_type, gle.party)]
@@ -154,19 +151,23 @@ class ReceivablePayableReport(object):
 					#	row += [self.get_supplier_type(gle.party)]
 					
 					#row.append(gle.remarks)
+					frappe.msgprint(_("Rows: {0}").format(row))
 					if self.filters.get("advance_payment") == "Only CD-":
-                                                if "CD-" in gle.voucher_no:
-                                                        if "USD" == gle.account_currency:
-                                                                data.append(row)
-                                        elif self.filters.get("advance_payment") == "Remove CD-":
-                                                if "CD-" in gle.voucher_no:
-                                                        a=1
-                                                else:
-                                                        if "USD" == gle.account_currency:
-                                                                data.append(row)
-                                        else:
-                                                if "USD" == gle.account_currency:
-                                                        data.append(row)
+						frappe.msgprint(_("1 IF"))
+						if "CD-" in gle.voucher_no or "CD-" in gle.against_voucher:
+							frappe.msgprint(_("2 IF"))
+							if "USD" == gle.account_currency:
+								frappe.msgprint(_("3 IF"))
+								data.append(row)
+					elif self.filters.get("advance_payment") == "Remove CD-":
+						if "CD-" in gle.voucher_no:
+							a=1
+						else:
+							if "USD" == gle.account_currency:
+								data.append(row)
+					else:
+						if "USD" == gle.account_currency:
+							data.append(row)
 
 		return data
 
