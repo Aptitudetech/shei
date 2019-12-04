@@ -133,10 +133,12 @@ class CustomerDeposit(Document):
                         total_diff = abs(total_diff)
                     else:
                         field = "credit_in_account_currency"
-
+                    gain_lost_account = frappe.db.get_value('Deposit and Bank Account based on Currency',
+                                                            {'parent': 'Customer Deposit Setup',
+                                                             'currency': customer_currency}, 'gain_lost_account')
                     if total_diff != 0.0000:
                         je.append("accounts", {
-                            "account": "48900 GAIN PERTE - DEVISE US - SHI",
+                            "account": gain_lost_account,  #"48900 GAIN PERTE - DEVISE US - SHI",
                             "exchange_rate": 1,
                             field: round(total_diff, 2),
                             "project": self.project,
