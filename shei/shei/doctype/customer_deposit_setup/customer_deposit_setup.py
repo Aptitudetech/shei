@@ -5,6 +5,11 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from erpnext import get_default_currency
 
 class CustomerDepositSetup(Document):
-	pass
+	def validate(self):
+		for dba in self.deposit_bank_account_list:
+			if dba.currency != get_default_currency():
+				dba.multi_currency = True
+
