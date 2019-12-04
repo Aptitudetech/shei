@@ -199,7 +199,8 @@ class CustomerDeposit(Document):
         customer_currency = frappe.db.get_value("Customer", {'name': self.customer}, "default_currency")
         if not customer_currency:
             customer_currency = 'CAD'
-        bank_account_info = frappe.db.get_value('Bank Account', { 'currency': customer_currency, 'is_deposit_account': True}, '*', as_dict=True)
+        bank_account_info = frappe.db.get_value('Deposit and Bank Account based on Currency', {
+            'parent': 'Customer Deposit Setup', 'currency': customer_currency}, '*', as_dict=True)
         multi_currency = self.check_if_multi_currency(customer_currency)
         je = frappe.new_doc("Journal Entry")
         json_update = {
