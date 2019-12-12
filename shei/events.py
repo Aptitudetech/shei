@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 import frappe
-import types
 import json
 import datetime
 import unidecode
@@ -11,7 +10,6 @@ from datetime import timedelta
 from datetime import datetime
 from datetime import date
 from frappe import _
-from frappe.model.naming import make_autoname
 from frappe.utils import nowdate, add_to_date, flt, now_datetime
 from erpnext.accounts.utils import get_fiscal_year
 from erpnext import get_default_currency
@@ -82,25 +80,12 @@ def on_quotation_before_save(doc, handler=None):
         create_panel_items(doc)
         create_other_item(doc)
         create_graphical_item(doc)
-        # remove_unused_item(doc)
         update_doc_totals(doc)
-        # set_old_value(doc)
     for idx, item in enumerate(doc.items, 1):
         item.idx = idx
     doc.run_method('set_missing_values')
     doc.run_method('set_missing_item_details')
     doc.run_method('calculate_taxes_and_totals')
-
-
-# def set_old_value(doc):
-#     for panel in doc.panel_list:
-#         back_item = frappe.db.get_value('Dropdown Options', {'option_label': panel.back, 'variable_name':'back', 'doctype_type':'Price Configurator Item'}, 'related_item')
-#         panel.old_back_item = back_item
-#         cut_item = frappe.db.get_value('Dropdown Options', {'option_label': panel.cut, 'variable_name':'cut', 'doctype_type':'Price Configurator Item'}, 'related_item')
-#         panel.old_cut_item = cut_item
-#         thickness_item = frappe.db.get_value('Dropdown Options', {'option_label': panel.thickness, 'variable_name':'thickness', 'doctype_type':'Price Configurator Item'}, 'related_item')
-#         panel.old_thickness_item = thickness_item
-#         panel.old_aluminum_item = panel.aluminum_item
 
 
 def add_item_to_list(doc, item_code, item_name, base_rate, qty, panel_id="", height="", width=""):
@@ -259,37 +244,6 @@ def create_zclip_item(doc, panel):
         zclip_qty = get_zclip_qty(panel, doc.measurement)
         zclip_price = calculate_zclip_price(panel, doc.measurement)
         add_update_quotation_item(doc, zclip_item, zclip_item, zclip_price, zclip_qty, panel.panel_id)
-
-
-# def remove_unused_item(doc):
-#     backup_panels = doc.get("__onload").backup_panels
-#
-#
-#     for panel in doc.panel_list:
-#         for item in doc.get('items', {'reference_panel': panel.panel_id}):
-#             if item.reference_panel:
-#                 if item.reference_panel == panel.panel_id:
-#                     back_item = frappe.db.get_value('Dropdown Options',
-#                                                     {'option_label': panel.back, 'variable_name': 'back',
-#                                                      'doctype_type': 'Price Configurator Item'}, 'related_item')
-#                     cut_item = frappe.db.get_value('Dropdown Options',
-#                                                    {'option_label': panel.cut, 'variable_name': 'cut',
-#                                                     'doctype_type': 'Price Configurator Item'}, 'related_item')
-#                     thickness_item = frappe.db.get_value('Dropdown Options',
-#                                                          {'option_label': panel.thickness, 'variable_name': 'thickness',
-#                                                           'doctype_type': 'Price Configurator Item'}, 'related_item')
-#                     if (panel.old_cut_item == item.item_code) and (cut_item != panel.old_cut_item):
-#                         if item in doc.items:
-#                             doc.items.remove(item)
-#                     if (panel.old_thickness_item == item.item_code) and (thickness_item != panel.old_thickness_item):
-#                         if item in doc.items:
-#                             doc.items.remove(item)
-#                     if (panel.old_back_item == item.item_code) and (back_item != panel.old_back_item):
-#                         if item in doc.items:
-#                             doc.items.remove(item)
-#                     if (panel.old_aluminum_item == item.item_code) and (panel.aluminum_item != panel.old_aluminum_item):
-#                         if item in doc.items:
-#                             doc.items.remove(item)
 
 
 def add_update_quotation_item(doc, item_code, item_name, base_rate, qty, panel_id="", height="", width=""):

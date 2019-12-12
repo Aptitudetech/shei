@@ -29,16 +29,6 @@ frappe.ui.form.on("Customer Deposit", "refresh", function(frm) {
                 });
             });
         }
-//        frm.add_custom_button(__("Update Posting Date"), function() {
-//                frappe.call({
-//                        method: "update_posting_date",
-//                        'doc': frm.doc,
-//                        args: {
-//                        },
-//                        callback: function(r) {
-//                        }
-//                });
-//        });
     });
 
 frappe.ui.form.on("Customer Deposit", "project", function(frm, cdt, cdn) {
@@ -53,12 +43,4 @@ frappe.ui.form.on("Customer Deposit", "project", function(frm, cdt, cdn) {
                 }
         });
 });
-
-cur_frm.fields_dict['project'].get_query = function(doc, cdt, cdn) {
-
-        return{
-                query: "erpnext.controllers.queries.get_project_name",
-                filters: {'customer': doc.customer}
-        }
-}
 

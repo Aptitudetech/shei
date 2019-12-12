@@ -104,7 +104,7 @@ class ReceivablePayableReport(object):
 			if self.is_receivable_or_payable(gle, dr_or_cr, future_vouchers):
 				outstanding_amount, credit_note_amount = self.get_outstanding_amount(gle, 
 					self.filters.report_date, dr_or_cr, return_entries, currency_precision)
-				if outstanding_amount > 0.01: #and abs(outstanding_amount) > 0: #/10**currency_precision:
+				if abs(outstanding_amount) > 0.1/10**currency_precision: #and abs(outstanding_amount) > 0: #/10**currency_precision:
 					row = [gle.posting_date, gle.party]
 					# customer / supplier name
 					if party_naming_by == "Naming Series":
@@ -150,9 +150,7 @@ class ReceivablePayableReport(object):
 					
 					#row.append(gle.remarks)
 					if self.filters.get("advance_payment") == "Only CD-":
-						if not gle.against_voucher:
-							gle.against_voucher = ""
-						if "CD-" in gle.voucher_no or "CD-" in gle.against_voucher:
+						if "CD-" in gle.voucher_no:
 							if "USD" == gle.account_currency:
 								data.append(row)
 					elif self.filters.get("advance_payment") == "Remove CD-":
