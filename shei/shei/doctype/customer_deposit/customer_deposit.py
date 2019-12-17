@@ -51,7 +51,7 @@ class CustomerDeposit(Document):
             })
 
     def apply_customer_deposit(self):
-        default_cost_center = frappe.db.get_value('Customer Deposit Setup', 'Customer Deposit Setup',
+        default_cost_center = frappe.db.get_value('Bank Account Setup', 'Bank Account Setup',
                                                   'default_cost_center')
         if not self.customer_deposit_application:
             customer_currency = frappe.db.get_value("Customer", {'name': self.customer}, "default_currency")
@@ -145,7 +145,7 @@ class CustomerDeposit(Document):
                     else:
                         field = "credit_in_account_currency"
                     gain_lost_account = frappe.db.get_value('Deposit and Bank Account based on Currency',
-                                                            {'parent': 'Customer Deposit Setup',
+                                                            {'parent': 'Bank Account Setup',
                                                              'currency': customer_currency}, 'gain_lost_account')
                     if total_diff != 0.0000:
                         je.append("accounts", {
@@ -202,13 +202,13 @@ class CustomerDeposit(Document):
                 _("The currency of customer {0} is not supported by this module at this time.").format(self.customer))
 
     def on_submit(self):
-        customer_deposit_defaults = frappe.db.get_value('Customer Deposit Setup', 'Customer Deposit Setup',
+        customer_deposit_defaults = frappe.db.get_value('Bank Account Setup', 'Bank Account Setup',
                                                         '*', as_dict=True)
         customer_currency = frappe.db.get_value("Customer", {'name': self.customer}, "default_currency")
         if not customer_currency:
             customer_currency = 'CAD'
         bank_account_info = frappe.db.get_value('Deposit and Bank Account based on Currency', {
-            'parent': 'Customer Deposit Setup', 'currency': customer_currency}, '*', as_dict=True)
+            'parent': 'Bank Account Setup', 'currency': customer_currency}, '*', as_dict=True)
         multi_currency = self.check_if_multi_currency(customer_currency)
         je = frappe.new_doc("Journal Entry")
         json_update = {

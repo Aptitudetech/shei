@@ -11,15 +11,21 @@ frappe.ui.form.on("Address", "refresh", function(frm, cdt, cdn) {
 //Quotation
 frappe.ui.form.on('Quotation', {
 	customer_deposit: function(frm, cdt, cdn) {
-		if(frm.doc.customer_deposit){
+		if(frm.doc.customer_deposit)
+		{
+			frappe.model.set_value(cdt, cdn, "naming_series", "PFI-");
+			frappe.model.set_value(cdt, cdn, "quotation_mode", "Standard");
 			frm.set_df_property('project', 'reqd', 1);
 		}
-       	 	else{
+		else
+		{
+			frappe.model.set_value(cdt, cdn, "naming_series", "QTN-");
+			frappe.model.set_value(cdt, cdn, "quotation_mode", "Price Configurator");
 			frm.set_df_property('project', 'reqd', 0);
 		}
 	},
 	quotation_mode: function(frm, cdt, cdn) {
-	    if(frm.doc.quotation_mode == 'Price Configurator'){
+	    if(frm.doc.quotation_mode === 'Price Configurator'){
 			frm.set_df_property('items', 'reqd', 0);
 			frm.set_df_property('measurement', 'reqd', 1);
 	    }
@@ -33,18 +39,6 @@ frappe.ui.form.on('Quotation', {
         if (!d.total_av_nuts) return;
    	    frappe.model.set_value(cdt, cdn, "total_tools", 1);
 	    refresh_field("total_tools");
-	},
-	customer_deposit: function(frm, cdt, cdn) {
-		if(frm.doc.customer_deposit == 1)
-		{
-			frappe.model.set_value(cdt, cdn, "naming_series", "PFI-");
-			frappe.model.set_value(cdt, cdn, "quotation_mode", "Standard");
-		}
-		else
-		{
-			frappe.model.set_value(cdt, cdn, "naming_series", "QTN-");
-			frappe.model.set_value(cdt, cdn, "quotation_mode", "Price Configurator");
-		}
 	},
 	refresh: function(frm, cdt, cdn) {
 		frappe.call({
@@ -62,7 +56,7 @@ frappe.ui.form.on('Quotation', {
 				}
 		});
 
-		if(frm.doc.quotation_mode == 'Price Configurator'){
+		if(frm.doc.quotation_mode === 'Price Configurator'){
 			frm.set_df_property('items', 'reqd', 0);
 			frm.set_df_property('measurement', 'reqd', 1);
 		}
@@ -93,7 +87,7 @@ frappe.ui.form.on('Quotation', {
 				quotation_to: frm.doc.quotation_to
 			},
 			callback: function(r) {
-				if (r.message != " ") {
+				if (r.message !== " ") {
 					frappe.model.set_value(cdt, cdn, "tc_name", r.message);
 				}
 			}
@@ -127,10 +121,129 @@ frappe.ui.form.on('Quotation', {
 			});
 		}
 	},
-
+	// display_lost_reason: function(frm){
+    //     let dialog = new frappe.ui.Dialog({
+	// 		title: __("Set as Lost"),
+	// 		fields: [
+	// 			{"fieldname": 'lost_reason', 'fieldtype': 'Link',  'options': 'Lost Reason', 'reqd': 1, label: __("Lost Reason")},
+	// 			{'fieldname': 'other_reason', fieldtype: 'Small Text', label: __('Other Reason'), 'depends_on': "eval:doc.lost_reason === 'RL0008'"}
+	// 		],
+	// 		primary_action: function() {
+	// 			var values = dialog.get_values();
+	// 			let reason_description = frappe.db.get_value("Lost Reason", values["lost_reason"], 'lost_reason');
+	//
+	// 			reason_description.then(function(value){
+	// 				let lost_reason = value['message']['lost_reason'];
+	// 				let full_reason = lost_reason;
+	// 				if(values["lost_reason"] == 'RL0008'){
+	// 					if(values["other_reason"] == null ){
+	// 						frappe.throw("You must write a reason before proceeding");
+	// 					}
+	// 					else{
+	// 						full_reason = full_reason + " - " + values["other_reason"];
+	// 					}
+	// 				}
+	// 				frm.call({
+	// 					method: 'declare_order_lost',
+	// 					doc: frm.doc,
+	// 					args: {
+	// 						'reason': full_reason
+	// 					},
+	// 					callback: function(r) {
+	// 						dialog.hide();
+	// 						frm.reload_doc();
+	// 					},
+	// 				});
+	// 				refresh_field("quote_lost_reason");
+	// 			});
+	// 		},
+	// 		primary_action_label: __('Declare Lost')
+	// 	});
+	//
+	// 	dialog.show();
+	// 	dialog.get_input('lost_reason').on('awesomplete-selectcomplete', function(e){
+	// 		setTimeout(function(){
+    //     			dialog.refresh();
+    // 			}, 500);
+	// 	});
+    // }
 });
 
+
+//
+// frappe.ui.form.on('Price Configurator Item', {
+// 	before_panel_list_remove: function(frm, cdt, cdn) {
+//    	    var deleted_row = frappe.get_doc(cdt, cdn);
+// 	    var filtered = cur_frm.doc.items.filter(elem => elem['reference_panel'] == deleted_row['panel_id']);
+// 	    filtered.forEach(function(element) {
+// 		frappe.model.remove_from_locals('Quotation Item', element.name);
+// 	    });
+// 	    refresh_field("items");
+// 	},
+// 	aluminum_item: function(frm, cdt, cdn){
+//         var d = locals[cdt][cdn];
+//         if (!d.aluminum_item) return;
+// 		if(d.panel_id == null || d.panel_id.value.length == 0){
+// 			frappe.call({
+// 				method: "shei.sheipy.set_panel_uuid",
+// 				args:{},
+//         		callback: function(r) {
+// 				frappe.model.set_value(cdt, cdn, "panel_id", r.message);
+// 			}
+//       		})
+// 	}
+//     },
+// });
+//
+//
+// frappe.ui.form.on("Quotation Item", {
+// 	item_code: function(frm, cdt, cdn) {
+// 		var ct = locals[cdt][cdn];
+// 		setTimeout(function(){
+// 			frappe.call({
+// 				method: "multilingual_extension.item_description.fetch_item_description",
+// 				args:{
+// 					party_name: frm.doc.party_name,
+// 					quotation_to: frm.doc.quotation_to,
+// 					item_code: ct.item_code,
+// 					},
+// 				callback: function(r) {
+// 				frappe.model.set_value(cdt, cdn, "description", r.message);
+// 				}
+// 			})
+// 		}, 1000);
+// 	}
+// });
+//
+//
+//Will overwrite the QuotationController - used to change 'Set as lost' button behavior
+// erpnext.selling.CustomQuotationController = erpnext.selling.QuotationController.extend({
+//     refresh: function(doc, dt, dn) {
+// 		this._super(doc, dt, dn);
+// 		//the button should only be available if the quote is 'Submit'
+// 		if(doc.docstatus == 1 && doc.status!=='Lost') {
+// 			if(doc.status!=="Ordered") {
+// 				this.frm.remove_custom_button(__('Set as Lost'));
+// 				this.frm.add_custom_button(__('Set as Lost'), () => {
+// 					this.frm.trigger('display_lost_reason');
+// 				});
+// 			}
+// 		}
+// 	}
+// });
+//
+// cur_frm.script_manager.make(erpnext.selling.CustomQuotationController);
+
+
 //Sales Invoice
+frappe.ui.form.on("Sales Invoice Credit Notes", "credits_remove", function(frm, cdt, cdn){
+    frm.doc.total_credits = 0.0;
+    frm.doc.credits.forEach(function(row){
+      frm.doc.total_credits += row.allocated_amount;
+    });
+    frm.refresh_field("total_credits");
+});
+
 frappe.ui.form.on("Sales Invoice", {
 	refresh: function(frm, cdt, cdn) {
 		frm.add_custom_button(__("Update Item Description"), function () {
@@ -183,16 +296,293 @@ frappe.ui.form.on("Sales Invoice", {
 });
 
 //Project
-//Customer
-// Sales Order
-// Delivery note
-// Bank Account
-// Suppplier
-// Terms and condition
-// Stock entry
-// Purchase Invoice
-// Payment Entry
+frappe.ui.form.on('Project', {
+    update_task_order: function(frm) {
+        var tasks = cur_frm.doc.tasks;
+		tasks.forEach(function(element) {
+			element.task_order = element.idx;
+        });
+		frappe.msgprint("Please save the document to apply the changes");
+    },
+	date_ready_for_production: function(frm, cdt, cdn){
+        if (!frm.doc.date_ready_for_production) return;
+		if(!frm.doc.expected_end_date){
+			var exp_end_date = frappe.datetime.add_days(frm.doc.date_ready_for_production, 42);
+	        frappe.model.set_value(cdt, cdn, 'expected_end_date', exp_end_date);
+		}
+    },
+	onload: function(frm, cdt, cdn) {
+		frappe.call({
+			method: "shei.sheipy.on_project_onload",
+			args: {
+				project_name: frm.doc.name,
+			},
+			callback: function (r) {
+				frm.doc.project_amount_from_so = r.message;
+				frm.refresh_field("project_amount_from_so");
+				frm.refresh_field("tasks");
+				frm.doc.__unsaved = false;
+				frm.toolbar.refresh();
+			}
+		});
+	},
+	customer: function(frm, cdt, cdn) {
+		if (frm.doc.customer) {
+			frappe.call({
+				method: "shei.sheipy.get_sales_person_from_customer",
+				args: {
+					dt: cdt,
+					customer_name: frm.doc.customer,
+					project: frm.doc.name,
+				},
+				callback: function (r) {
+				}
+			});
+			frappe.call({
+				method: "shei.sheipy.change_project_name",
+				args: {
+					dt: cdt,
+					project_name: frm.doc.name,
+					customer_name: frm.doc.customer,
+				},
+				callback: function (r) {
+					if (r.message) {
+						frappe.set_route("Form", "Project", r.message);
+					}
+				}
+			});
+		}
+	},
+	refresh: function(frm, cdt, cdn) {
+		if (frm.doc.sub_type) {
+			frm.add_custom_button(__("Get Tasks from template"), function () {
+				frappe.call({
+					'method': 'shei.shei.doctype.task_template.task_template.get_all_task_template_from_sub_type',
+					'args': {
+						'sub_type': frm.doc.sub_type
+					},
+					'callback': function (res) {
+						var tasks = cur_frm.doc.tasks;
+						var task_order = tasks.length + 1;
+						res.message.forEach(function (element) {
+							cur_frm.add_child("tasks", {
+								'title': element.name,
+								'status': 'Open',
+								'assigned_to': element.assigned_to,
+								'task_order': task_order,
+								'idx': task_order
+							});
+							task_order++;
+						});
+						refresh_field("tasks");
+					}
+				});
+			});
+		}
+	}
+});
 
+//
+//
+// frappe.ui.form.on('Project Task', {
+//     status: function(frm, cdt, cdn){
+//         var d = locals[cdt][cdn];
+//         if (!d.status) return;
+// 	if(d.status == "Closed"){
+// 	        frappe.model.set_value(cdt, cdn, 'end_date', frappe.datetime.get_today());
+// 	}
+//     }
+// });
+//
+// frappe.ui.form.on('Crate Information', {
+//     crate_gross_weight: function(frm, cdt, cdn){
+//         var d = locals[cdt][cdn];
+//         if (!d.crate_gross_weight) return;
+//         frappe.model.set_value(cdt, cdn, 'crate_net_weight', d.crate_gross_weight - 100);
+//     }
+// });
+
+//Customer
+frappe.ui.form.on("Customer", {
+	refresh: function() {
+		cur_frm.add_custom_button("Sales History", function () {
+			frappe.route_options = {'customer': cur_frm.doc.name};
+			frappe.set_route("List", "Sales History");
+		});
+	},
+	default_currency: function(frm, cdt, cdn) {
+		if (frm.doc.default_currency == "USD") {
+			frm.doc.accounts = [];
+			var row = frappe.model.add_child(cur_frm.doc, "Party Account", "accounts");
+			row.company = "Systeme Huntingdon Inc";
+			row.account = "12150 COMPTES CLIENTS US (ERP) - SHI";
+		} else {
+			frm.doc.accounts = [];
+		}
+		refresh_field("accounts");
+	},
+});
+
+// $.extend(erpnext.utils, {
+//         set_party_dashboard_indicators: function(frm){
+//                 if (frm.doc.__onload && frm.doc.__onload.dashboard_info){
+//                         var info = frm.doc.__onload.dashboard_info;
+//                         frm.dashboard.add_indicator(__('Last Year Billing: {0}',
+//                                 [format_currency(info.billing_last_year, info.currency)]), 'blue')
+// 			frm.dashboard.add_indicator(__('This Year Billing: {0}',
+//                                 [format_currency(info.billing_this_year, info.currency)]), 'blue')
+//                         frm.dashboard.add_indicator(__('Total Unpaid: {0}',
+//                                 [format_currency(info.total_unpaid, info.currency)]),
+//                                 info.total_unpaid ? 'orange': 'green');
+//                 }
+//         }
+// });
+
+// Sales Order
+frappe.ui.form.on('Sales Order', {
+    refresh: function(frm) {
+		  frm.add_custom_button(__('Work Order'), function(){
+			var checked_items =  cur_frm.fields_dict.items.grid.get_selected_children().map(function(r){return r}); //list all checked instance
+			frappe.call({
+				method: 'shei.events.create_work_order',
+				args: {
+					mfg_items : checked_items,
+					so_name : frm.docname,
+				},
+				callback: function() { }
+			});
+
+		}, __("Make"));
+		frm.add_custom_button(__('Latest Work Order'), function(){
+			var checked_items =  cur_frm.fields_dict.items.grid.get_selected_children().map(function(r){return r}); //list all checked instance
+			frappe.call({
+				method: 'shei.events.update_work_order',
+				args: {
+					mfg_items : checked_items,
+					so_name : frm.docname,
+					work_order_name: cur_frm.doc.work_orders[cur_frm.doc.work_orders.length - 1].link_name,
+				},
+				callback: function() { }
+			});
+		}, __("Update"));
+  	},
+	customer: function(frm, cdt, cdn) {
+		frappe.call({
+			method: "multilingual_extension.get_terms_and_conditions.get_terms_and_conditions",
+			args:{
+				party_name: frm.doc.customer,
+				quotation_to: "Customer"
+			},
+			callback: function(r) {
+				if (r.message !== " ") {
+					frappe.model.set_value(cdt, cdn, "tc_name", r.message);
+				}
+			}
+		});
+	}
+});
+
+// Bank Account
+frappe.ui.form.on('Bank Account', {
+	refresh: function(frm) {
+		frm.set_query('deposit_account', function (doc) {
+			return {
+				'filters': {
+					'company': frm.doc.company
+				}
+			}
+		})
+	}
+});
+// Suppplier
+// $.extend(erpnext.utils, {
+//         set_party_dashboard_indicators: function(frm){
+//                 if (frm.doc.__onload && frm.doc.__onload.dashboard_info){
+//                         var info = frm.doc.__onload.dashboard_info;
+//                         frm.dashboard.add_indicator(__('Last Year Billing: {0}',
+//                                 [format_currency(info.billing_last_year, info.currency)]), 'blue')
+// 			frm.dashboard.add_indicator(__('This Year Billing: {0}',
+//                                 [format_currency(info.billing_this_year, info.currency)]), 'blue')
+//                         frm.dashboard.add_indicator(__('Total Unpaid: {0}',
+//                                 [format_currency(info.total_unpaid, info.currency)]),
+//                                 info.total_unpaid ? 'orange': 'green');
+//                 }
+//         }
+// });
+
+// Stock entry
+frappe.ui.form.on("Stock Entry", {
+	refresh: function(frm, cdt, cdn) {
+		frm.add_custom_button(__("Get Items from Sales Order"), function () {
+			if (frm.doc.from_warehouse && frm.doc.to_warehouse && (frm.doc.purpose == "Material Transfer")) {
+				frappe.call({
+					method: "shei.sheipy.fetch_items_from_so",
+					args: {
+						so: frm.doc.sales_order,
+					},
+					callback: function (r) {
+						if (!r.message) {
+							frappe.throw(__("Sales Order does not contain any stock item"))
+						} else {
+							$.each(r.message, function (item, value) {
+								var d = frappe.model.add_child(cur_frm.doc, "Stock Entry Detail", "items");
+								d.item_code = item;
+								d.s_warehouse = frm.doc.from_warehouse;
+								d.t_warehouse = frm.doc.to_warehouse;
+								d.qty = value;
+								d.uom = 'Unit';
+								d.conversion_factor = 1;
+								d.transfer_qty = value;
+							});
+						}
+						frm.refresh_field("items");
+					}
+				});
+			} else {
+				msgprint("From and To warehouses are mandatory and Purpose must be Material Transfer");
+			}
+		});
+	}
+});
+// Purchase Invoice
+frappe.ui.form.on("Purchase Invoice", {
+	bill_date: function(frm, cdt, cdn) {
+		if (frm.doc.bill_date) {
+			frappe.call({
+				method: "shei.sheipy.get_due_date",
+				args: {
+					supplier: frm.doc.supplier,
+					bill_date: frm.doc.bill_date
+				},
+				callback: function (r) {
+					if (r.message) {
+						cur_frm.set_value("due_date", new Date(r.message));
+					}
+				}
+			});
+		}
+	}
+});
+// Payment Entry
+frappe.ui.form.on("Payment Entry", {
+	refresh: function(frm, cdt, cdn) {
+		frm.add_custom_button(__("Reserve cheque number"), function () {
+			if (frm.doc.mode_of_payment == "Cheque CDN" || frm.doc.mode_of_payment == "Cheque USD") {
+				frappe.call({
+					method: "shei.advance_payment.get_cheque_series",
+					args: {
+						account: frm.doc.paid_from,
+					},
+					callback: function (r) {
+						frappe.model.set_value(cdt, cdn, "reference_no", r.message);
+					}
+				});
+			} else {
+				msgprint("You must select 'cheque' as a mode of payment to use this button");
+			}
+		});
+	}
+});
 
 //Global
 frappe.ui.form.AssignToDialog = frappe.ui.form.AssignToDialog.extend({
