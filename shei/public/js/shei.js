@@ -414,14 +414,26 @@ frappe.ui.form.on("Customer", {
 		if (frm.doc.default_currency == "USD") {
 			frm.doc.accounts = [];
 			var row = frappe.model.add_child(cur_frm.doc, "Party Account", "accounts");
-			row.company = "Systeme Huntingdon Inc";
-			row.account = "12150 COMPTES CLIENTS US (ERP) - SHI";
+			row.company = frappe.defaults.get_default("Company");
+			/*TODO need to to a frappe call to make this happen*/
+
+			// frappe.db.get_value('Bank Account by Currency',
+			// 	{'parenttype': 'Bank Account Setup', 'parent': 'Bank Account Setup', 'currency': frm.doc.default_currency},
+			// 	'bank_account',
+			// 	function(r){
+			// 		if(r.bank_account) {
+			// 				row.account = r.bank_account
+			// 		}
+			// 	});
+			//row.account = "12150 COMPTES CLIENTS US (ERP) - SHI";
 		} else {
 			frm.doc.accounts = [];
 		}
 		refresh_field("accounts");
 	},
 });
+
+
 
 // $.extend(erpnext.utils, {
 //         set_party_dashboard_indicators: function(frm){
