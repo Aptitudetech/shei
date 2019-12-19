@@ -695,6 +695,20 @@ def on_customer_after_insert(doc, handler=None):
         )
 
 
+def on_customer_before_save(doc, handler=None):
+    if doc.is_new():
+        pass
+    address_name = frappe.db.get_value('Dynamic Link',
+                               {'parenttype': 'Address', 'link_doctype': 'Customer', 'link_name': doc.name},
+                               ['parent'])
+    if address_name:
+        country = frappe.db.get_value('Address', address_name, ['country'])
+        if (doc.default_currency == 'USD' and country != 'United States') or (doc.default_currency == 'CAD' and country != 'Canada'):
+            frappe.msgprint(_(
+                "The country doesn't seems to match the currency. Please make sure the right currency have been enter"),
+                            indicator='orange', title=_('Warning'))
+
+
 @frappe.whitelist()
 def get_credit_notes(doctype, party_type, party_name):
     sql = """

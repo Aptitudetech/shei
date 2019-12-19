@@ -79,7 +79,10 @@ doc_events = {
         ],
         'after_insert': [
             'shei.events.on_customer_after_insert'
-        ]
+        ],
+        'before_save': [
+            'shei.events.on_customer_before_save'
+        ],
     },
     'Issue': {
         'before_save': [

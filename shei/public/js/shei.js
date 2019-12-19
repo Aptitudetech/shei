@@ -411,25 +411,28 @@ frappe.ui.form.on("Customer", {
 		});
 	},
 	default_currency: function(frm, cdt, cdn) {
-		if (frm.doc.default_currency == "USD") {
+		if (frm.doc.default_currency === "USD") {
 			frm.doc.accounts = [];
-			var row = frappe.model.add_child(cur_frm.doc, "Party Account", "accounts");
-			row.company = frappe.defaults.get_default("Company");
-			/*TODO need to to a frappe call to make this happen*/
-
-			// frappe.db.get_value('Bank Account by Currency',
-			// 	{'parenttype': 'Bank Account Setup', 'parent': 'Bank Account Setup', 'currency': frm.doc.default_currency},
-			// 	'bank_account',
-			// 	function(r){
-			// 		if(r.bank_account) {
-			// 				row.account = r.bank_account
-			// 		}
-			// 	});
-			//row.account = "12150 COMPTES CLIENTS US (ERP) - SHI";
+			frappe.call({
+				method: 'frappe.client.get_value',
+				args: {
+					doctype: 'Bank Account by Currency',
+					fieldname: ['name','bank_account'],
+					filters: {'parenttype': 'Bank Account Setup', 'currency': frm.doc.default_currency},
+					parent: 'Bank Account Setup'
+				},
+				callback: function(r){
+					var row = frappe.model.add_child(cur_frm.doc, "Party Account", "accounts");
+					row.company = frappe.defaults.get_default("Company");
+					if(r.message.bank_account) {
+						row.account = r.message.bank_account
+			 		}
+					refresh_field("accounts");
+				}
+			});
 		} else {
 			frm.doc.accounts = [];
 		}
-		refresh_field("accounts");
 	},
 });
 
