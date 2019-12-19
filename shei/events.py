@@ -707,7 +707,10 @@ def on_customer_before_save(doc, handler=None):
             frappe.msgprint(_(
                 "The country doesn't seems to match the currency. Please make sure the right currency have been enter"),
                             indicator='orange', title=_('Warning'))
-
+    if not doc.shipping_address_name:
+        frappe.msgprint(_(
+            "The Quotation doesn't have a shipping address"),
+            indicator='orange', title=_('Warning'))
 
 @frappe.whitelist()
 def get_credit_notes(doctype, party_type, party_name):
