@@ -73,10 +73,17 @@ def set_default_value_pc(doc):
         if not panel.thickness:
             panel.thickness = "Alto 1/8"
 
+def clear_item(doc):
+    items = doc.get('items', [])
+    doc.set('items', [])
+    for item in items:
+        if not item.reference_panel:
+            doc.append('items', item)
+
 
 def on_quotation_before_save(doc, handler=None):
     if doc.quotation_mode == 'Price Configurator':
-        doc.set('items', [])
+        clear_item(doc)
         create_panel_items(doc)
         create_other_item(doc)
         create_graphical_item(doc)
