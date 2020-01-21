@@ -377,6 +377,7 @@ fixtures = [
         "dt": "Print Format",
         "filters": {
             "name": ["in", [
+		"shei - Sink Top Label",
                 "shei - All Shipping Information",
                 "shei - PC Quotation",
                 "shei - Bill Of Lading",

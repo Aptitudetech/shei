@@ -12,6 +12,8 @@ from frappe.desk.notifications import get_filters_for
 @frappe.whitelist(allow_guest=True)
 def make_stock_entry():
     return 'test OKOK2'
+#t123567
+
 
 #@frappe.whitelist()
 #def get_open_count(doctype, name, links):

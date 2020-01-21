@@ -5,7 +5,9 @@ frappe.require("assets/erpnext/js/financial_statements.js", function() {
 	frappe.query_reports["Profit and Loss Statement SHEI"] = $.extend({},
 		erpnext.financial_statements);
 
-	var periodicity = frappe.utils.filter_dict(frappe.query_reports['Profit and Loss Statement SHEI']['filters'], {'fieldname': 'periodicity'})[0];
+	var periodicity = frappe.utils.filter_dict(
+		frappe.query_reports['Profit and Loss Statement SHEI']['filters'],
+		{'fieldname': 'periodicity'})[0];
 	var today = new Date();
 	var lastDayOfPreviousMonth = new Date(today.getFullYear(), today.getMonth()+1, 0);
 	if(lastDayOfPreviousMonth.getDate() != today.getDate()){
@@ -35,7 +37,7 @@ frappe.require("assets/erpnext/js/financial_statements.js", function() {
 		{'value': 'Quarterly_1,2', 'label': __('1-2 Quarters')},
 		{'value': 'Quarterly_1,2,3', 'label': __('1-3 Quarters')}
 	];
-
+	periodicity.default = "Monthly";
 	frappe.query_reports["Profit and Loss Statement SHEI"]["filters"].push(
 		{
 			"fieldname":"cost_center",

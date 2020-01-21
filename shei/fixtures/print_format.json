@@ -574,5 +574,29 @@
   "print_format_type": "Server", 
   "show_section_headings": 1, 
   "standard": "No"
+ }, 
+ {
+  "align_labels_right": 0, 
+  "css": null, 
+  "custom_format": 0, 
+  "default_print_language": "en", 
+  "disabled": 0, 
+  "doc_type": "Item", 
+  "docstatus": 0, 
+  "doctype": "Print Format", 
+  "font": "Default", 
+  "format_data": "[{\"fieldname\": \"print_heading_template\", \"fieldtype\": \"Custom HTML\", \"options\": \"\"}, {\"fieldtype\": \"Section Break\", \"label\": \"\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"options\": \"{% set supplier = frappe.get_doc('Item Supplier', {'parent':doc.name, 'parenttype':'Item'}) %}\\n{% set prj_no = supplier.supplier_part_no.split('-') %}\\n{% set project_name = \\\"(%s)%s\\\"|format(prj_no[0], supplier.supplier) %}\\n{% set supplier_items = frappe.get_list('Item Supplier', {'supplier':supplier.supplier, 'supplier_part_no': ('LIKE', '{0}-%'.format(prj_no[0]))}, '*') %}\\n{% set items = frappe.get_list('Item', {'item_group':'GENERAL - PRODUCTION - CUSTOMER SINKS'}, '*') %}\\n\\n<table style=\\\"text-align: left; width: 100%;\\\"  class=\\\"table-bordered\\\">\\n{% for si in supplier_items %}\\n    {% set outer_loop = loop %}\\n    {% for item in items if frappe.db.get_value('Item Supplier', {'parent':item.name, 'parenttype':'Item', 'name':si.name}, 'name') %}\\n\\t    {% if outer_loop.index0 % 3 == 0 %}\\n                <tr>\\n\\t    {% endif %}\\n            <td>\\n                <strong>{{project_name}}</strong> <br>\\n                TWO-TIER KITCHEN DISPLAY  !!!! <br>\\n                {% set part_no = supplier.supplier_part_no.split('-') %}\\n\\t\\t{{part_no[1]}} {{supplier.installation_type}} <br>\\n\\t\\t{{item.item_code}}\\n            </td>\\n            {% if outer_loop.index % 3 == 0 %}\\n                </tr>\\n\\t    {% endif %}\\n\\n    {% endfor %}\\n{% endfor %}\\n</table>\\n\", \"fieldname\": \"_custom_html\", \"fieldtype\": \"HTML\", \"label\": \"Custom HTML\"}]", 
+  "html": null, 
+  "line_breaks": 0, 
+  "modified": "2020-01-21 15:01:52.818299", 
+  "module": "Stock", 
+  "name": "shei - Sink Top Label", 
+  "parent": null, 
+  "parentfield": null, 
+  "parenttype": null, 
+  "print_format_builder": 0, 
+  "print_format_type": "Server", 
+  "show_section_headings": 0, 
+  "standard": "No"
  }
 ]
