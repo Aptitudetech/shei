@@ -40,16 +40,14 @@ def on_quotation_submit(doc, handler=""):
             frappe.throw(
                 _("You must enter a valid amount for the outsourced cut. panel id: {0}").format(panel.panel_id))
 
-
-def on_quotation_validate(doc, handler=None):
-    if doc.quotation_mode == 'Price Configurator':
-        set_default_value_pc(doc)
-        validate(doc)
+def validate_term_condition_on_quote(doc):
     tc = get_terms_and_conditions(doc.party_name, doc.quotation_to)
     if tc != doc.tc_name:
         frappe.msgprint(_("There's a difference in the terms and condition! <br> the one you're using: {0} <br> "
-                          "The one the system found: {1}").format(doc.tc_name, tc), indicator='orange', title=_('Warning'))
-    tax_template = _get_party_details(party=doc.party_name, party_type=doc.quotation_to, price_list=doc.selling_price_list,
+                          "The one the system found: {1}").format(doc.tc_name, tc), indicator='orange',
+                        title=_('Warning'))
+    tax_template = _get_party_details(party=doc.party_name, party_type=doc.quotation_to,
+                                      price_list=doc.selling_price_list,
                                       posting_date=doc.transaction_date,
                                       currency=doc.currency, company=doc.company, doctype="Quotation")
     if tax_template['taxes_and_charges'] != doc.taxes_and_charges:
@@ -57,6 +55,12 @@ def on_quotation_validate(doc, handler=None):
             "There's a difference in the taxes and charges! <br> the one you're using: {0} <br> The one the system found: {1}").format(
             doc.taxes_and_charges, tax_template['taxes_and_charges']), indicator='orange', title=_('Warning'))
 
+
+def on_quotation_validate(doc, handler=None):
+    if doc.quotation_mode == 'Price Configurator':
+        set_default_value_pc(doc)
+        validate(doc)
+    validate_term_condition_on_quote(doc)
 
 def set_default_value_pc(doc):
     for panel in doc.panel_list:
