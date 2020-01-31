@@ -9,6 +9,7 @@ frappe.ui.form.on("Address", "refresh", function(frm, cdt, cdn) {
 
 
 //Quotation
+
 frappe.ui.form.on('Quotation', {
 	customer_deposit: function(frm, cdt, cdn) {
 		if(frm.doc.customer_deposit)
