@@ -873,7 +873,8 @@ def create_work_order(so_name=None, mfg_items=[]):
     update_work_order(so_name, mfg_items, work_order.name)
     sales_order_doc.append('work_orders', {
         'link_doctype': 'SO Work Order',
-        'link_name': work_order_name
+        'link_name': work_order_name,
+        'link_title': so_name
     })
     sales_order_doc.flags.ignore_permissions = True
     sales_order_doc.save()
