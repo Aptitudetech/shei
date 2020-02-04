@@ -17,7 +17,7 @@
     "parentfield": "actions", 
     "parenttype": "Print Node Settings", 
     "print_format": "shei - Cheque BNC", 
-    "print_on": "Submit", 
+    "print_on": "", 
     "printable_type": "Print Format", 
     "printer": "Printer-WSHI03-HP LaserJet Professional P1102w", 
     "use_standard": 0
@@ -29,7 +29,7 @@
   "doctype": "Print Node Settings", 
   "hardware": "[{\"hw_name\": \"RDS\", \"status\": \"Disconnected\", \"hw_id\": 63483, \"hw_type\": \"Computer\", \"description\": \"b.lefebvre@RDS\"}, {\"hw_name\": \"WSHI03\", \"status\": \"Connected\", \"hw_id\": 64162, \"hw_type\": \"Computer\", \"description\": \"WSHI03$@WSHI03\"}, {\"hw_name\": \"PSH01\", \"status\": \"Online\", \"hw_type\": \"Printer\", \"computer\": \"RDS\", \"hw_id\": 430714, \"description\": \"HP LaserJet 700 color MFP M775 PCL 6\"}, {\"hw_name\": \"HP LaserJet Professional P1102w\", \"status\": \"Online\", \"hw_type\": \"Printer\", \"computer\": \"WSHI03\", \"hw_id\": 438028, \"description\": \"HP LaserJet Professional P1102w\"}, {\"hw_name\": \"PSH01 (HP LaserJet 700 color MFP M775)\", \"status\": \"Online\", \"hw_type\": \"Printer\", \"computer\": \"WSHI03\", \"hw_id\": 539737, \"description\": \"HP LaserJet 700 color MFP M775 PCL 6\"}, {\"hw_name\": \"Adobe PDF\", \"status\": \"Online\", \"hw_type\": \"Printer\", \"computer\": \"WSHI03\", \"hw_id\": 69025659, \"description\": \"Adobe PDF Converter\"}]", 
   "has_jobs": 0, 
-  "modified": "2018-08-06 16:49:29.062268", 
+  "modified": "2020-02-04 12:10:48.272206", 
   "name": "Print Node Settings", 
   "parent": null, 
   "parentfield": null, 

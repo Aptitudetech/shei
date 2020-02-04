@@ -94,6 +94,14 @@ doc_events = {
             'shei.events.on_request_for_quotation_validate'
         ],
     },
+    'Sales Order': {
+        'validate': [
+            'shei.events.on_sales_order_validate'
+        ],
+        'on_update_after_submit': [
+            'shei.events.on_sales_order_validate'
+        ],
+    },
     'Task': {
         'before_save': [
             'shei.events.on_task_before_save'

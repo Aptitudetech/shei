@@ -788,6 +788,21 @@ def on_sales_invoice_submit(doc, handler=None):
         doc.db_set('debit_note', je.name, update_modified=False)
 
 
+def on_sales_order_validate(doc, handler=None):
+    """Since this document can be updated after being submitted, both event
+    need to be called in order to work at all time"""
+    wo_names = frappe.db.get_all('SO Work Order', {'name': ('NOT LIKE', 'WO-{0}%'.format(doc.name.split('-')[1]))}, 'name')
+    link_wo_names = frappe.db.get_all('Dynamic Link', {'link_doctype':'SO Work Order', 'parenttype':'Sales Order', 'parent': ('NOT LIKE', doc.name)}, 'link_name')
+    found = False
+    for wo in wo_names:
+        for i in link_wo_names:
+            if i.link_name == wo.name:
+                found = True
+                break
+        if not found:
+            frappe.delete_doc('SO Work Order', wo.name)
+
+
 def before_sales_invoice_cancel(doc, handler=None):
     if doc.get("debit_note"):
         je = frappe.get_doc("Journal Entry", doc.debit_note)
@@ -808,10 +823,9 @@ def on_sales_invoice_validate(doc, handler=None):
             if user_restriction:
                 frappe.throw("You're not allowed to create invoices from here")
 
-
 @frappe.whitelist()
 def update_work_order(so_name=None, mfg_items=[], work_order_name=""):
-    '''Update the latest Work Order related to the given Sales Order'''
+    """Update the latest Work Order related to the given Sales Order"""
     items = []
     if not mfg_items:
         return None
