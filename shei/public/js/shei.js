@@ -483,18 +483,20 @@ frappe.ui.form.on('Sales Order', {
 		}, __("Update"));
   	},
 	customer: function(frm, cdt, cdn) {
-		frappe.call({
-			method: "multilingual_extension.get_terms_and_conditions.get_terms_and_conditions",
-			args:{
-				party_name: frm.doc.customer,
-				quotation_to: "Customer"
-			},
-			callback: function(r) {
-				if (r.message !== " ") {
-					frappe.model.set_value(cdt, cdn, "tc_name", r.message);
+    	if (!frm.doc.customer){
+			frappe.call({
+				method: "multilingual_extension.get_terms_and_conditions.get_terms_and_conditions",
+				args:{
+					party_name: frm.doc.customer,
+					quotation_to: "Customer"
+				},
+				callback: function(r) {
+					if (r.message !== " ") {
+						frappe.model.set_value(cdt, cdn, "tc_name", r.message);
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 });
 
