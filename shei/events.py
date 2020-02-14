@@ -21,6 +21,10 @@ from quotation_price_configurator import convert_measurement_to_foot, calculate_
     get_sample_with_order_price, get_graphic_design_price, get_color_match_price, get_matching_mural_price
 from multilingual_extension.get_terms_and_conditions import get_terms_and_conditions
 
+def on_item_before_save(doc, handler=None):
+    if not doc.item_description:
+        doc.append('item_description', {'item_description':doc.description, 'language':'en'})
+
 
 def on_request_for_quotation_validate(doc, handler=""):
     for item in doc.items:

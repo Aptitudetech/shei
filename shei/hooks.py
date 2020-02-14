@@ -89,6 +89,11 @@ doc_events = {
             'shei.events.on_issue_before_save'
         ],
     },
+    'Item': {
+        'before_save': [
+            'shei.events.on_item_before_save'
+        ],
+    },
     'Request for Quotation': {
         'validate': [
             'shei.events.on_request_for_quotation_validate'
