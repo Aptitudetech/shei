@@ -85,7 +85,8 @@ frappe.ui.form.on('Quotation', {
 			method: "multilingual_extension.get_terms_and_conditions.get_terms_and_conditions",
 			args:{
 				party_name: frm.doc.party_name,
-				quotation_to: frm.doc.quotation_to
+				quotation_to: frm.doc.quotation_to,
+				address: frm.doc.customer_address
 			},
 			callback: function(r) {
 				if (r.message !== " ") {
@@ -488,7 +489,8 @@ frappe.ui.form.on('Sales Order', {
 				method: "multilingual_extension.get_terms_and_conditions.get_terms_and_conditions",
 				args:{
 					party_name: frm.doc.customer,
-					quotation_to: "Customer"
+					quotation_to: "Customer",
+					address: frm.doc.customer_address
 				},
 				callback: function(r) {
 					if (r.message !== " ") {
