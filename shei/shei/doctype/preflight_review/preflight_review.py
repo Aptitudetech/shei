@@ -17,7 +17,7 @@ class PreflightReview(WebsiteGenerator):
 
 	def before_save(self):
 		if self.amended_from and self.docstatus == 0:
-			self.workflow_state = 'Pending'
+			#self.workflow_state = 'Pending'
 			self.pr_name = self.name
 			route = self.pr_name.replace(' ', '-').replace('(', '').replace(')', '')
 			self.route = "preflight-review/{0}".format(route)
